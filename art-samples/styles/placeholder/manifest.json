@@ -1,0 +1,196 @@
+{
+ "name": "Placeholder",
+ "background": "#18466e",
+ "filter": "linear",
+ "sprites": {
+  "deep_water": {
+   "files": [
+    "deep.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "shallow_water": {
+   "files": [
+    "shallow.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "sand": {
+   "files": [
+    "sand.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "grass": {
+   "files": [
+    "grass_0.png",
+    "grass_1.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "road": {
+   "files": [
+    "road.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "tree": {
+   "files": [
+    "tree.png"
+   ],
+   "anchor": [
+    64,
+    114
+   ]
+  },
+  "rock": {
+   "files": [
+    "rock.png"
+   ],
+   "anchor": [
+    64,
+    78
+   ]
+  },
+  "house": {
+   "files": [
+    "house.png"
+   ],
+   "anchor": [
+    64,
+    104
+   ]
+  },
+  "farmhouse": {
+   "files": [
+    "farmhouse.png"
+   ],
+   "anchor": [
+    64,
+    100
+   ]
+  },
+  "windmill": {
+   "files": [
+    "windmill.png"
+   ],
+   "anchor": [
+    64,
+    154
+   ]
+  },
+  "lumberjack": {
+   "files": [
+    "lumberjack.png"
+   ],
+   "anchor": [
+    64,
+    94
+   ]
+  },
+  "chapel": {
+   "files": [
+    "chapel.png"
+   ],
+   "anchor": [
+    128,
+    198
+   ]
+  },
+  "warehouse": {
+   "files": [
+    "warehouse.png"
+   ],
+   "anchor": [
+    128,
+    178
+   ]
+  },
+  "wheat_field": {
+   "files": [
+    "wheat_field.png"
+   ],
+   "anchor": [
+    128,
+    128
+   ],
+   "flat": true
+  },
+  "pier": {
+   "files": [
+    "pier.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ],
+   "flat": true
+  },
+  "ship": {
+   "files": [
+    "ship.png"
+   ],
+   "anchor": [
+    128,
+    228
+   ]
+  },
+  "cart": {
+   "files": [
+    "cart.png"
+   ],
+   "anchor": [
+    64,
+    76
+   ]
+  },
+  "colonist": {
+   "files": [
+    "colonist.png"
+   ],
+   "anchor": [
+    64,
+    88
+   ]
+  }
+ },
+ "overlays": [
+  {
+   "file": "ui_topbar.png",
+   "pos": [
+    0,
+    0
+   ],
+   "anchor": [
+    0,
+    0
+   ]
+  },
+  {
+   "file": "ui_panel.png",
+   "pos": [
+    24,
+    1056
+   ],
+   "anchor": [
+    0,
+    300
+   ]
+  }
+ ]
+}

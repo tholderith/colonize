@@ -1,0 +1,286 @@
+{
+ "_doc": "See art-samples/SPEC.md. terrain[y] is a row string; char index = x.",
+ "width": 20,
+ "height": 20,
+ "terrain_legend": {
+  "D": "deep_water",
+  "S": "shallow_water",
+  "B": "sand",
+  "G": "grass",
+  "R": "road"
+ },
+ "terrain": [
+  "DDDDDDDDDDDDDDDDDDDD",
+  "DDDDDDDSSSSDSSDDDDDD",
+  "DDDSSSSSBBSSSSSDDDDD",
+  "DDDSSSSBBBSSBSSDDDDD",
+  "DDSSSSBBGBBBBBSSDDDD",
+  "DSSBBBGGGGGGGGBSSSSD",
+  "SSBGGGGGGGGGGRGBBSSD",
+  "DSSBGGGGGGGGGRGBSSSD",
+  "SSBGGGGGGGGGGRGBBSSD",
+  "SSBGGRRRRRRRRRGGBBBS",
+  "SSBGGGGGGGGGGRGBBBSS",
+  "SSBGGGGGGGGGGRRRSSSD",
+  "SSBGGGGGGGGGGRGBBSSD",
+  "SSBGGGGGGGGGGGGBBBSD",
+  "DDSBBBBGGGGGGGBSSSSD",
+  "DDSSSSSBGBBBBBSSDDDD",
+  "DDSSSSSBBBBBBBSSDDDD",
+  "DDDSSSSSBBSSSSSDDDDD",
+  "DDDDDDDSSSDDDDDDDDDD",
+  "DDDDDDDDDDDDDDDDDDDD"
+ ],
+ "objects": [
+  {
+   "sprite": "wheat_field",
+   "x": 4,
+   "y": 6
+  },
+  {
+   "sprite": "wheat_field",
+   "x": 6,
+   "y": 6
+  },
+  {
+   "sprite": "wheat_field",
+   "x": 4,
+   "y": 10
+  },
+  {
+   "sprite": "farmhouse",
+   "x": 8,
+   "y": 6
+  },
+  {
+   "sprite": "windmill",
+   "x": 8,
+   "y": 7
+  },
+  {
+   "sprite": "house",
+   "x": 6,
+   "y": 8
+  },
+  {
+   "sprite": "house",
+   "x": 7,
+   "y": 8
+  },
+  {
+   "sprite": "house",
+   "x": 9,
+   "y": 8
+  },
+  {
+   "sprite": "house",
+   "x": 10,
+   "y": 8
+  },
+  {
+   "sprite": "house",
+   "x": 11,
+   "y": 8
+  },
+  {
+   "sprite": "house",
+   "x": 12,
+   "y": 8
+  },
+  {
+   "sprite": "house",
+   "x": 6,
+   "y": 10
+  },
+  {
+   "sprite": "house",
+   "x": 7,
+   "y": 10
+  },
+  {
+   "sprite": "house",
+   "x": 8,
+   "y": 10
+  },
+  {
+   "sprite": "house",
+   "x": 6,
+   "y": 12
+  },
+  {
+   "sprite": "house",
+   "x": 7,
+   "y": 12
+  },
+  {
+   "sprite": "house",
+   "x": 8,
+   "y": 12
+  },
+  {
+   "sprite": "chapel",
+   "x": 9,
+   "y": 10
+  },
+  {
+   "sprite": "warehouse",
+   "x": 11,
+   "y": 10
+  },
+  {
+   "sprite": "lumberjack",
+   "x": 11,
+   "y": 6
+  },
+  {
+   "sprite": "tree",
+   "x": 8,
+   "y": 4
+  },
+  {
+   "sprite": "tree",
+   "x": 9,
+   "y": 5
+  },
+  {
+   "sprite": "tree",
+   "x": 10,
+   "y": 5
+  },
+  {
+   "sprite": "tree",
+   "x": 11,
+   "y": 5
+  },
+  {
+   "sprite": "tree",
+   "x": 12,
+   "y": 5
+  },
+  {
+   "sprite": "tree",
+   "x": 10,
+   "y": 6
+  },
+  {
+   "sprite": "tree",
+   "x": 12,
+   "y": 6
+  },
+  {
+   "sprite": "tree",
+   "x": 12,
+   "y": 7
+  },
+  {
+   "sprite": "tree",
+   "x": 6,
+   "y": 5
+  },
+  {
+   "sprite": "tree",
+   "x": 7,
+   "y": 5
+  },
+  {
+   "sprite": "tree",
+   "x": 3,
+   "y": 12
+  },
+  {
+   "sprite": "tree",
+   "x": 4,
+   "y": 13
+  },
+  {
+   "sprite": "tree",
+   "x": 5,
+   "y": 13
+  },
+  {
+   "sprite": "tree",
+   "x": 3,
+   "y": 13
+  },
+  {
+   "sprite": "tree",
+   "x": 9,
+   "y": 12
+  },
+  {
+   "sprite": "tree",
+   "x": 10,
+   "y": 13
+  },
+  {
+   "sprite": "tree",
+   "x": 14,
+   "y": 7
+  },
+  {
+   "sprite": "tree",
+   "x": 14,
+   "y": 13
+  },
+  {
+   "sprite": "rock",
+   "x": 8,
+   "y": 15
+  },
+  {
+   "sprite": "rock",
+   "x": 15,
+   "y": 13
+  },
+  {
+   "sprite": "rock",
+   "x": 3,
+   "y": 8
+  },
+  {
+   "sprite": "pier",
+   "x": 16,
+   "y": 11
+  },
+  {
+   "sprite": "ship",
+   "x": 17,
+   "y": 11
+  },
+  {
+   "sprite": "ship",
+   "x": 2,
+   "y": 15
+  },
+  {
+   "sprite": "cart",
+   "x": 13,
+   "y": 8
+  },
+  {
+   "sprite": "cart",
+   "x": 10,
+   "y": 9
+  },
+  {
+   "sprite": "colonist",
+   "x": 7,
+   "y": 9
+  },
+  {
+   "sprite": "colonist",
+   "x": 13,
+   "y": 11
+  },
+  {
+   "sprite": "colonist",
+   "x": 15,
+   "y": 11
+  },
+  {
+   "sprite": "colonist",
+   "x": 5,
+   "y": 8
+  }
+ ]
+}

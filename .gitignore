@@ -1,0 +1,6 @@
+node_modules/
+target/
+dist/
+.godot/
+build/
+*.o
