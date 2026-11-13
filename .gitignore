@@ -4,3 +4,4 @@ dist/
 .godot/
 build/
 *.o
+art-samples/engines/browser/site/

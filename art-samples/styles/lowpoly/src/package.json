@@ -1,0 +1,8 @@
+{
+  "name": "colonize-lowpoly-art",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generates the Low-Poly style sprites (three.js models pre-rendered to 2:1 isometric PNGs in headless Chromium).",
+  "scripts": { "build": "node generate.js" },
+  "dependencies": { "three": "0.170.0" }
+}
