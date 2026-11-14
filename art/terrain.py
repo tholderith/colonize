@@ -173,7 +173,99 @@ def shore(mask):
         wc = wall_tex(np.clip(Xs, 0, 1), np.clip(d, 0, WALL), 1); col = np.where(m[..., None], wc, col); al = np.maximum(al, m.astype('float32'))
     save(col, al, 'shore_%d' % mask)
 
+def road_rgb(mask):
+    """Autotile road. mask bits N=1 E=2 S=4 W=8 (1 = road neighbour at (x,y-1),(x+1,y),(x,y+1),(x-1,y)).
+    Same plating as road(); tile is fully plated so neighbours join seamlessly (noise fields are the shared periodic ones).
+    Connected sides: no edge bevel, a lighter lane band + yellow dashes + stud at the edge midpoint. Free sides: dark bevel."""
+    X, Y, px, py = grid()
+    big = noise('r3', 13, 3.0); fine = noise('r2', 12, 0.9); base = noise('r1', 11, 2.2)
+    h = bil(fine, X, Y) * 0.5 + bil(base, X, Y) * 0.3
+    col = np.broadcast_to(hexc('#5f6878'), X.shape + (3,)).copy()
+    col = col * (0.88 + 0.12 * bil(big, X, Y)[..., None] + 0.04 * bil(fine, X * 2, Y * 2)[..., None])
+    col *= (0.85 + 0.3 * shade(h, X, Y, 6)[..., None])
+    # lane band (lighter plate) along each connection, centre block
+    hw = 0.2
+    lane = (np.maximum(np.abs(X - 0.5), np.abs(Y - 0.5)) < (hw if mask else 0.3)).astype('float32')
+    arms = {1: (Y < 0.5) & (np.abs(X - 0.5) < hw), 2: (X > 0.5) & (np.abs(Y - 0.5) < hw), 4: (Y > 0.5) & (np.abs(X - 0.5) < hw), 8: (X < 0.5) & (np.abs(Y - 0.5) < hw)}
+    for bit, a in arms.items():
+        if mask & bit: lane = np.maximum(lane, a.astype('float32'))
+    lane = lane * (0.9 if mask else 0.8)
+    col = col * (1 + 0.16 * lane[..., None])
+    cu = np.abs(((X * 2) % 1.0) - 0.5); cv = np.abs(((Y * 2) % 1.0) - 0.5)
+    seam = (np.minimum(0.5 - cu, 0.5 - cv) < 0.012).astype('float32'); col = col * (1 - 0.4 * seam[..., None])
+    rv = ((((X * 2) % 1.0 - 0.07) ** 2 + ((Y * 2) % 1.0 - 0.07) ** 2) < 0.0007).astype('float32'); col += rv[..., None] * 0.12
+    for bit, d in ((1, Y), (2, 1 - X), (4, 1 - Y), (8, X)):
+        if not mask & bit: col *= (1 - 0.45 * smooth(0.05, 0.0, d))[..., None]
+    if mask == 0:     # lone pad: dark rim around the pad, hazard-yellow corner brackets, no lane markings
+        ring = np.maximum(np.abs(X - 0.5), np.abs(Y - 0.5)); col *= (1 - 0.35 * (smooth(0.0, 0.015, np.abs(ring - 0.3)) < 0.5))[..., None]
+        for sx in (-1, 1):
+            for sy in (-1, 1):
+                dx = np.abs(X - (0.5 + sx * 0.3)); dy = np.abs(Y - (0.5 + sy * 0.3))
+                br = ((dx < 0.1) & (dy < 0.018)) | ((dy < 0.1) & (dx < 0.018))
+                col = np.where(br[..., None], hexc('#f0c030'), col)
+    bits = [b for b in (1, 2, 4, 8) if mask & b]
+    for bit in bits:
+        t, o, near = {1: (Y, X, Y < 0.5), 2: (X, Y, X > 0.5), 4: (Y, X, Y > 0.5), 8: (X, Y, X < 0.5)}[bit]
+        far = (np.abs(t - 0.5) > 0.12)
+        dash = near & far & (np.abs(o - 0.5) < 0.022) & (((t * 4) % 1.0) < 0.55) & (((t * 4) % 1.0) > 0.1)
+        col = np.where(dash[..., None], hexc('#f0c030'), col)
+    studs = [(0.5, 0.5)] if mask else []
+    studs += [{1: (0.5, 0.0), 2: (1.0, 0.5), 4: (0.5, 1.0), 8: (0.0, 0.5)}[b] for b in bits]
+    if mask == 0: studs = [(0.5, 0.5)]
+    for (cx, cy) in studs:
+        d = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
+        col += np.exp(-(d / 0.04) ** 2)[..., None] * hexc('#ffc040') * 1.2 + np.exp(-(d / 0.08) ** 2)[..., None] * hexc('#ff8a10') * 0.12
+    return col, diamond_mask(X, Y)
+
+def road_auto(mask):
+    col, al = road_rgb(mask); save(col, al, 'road_%d' % mask)
+
+def seg_dist(X, Y, p, q):
+    p = np.array(p); q = np.array(q); d = q - p; L = (d ** 2).sum()
+    t = np.clip(((X - p[0]) * d[0] + (Y - p[1]) * d[1]) / L, 0, 1)
+    return np.sqrt((X - p[0] - t * d[0]) ** 2 + (Y - p[1] - t * d[1]) ** 2)
+
+def land_variant(k):
+    """Same periodic base as land(); variant detail is faded in with interior() so all four edges equal the base field -> seamless with
+    land, other variants and shore_* tops. 0: moss patch + speckle, 1: cracked concrete slab, 2: puddle with neon reflection."""
+    X, Y, px, py = grid(); base = land_rgb(X, Y, px, py)
+    w = interior(X, Y, 0.18); sh = X.shape + (3,); Bc = lambda c: np.broadcast_to(c, sh).copy()
+    rng = np.random.default_rng(700 + k); col = base.copy()
+    nA = noise('v%d' % k, 600 + k, 1.6); nB = noise('vb%d' % k, 650 + k, 2.6)
+    # re-pattern the moss/concrete mix inside the interior
+    alt = mixc(Bc(hexc('#3a3d38')), Bc(hexc('#37592b')), (0.5 + 0.5 * smooth(-1.0, 1.0, bil(nA, X * 1.5, Y * 1.5) * (1 if k != 1 else -1)))) 
+    col = col * (1 - 0.55 * w[..., None]) + alt * (0.55 * w[..., None]) * (0.75 + 0.5 * shade(bil(nB, X, Y), X, Y, 6)[..., None])
+    if k == 0:
+        r = np.sqrt((X - 0.5) ** 2 + (Y - 0.45) ** 2) * (1 + 0.45 * bil(nB, X * 2, Y * 2))
+        m = smooth(0.32, 0.12, r) * w
+        col = mixc(col, Bc(hexc('#4a7a2c')) * np.clip(0.9 + 0.1 * bil(nA, X * 4, Y * 4)[..., None], 0.6, 1.2), m * 0.7)
+        for _ in range(6):
+            cx, cy = rng.uniform(0.25, 0.75, 2); d = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
+            col += (np.exp(-(d / 0.012) ** 2) * w)[..., None] * hexc('#3cffb0') * 0.5
+    elif k == 1:
+        sl = (np.abs(X - 0.5) < 0.25) & (np.abs(Y - 0.5) < 0.23)
+        ed = np.minimum(0.25 - np.abs(X - 0.5), 0.23 - np.abs(Y - 0.5)); sl = sl.astype('float32') * w
+        slab = Bc(hexc('#484b49')) * np.clip(0.92 + 0.08 * bil(nB, X * 2, Y * 2)[..., None], 0.7, 1.15) * (0.8 + 0.4 * shade(bil(nB, X, Y) * 0.5, X, Y, 6)[..., None])
+        slab *= (1 - 0.35 * smooth(0.012, 0.0, ed))[..., None]
+        col = mixc(col, slab, sl * 0.65)
+        pts = [(0.36, 0.30), (0.46, 0.44), (0.43, 0.56), (0.56, 0.72)]
+        dm = np.minimum(np.minimum(seg_dist(X, Y, pts[0], pts[1]), seg_dist(X, Y, pts[1], pts[2])), seg_dist(X, Y, pts[2], pts[3]))
+        dm = dm + 0.004 * bil(nA, X * 6, Y * 6)
+        cr = np.exp(-(dm / 0.006) ** 2) * sl; col = col * (1 - 0.8 * cr[..., None])
+        col += (np.exp(-(dm / 0.016) ** 2) * sl * (bil(nB, X * 3, Y * 3) > 0.3))[..., None] * hexc('#4a7a2c') * 0.35
+        col += (np.exp(-(seg_dist(X, Y, (0.62, 0.3), (0.7, 0.4)) / 0.008) ** 2) * sl)[..., None] * (-0.15)
+    else:
+        cx, cy = 0.5, 0.52; r = np.sqrt(((X - cx) / 1.0) ** 2 + ((Y - cy) / 0.8) ** 2) * (1 + 0.3 * bil(nB, X * 2.5, Y * 2.5))
+        pm = smooth(0.25, 0.22, r) * w; rim = smooth(0.30, 0.25, r) * (1 - smooth(0.25, 0.21, r)) * w
+        wcol = Bc(hexc('#0d1f2b')) + streaks(px, py, 77, 6, 0.9) * 0.35 + Bc(hexc('#14384a')) * np.clip(0.3 + 0.1 * bil(nA, X * 5, Y * 5)[..., None], 0.1, 0.6)
+        col = col * (1 - rim[..., None] * 0.35); col = mixc(col, np.clip(wcol, 0, 1), pm * 0.92)
+        ed = np.abs(r - 0.235); col += (np.exp(-(ed / 0.01) ** 2) * w)[..., None] * hexc('#9af4ff') * 0.08
+        d2 = np.minimum(seg_dist(X, Y, (0.18, 0.78), (0.3, 0.9)), seg_dist(X, Y, (0.78, 0.22), (0.88, 0.14))); col *= (1 - 0.6 * np.exp(-(d2 / 0.006) ** 2) * w)[..., None]
+    save(col, diamond_mask(X, Y), 'land_%d' % k)
+
 if __name__ == '__main__':
     land(); road(); water('deep'); water('shallow')
     for k in range(16): shore(k)
+    for k in range(16): road_auto(k)
+    for k in range(3): land_variant(k)
     print('terrain done')

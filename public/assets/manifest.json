@@ -28,6 +28,139 @@
     66
    ]
   },
+  "land_0": {
+   "file": "tiles/land_0.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "land_1": {
+   "file": "tiles/land_1.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "land_2": {
+   "file": "tiles/land_2.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_0": {
+   "file": "tiles/road_0.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_1": {
+   "file": "tiles/road_1.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_2": {
+   "file": "tiles/road_2.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_3": {
+   "file": "tiles/road_3.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_4": {
+   "file": "tiles/road_4.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_5": {
+   "file": "tiles/road_5.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_6": {
+   "file": "tiles/road_6.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_7": {
+   "file": "tiles/road_7.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_8": {
+   "file": "tiles/road_8.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_9": {
+   "file": "tiles/road_9.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_10": {
+   "file": "tiles/road_10.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_11": {
+   "file": "tiles/road_11.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_12": {
+   "file": "tiles/road_12.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_13": {
+   "file": "tiles/road_13.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_14": {
+   "file": "tiles/road_14.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road_15": {
+   "file": "tiles/road_15.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
   "shore_0": {
    "file": "tiles/shore_0.png",
    "anchor": [
@@ -188,6 +321,46 @@
    "anchor": [
     250,
     281
+   ]
+  },
+  "ration_plant": {
+   "file": "buildings/ration_plant.png",
+   "glow": "buildings/ration_plant_glow.png",
+   "anchor": [
+    250,
+    312
+   ]
+  },
+  "algae_skimmer": {
+   "file": "buildings/algae_skimmer.png",
+   "glow": "buildings/algae_skimmer_glow.png",
+   "anchor": [
+    259,
+    303
+   ]
+  },
+  "refinery": {
+   "file": "buildings/refinery.png",
+   "glow": "buildings/refinery_glow.png",
+   "anchor": [
+    250,
+    315
+   ]
+  },
+  "fabricator": {
+   "file": "buildings/fabricator.png",
+   "glow": "buildings/fabricator_glow.png",
+   "anchor": [
+    250,
+    316
+   ]
+  },
+  "pod_house_t2": {
+   "file": "buildings/pod_house_t2.png",
+   "glow": "buildings/pod_house_t2_glow.png",
+   "anchor": [
+    150,
+    189
    ]
   }
  }

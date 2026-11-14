@@ -94,5 +94,85 @@
    1,
    1
   ]
+ },
+ "algae_skimmer": {
+  "file": "buildings/algae_skimmer.png",
+  "glow": "buildings/algae_skimmer_glow.png",
+  "anchor": [
+   259,
+   303
+  ],
+  "size": [
+   534,
+   366
+  ],
+  "footprint": [
+   2,
+   2
+  ]
+ },
+ "fabricator": {
+  "file": "buildings/fabricator.png",
+  "glow": "buildings/fabricator_glow.png",
+  "anchor": [
+   250,
+   316
+  ],
+  "size": [
+   500,
+   378
+  ],
+  "footprint": [
+   2,
+   2
+  ]
+ },
+ "pod_house_t2": {
+  "file": "buildings/pod_house_t2.png",
+  "glow": "buildings/pod_house_t2_glow.png",
+  "anchor": [
+   150,
+   189
+  ],
+  "size": [
+   300,
+   254
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "ration_plant": {
+  "file": "buildings/ration_plant.png",
+  "glow": "buildings/ration_plant_glow.png",
+  "anchor": [
+   250,
+   312
+  ],
+  "size": [
+   495,
+   377
+  ],
+  "footprint": [
+   2,
+   2
+  ]
+ },
+ "refinery": {
+  "file": "buildings/refinery.png",
+  "glow": "buildings/refinery_glow.png",
+  "anchor": [
+   250,
+   315
+  ],
+  "size": [
+   500,
+   380
+  ],
+  "footprint": [
+   2,
+   2
+  ]
  }
 }

@@ -8,6 +8,8 @@ export class Camera {
   private keys = new Set<string>();
   /** True once the pointer has moved past the click threshold during this press. */
   dragged = false;
+  /** Set while a tool paints (road drag) so left-drag doesn't pan. */
+  panDisabled = false;
 
   constructor(
     private world: Container,
@@ -20,7 +22,7 @@ export class Camera {
       this.dragged = false;
     });
     window.addEventListener('pointermove', (e) => {
-      if (!down) return;
+      if (!down || this.panDisabled) return;
       if (!this.dragged && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 4) return;
       this.dragged = true;
       this.world.x += e.movementX;

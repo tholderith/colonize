@@ -27,25 +27,36 @@ const ui = new Ui({
 });
 
 const renderer = new Renderer(map, {
-  onTileHover: () => {},
+  onTileHover: (x, y) => updatePlaceInfo(x, y),
   onTileClick: (x, y) => {
     const tool = ui.activeTool;
-    if (tool) command({ type: 'placeBuilding', building: tool.id, x, y });
-    else select(state ? (buildingAt(state.buildings, x, y)?.id ?? null) : null);
+    if (tool) {
+      const err = state ? placementError(map, state.buildings, tool, x, y, state.stock) : 'loading';
+      if (err === null) command({ type: 'placeBuilding', building: tool.id, x, y });
+      else if (tool.id !== 'road' || !err.includes('occupied')) ui.toast(err);
+    } else select(state ? (buildingAt(state.buildings, x, y)?.id ?? null) : null);
   },
 });
+
+function updatePlaceInfo(x: number, y: number): void {
+  const tool = ui.activeTool;
+  if (!tool || !state) return;
+  ui.setPlaceInfo(tool, x < 0 ? null : placementError(map, state.buildings, tool, x, y, state.stock));
+}
 
 function select(id: number | null): void {
   selected = id;
   renderer.setSelected(id);
-  ui.showInfo(state?.buildings.find((b) => b.id === id) ?? null);
+  ui.showInfo(state?.buildings.find((b) => b.id === id) ?? null, state ?? undefined);
 }
 
 worker.onmessage = (e: MessageEvent<FromWorker>) => {
   state = e.data.state;
   ui.setState(state);
   renderer.setState(state);
-  if (selected !== null && !state.buildings.some((b) => b.id === selected)) select(null);
+  const sel = state.buildings.find((b) => b.id === selected);
+  if (selected !== null && !sel) select(null);
+  else if (sel) ui.updateInfo(sel, state);
 };
 
 await renderer.init(document.getElementById('map') as HTMLElement);
@@ -60,5 +71,6 @@ send({ type: 'init', seed });
     return !!def && !!state && placementError(map, state.buildings, def, x, y) === null;
   },
   tileToScreen: (x: number, y: number) => renderer.tileToScreen(x, y),
+  state: () => state,
   place: (building: string, x: number, y: number) => command({ type: 'placeBuilding', building, x, y }),
 };

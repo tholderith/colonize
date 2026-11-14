@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { generateMap } from '../src/sim/mapgen';
-import { buildingDef, placementError } from '../src/sim/placement';
+import { buildingDef, newBuilding, placementError } from '../src/sim/placement';
 import { createRng } from '../src/sim/rng';
-import { hashState, runHeadless, type TimedCommand } from '../src/sim/sim';
+import { Sim, hashState, runHeadless, type TimedCommand } from '../src/sim/sim';
 import { TILE_CLASSES, type Building, type GameMap } from '../src/sim/types';
 
 const classes = (m: GameMap) => Array.from(m.tiles, (t) => TILE_CLASSES[t]);
 
-function findLand(map: GameMap, w: number, h: number): [number, number] {
+function findLand(map: GameMap, w: number, h: number, taken: readonly Building[] = []): [number, number] {
   for (let y = 0; y < map.h; y++)
     for (let x = 0; x < map.w; x++) {
-      const def = { id: 'x', name: 'x', footprint: [w, h] as [number, number], terrain: ['land' as const], color: '#000', height: 1 };
-      if (placementError(map, [], def, x, y) === null) return [x, y];
+      const def = { id: 'x', name: 'x', footprint: [w, h] as [number, number], terrain: ['land' as const], color: '#000', height: 1, group: 'x', cost: {} };
+      if (placementError(map, taken, def, x, y) === null) return [x, y];
     }
   throw new Error('no land');
 }
@@ -67,14 +67,14 @@ describe('placement', () => {
     expect(placementError(map, [], def, 0, 0)).toMatch(/deep/);
     expect(placementError(map, [], def, -1, 5)).toBe('out of bounds');
     expect(placementError(map, [], def, 64, 64)).toBe('out of bounds');
-    const existing: Building[] = [{ id: 1, type: 'pod_house', x, y }];
+    const existing: Building[] = [newBuilding(1, def, x, y)];
     expect(placementError(map, existing, def, x, y)).toBe('tile occupied');
   });
 });
 
 describe('headless sim', () => {
   const map = generateMap(99);
-  const [x, y] = findLand(map, 2, 2);
+  const [x, y] = findLand(map, 2, 2, new Sim(99).state.buildings);
   const cmds: TimedCommand[] = [
     { tick: 5, cmd: { type: 'placeBuilding', building: 'pod_house', x, y } },
     { tick: 6, cmd: { type: 'placeBuilding', building: 'pod_house', x, y } }, // overlaps, rejected
@@ -85,12 +85,12 @@ describe('headless sim', () => {
     const a = runHeadless(99, cmds, 50);
     expect(hashState(a)).toBe(hashState(runHeadless(99, cmds, 50)));
     expect(hashState(a)).not.toBe(hashState(runHeadless(99, cmds.filter((c) => c.tick !== 10), 50)));
-    expect(a.buildings).toHaveLength(1);
+    expect(a.buildings).toHaveLength(2); // start depot + house
     expect(a.speed).toBe(3);
     expect(a.tick).toBe(20); // paused at tick 20
   });
   it('demolish removes the building', () => {
     const s = runHeadless(99, [...cmds.slice(0, 1), { tick: 8, cmd: { type: 'demolish', x, y } }], 10);
-    expect(s.buildings).toHaveLength(0);
+    expect(s.buildings).toHaveLength(1);
   });
 });

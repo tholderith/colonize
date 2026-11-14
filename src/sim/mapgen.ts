@@ -86,3 +86,29 @@ export function generateMap(seed: number): GameMap {
   }
   return { w, h, tiles };
 }
+
+/** Connected solid (shore/land) regions, 4-neighbour, as lists of tile indices. Largest first. */
+export function islands(map: GameMap): number[][] {
+  const { w, h, tiles } = map;
+  const seen = new Uint8Array(w * h);
+  const out: number[][] = [];
+  for (let i = 0; i < w * h; i++) {
+    if ((tiles[i] as number) < 2 || seen[i]) continue;
+    const comp: number[] = [];
+    const stack = [i];
+    while (stack.length) {
+      const j = stack.pop() as number;
+      if (seen[j] || (tiles[j] as number) < 2) continue;
+      seen[j] = 1;
+      comp.push(j);
+      const x = j % w;
+      const y = (j - x) / w;
+      if (x > 0) stack.push(j - 1);
+      if (x < w - 1) stack.push(j + 1);
+      if (y > 0) stack.push(j - w);
+      if (y < h - 1) stack.push(j + w);
+    }
+    out.push(comp);
+  }
+  return out.sort((a, b) => b.length - a.length);
+}

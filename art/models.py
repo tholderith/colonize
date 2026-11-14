@@ -367,6 +367,238 @@ def depot():
 
 # =============================================================== PIER (flat) -> steel gantry jetty
 
+
+# =============================================================== M1 BUILDINGS
+
+def pole_lamp(b, u, v, h, col, watts=4, pr=0.5, ps=1.0):
+    b.cyl(M('steel_d'), X(u, v, 0.03), X(u, v, h), 0.012, n=6)
+    lamp(b, u, v, h, col, watts, pr, ps)
+
+def ration_plant():
+    rnd = random.Random(41); b = B('ration')
+    ground_pad(b, 0.05, 0.05, 1.95, 1.95, z=0.03)
+    hall = M('cream', rust=0.3, soot=0.6, rough=0.55, metal=0.3); dk = M('steel_d', rust=0.2, soot=0.7); lt = M('steel_l', rust=0.15, soot=0.3)
+    cu, cv = 0.7, 0.68; sx, sy, sh = 1.1, 0.85, 0.55
+    b.box(hall, XY(cu, cv), (sx, sy, sh), 0.03)
+    b.box(dk, XY(cu, cv), (sx + 0.08, sy + 0.08, 0.04), 0.03 + sh)
+    for k in range(3): b.box(M('mustard', rust=0.3), XY(0.4 + 0.3 * k, 0.5), (0.2, 0.2, 0.1), 0.62 + 0.0)   # roof blocks
+    vf = cv + sy / 2; uf = cu + sx / 2
+    for i in range(5): b.box(G('amber', 4.5), (0.28 + 0.2 * i, -vf - 0.004), (0.12, 0.012, 0.09), 0.3)
+    for k in range(4): b.box(G('amber', 4.5), (uf + 0.004, -(0.42 + 0.2 * k)), (0.012, 0.1, 0.09), 0.3)
+    b.box(dk, (0.7, -vf - 0.003), (0.5, 0.01, 0.2), 0.06); b.box(G('amber', 3.0), (0.7, -vf - 0.008), (0.44, 0.01, 0.16), 0.08)
+    sign(b, 'RATION', 'amber', 0.7, vf + 0.014, 0.42, 0.085, s=8)
+    # hoppers on legs
+    for k, v in enumerate((0.35, 0.7, 1.05)):
+        u = 1.62; col = 'cream' if k != 1 else 'mustard'
+        for (du, dv) in ((-0.1, -0.1), (0.1, -0.1), (-0.1, 0.1), (0.1, 0.1)): b.cyl(dk, X(u + du, v + dv, 0.03), X(u + du, v + dv, 0.42), 0.012, n=6)
+        b.cyl(M(col, rust=0.3, soot=0.5), X(u, v, 0.22), X(u, v, 0.42), 0.04, 0.15, n=14)
+        b.cyl(M(col, rust=0.3, soot=0.5), X(u, v, 0.42), X(u, v, 0.78), 0.15, n=14)
+        b.cyl(dk, X(u, v, 0.78), X(u, v, 0.8), 0.16, n=14)
+        b.cyl(G('amber', 5), X(u, v, 0.57), X(u, v, 0.58), 0.155, n=14)
+        b.cyl(G('amber', 4), X(u, v, 0.2), X(u, v, 0.22), 0.05, n=8)
+    # conveyor: slanted run from the ground then along hopper tops
+    cv_m = M('steel_d', rust=0.2, soot=0.6)
+    b.beam(cv_m, X(0.85, 0.1, 0.1), X(1.62, 0.2, 0.86), 0.07, 0.04)
+    b.beam(cv_m, X(1.62, 0.2, 0.86), X(1.62, 1.05, 0.86), 0.07, 0.04)
+    for t in (0.2, 0.45, 0.7):
+        p = Vector(X(0.85, 0.1, 0.1)).lerp(Vector(X(1.62, 0.2, 0.86)), t); b.cyl(dk, (p.x, p.y, 0.03), (p.x, p.y, p.z), 0.01, n=6)
+        b.box(M('mustard', rust=0.1), (p.x, p.y), (0.06, 0.06, 0.04), p.z + 0.02)    # items on belt
+    for v in (0.5, 0.9): b.box(M('mustard', rust=0.1), XY(1.62, v), (0.06, 0.06, 0.04), 0.88)
+    b.box(G('amber', 5), XY(1.62, 0.6), (0.012, 0.5, 0.012), 0.905)
+    # packaging line
+    for i in range(4):
+        u = 0.3 + 0.4 * i
+        for dv in (-0.08, 0.08): b.box(dk, XY(u, 1.62 + dv), (0.03, 0.03, 0.09), 0.03)
+    b.box(M('steel_l', rust=0.1, soot=0.4), XY(0.95, 1.62), (1.5, 0.2, 0.05), 0.12)
+    b.box(G('amber', 3), XY(0.95, 1.62), (1.5, 0.015, 0.006), 0.172)
+    for u in (0.85, 1.05):
+        for dv in (-0.2, 0.2): b.box(dk, XY(u, 1.62 + dv), (0.04, 0.04, 0.34), 0.03)
+    b.box(M('red', rust=0.3), XY(0.95, 1.62), (0.28, 0.5, 0.06), 0.37)
+    b.box(G('amber', 7), XY(0.95, 1.62), (0.2, 0.4, 0.01), 0.365)
+    for i, u in enumerate((0.3, 0.52, 0.74, 1.2, 1.4)):
+        b.box(M(rnd.choice(['cream', 'mustard', 'orange']), rust=0.2, soot=0.4), XY(u, 1.62), (0.14, 0.12, 0.09), 0.17)
+    b.box(M('steel', rust=0.3), XY(1.72, 1.65), (0.3, 0.3, 0.03), 0.03)
+    for k in range(3): b.box(M('cream' if k != 1 else 'mustard', rust=0.2, soot=0.4), XY(1.72, 1.65), (0.2, 0.2, 0.09), 0.06 + 0.09 * k, rot=0.15 * k)
+    pole_lamp(b, 0.1, 1.2, 0.34, 'amber', 6, 0.6, 1.0); pole_lamp(b, 1.9, 1.9, 0.3, 'amber', 5, 0.55, 1.0)
+    point_light(X(0.7, vf + 0.2, 0.3), (1.0, 0.62, 0.18), 16, 0.08)
+    point_light(X(0.95, 1.5, 0.4), (1.0, 0.6, 0.15), 8, 0.1, False)
+    point_light(X(1.62, 0.7, 0.9), (1.0, 0.6, 0.15), 4, 0.1, False)
+    pool(0.7, vf + 0.3, 0.8, NEON['amber'], 1.1, power=1.5); pool(1.0, 1.6, 0.9, NEON['amber'], 0.8, power=1.6)
+    return b.commit()
+
+def algae_skimmer():
+    rnd = random.Random(52); b = B('algae')
+    ground_pad(b, 0.05, 0.05, 1.95, 1.95, z=0.03)
+    dk = M('steel_d', rust=0.2, soot=0.7); lt = M('steel_l', rust=0.15, soot=0.3); teal = M('teal', rust=0.3, soot=0.5)
+    # pump house (back-left)
+    b.box(M('steel', rust=0.4, soot=0.6), XY(0.45, 0.4), (0.7, 0.5, 0.4), 0.03)
+    b.box(dk, XY(0.45, 0.4), (0.78, 0.58, 0.04), 0.43)
+    vf = 0.65
+    for i in range(3): b.box(G('green', 4.5), (0.25 + 0.2 * i, -vf - 0.004), (0.1, 0.012, 0.08), 0.25)
+    sign(b, 'ALGAE', 'green', 0.8 + 0.0, 0.4, 0.22, 0.08, face='x+', s=8)
+    b.box(dk, (0.8 + 0.003, -0.4), (0.01, 0.0, 0.0), 0.0) if False else None
+    # side tank + manifold
+    b.cyl(M('steel_l', rust=0.2), X(1.2, 0.35, 0.03), X(1.2, 0.35, 0.55), 0.14, n=12)
+    b.cyl(G('green', 5), X(1.2, 0.35, 0.3), X(1.2, 0.35, 0.315), 0.145, n=12)
+    b.cyl(dk, X(1.2, 0.35, 0.55), X(1.2, 0.35, 0.57), 0.15, n=12)
+    b.beam(lt, X(0.8, 0.3, 0.3), X(1.2, 0.35, 0.3), 0.04); b.beam(lt, X(1.2, 0.35, 0.25), X(1.78, 0.4, 0.25), 0.04)
+    b.box(M('orange', rust=0.3), XY(1.8, 0.4), (0.14, 0.2, 0.2), 0.03)
+    # settling tanks
+    for (tu, tv) in ((0.38, 1.0), (0.9, 1.0), (1.42, 1.0)):
+        b.cyl(teal, X(tu, tv, 0.03), X(tu, tv, 0.3), 0.23, n=16)
+        b.cyl(dk, X(tu, tv, 0.3), X(tu, tv, 0.33), 0.245, n=16)
+        b.cyl(G('green', 4), X(tu, tv, 0.31), X(tu, tv, 0.315), 0.205, n=16)
+        b.cyl(G('green', 6), X(tu, tv, 0.15), X(tu, tv, 0.165), 0.232, n=16)         # glowing band
+        b.cyl(lt, X(tu, tv, 0.33), X(tu, tv, 0.5), 0.012, n=6)
+        b.beam(lt, X(tu, 0.7, 0.36), X(tu, tv - 0.12, 0.33), 0.03)
+    b.beam(lt, X(0.38, 0.7, 0.36), X(1.42, 0.7, 0.36), 0.04)
+    b.beam(lt, X(0.45, 0.62, 0.3), X(0.45, 0.7, 0.36), 0.04)
+    # intake pipes out over the seawall
+    for pu, pc in ((1.68, 'steel_l'), (1.88, 'teal')):
+        b.beam(M(pc, rust=0.3, soot=0.3), X(pu, 0.4, 0.2), X(pu, 2.45, 0.2), 0.07)
+        b.beam(M(pc, rust=0.3, soot=0.3), X(1.8, 0.4, 0.2), X(pu, 0.4, 0.2), 0.07)
+        for v in (0.9, 1.4, 1.9):
+            b.cyl(dk, X(pu, v, 0.03), X(pu, v, 0.17), 0.015, n=6); b.box(dk, XY(pu, v), (0.14, 0.03, 0.03), 0.17)
+        for v in (0.7, 1.2, 1.7, 2.2): b.box(dk, XY(pu, v), (0.095, 0.03, 0.095), 0.15)    # flanges
+        b.cyl(M(pc, rust=0.3, soot=0.3), X(pu, 2.45, 0.2), X(pu, 2.45, -0.18), 0.04, n=8)
+        b.cyl(G('green', 8), X(pu, 2.45, -0.18), X(pu, 2.45, -0.16), 0.05, n=8)
+        b.sphere(G('green', 6), X(pu, 2.2, 0.26), 0.02, seg=8, rings=4)
+    # seawall kerb + boom
+    b.box(M('concrete', rust=0.0, soot=0.5), XY(1.0, 1.96), (1.9, 0.08, 0.06), 0.03)
+    b.box(G('cyan', 4), (1.0, -1.996), (1.86, 0.012, 0.012), 0.075)
+    b.cyl(dk, X(0.45, 1.8, 0.03), X(0.45, 1.8, 0.55), 0.025, n=8)
+    b.beam(M('orange', rust=0.3), X(0.45, 1.8, 0.55), X(0.45, 2.4, 0.4), 0.04); b.beam(dk, X(0.45, 2.4, 0.4), X(0.45, 2.4, 0.15), 0.008)
+    b.sphere(G('green', 8), X(0.45, 2.4, 0.12), 0.04, seg=8, rings=4)
+    pole_lamp(b, 0.1, 1.85, 0.32, 'green', 4, 0.5, 0.9); pole_lamp(b, 1.1, 0.12, 0.3, 'cyan', 3, 0.45, 0.9)
+    point_light(X(0.9, 1.5, 0.45), (0.2, 1.0, 0.5), 22, 0.15, False)
+    point_light(X(1.7, 1.6, 0.3), (0.2, 1.0, 0.5), 10, 0.1, False)
+    pool(0.9, 1.4, 1.1, NEON['green'], 0.7, power=1.5)
+    return b.commit()
+
+def refinery():
+    rnd = random.Random(63); b = B('refinery')
+    ground_pad(b, 0.05, 0.05, 1.95, 1.95, z=0.03)
+    dk = M('steel_d', rust=0.2, soot=0.7); lt = M('steel_l', rust=0.2, soot=0.4); body = M('steel', rust=0.5, soot=0.8, rough=0.5, metal=0.5)
+    # distillation columns
+    cols = ((0.5, 0.5, 1.35, 0.13, 'mag'), (0.95, 0.42, 1.05, 0.11, 'cyan'), (1.35, 0.55, 0.8, 0.10, 'mag'))
+    for (u, v, h, r, ac) in cols:
+        b.cyl(M('steel', rust=0.4, soot=0.8, rough=0.45, metal=0.55), X(u, v, 0.03), X(u, v, h), r, r * 0.9, n=16)
+        b.sphere(lt, X(u, v, h), r * 0.9, seg=16, rings=6, scale=(1, 1, 0.5))
+        for i in range(1, 5):
+            z = 0.03 + (h - 0.03) * i / 5
+            b.cyl(dk, X(u, v, z), X(u, v, z + 0.03), r * 1.08, n=16)
+        b.cyl(G(ac, 7), X(u, v, 0.2), X(u, v, 0.215), r * 1.04, n=16)
+        b.cyl(G(ac, 6), X(u, v, h * 0.62), X(u, v, h * 0.62 + 0.014), r * 1.04, n=16)
+        b.box(G(ac, 7), (u + r * 0.96, -v), (0.012, 0.014, h * 0.5), 0.1)                 # vertical neon tube on the lit face
+        b.box(dk, XY(u, v), (r * 2.4, r * 2.4, 0.03), 0.03)
+        b.sphere(G('red', 10), X(u, v, h + r * 0.45 + 0.04), 0.02, seg=6, rings=4)
+    # pipework
+    pp = M('rust', rust=0.5, soot=0.6); pl = M('orange', rust=0.3, soot=0.5)
+    b.beam(pp, X(0.5, 0.5, 1.0), X(0.95, 0.42, 0.9), 0.045); b.beam(pl, X(0.95, 0.42, 0.7), X(1.35, 0.55, 0.62), 0.045)
+    b.beam(lt, X(0.5, 0.62, 0.35), X(0.5, 1.2, 0.35), 0.05); b.beam(lt, X(0.95, 0.53, 0.3), X(0.95, 1.2, 0.3), 0.05)
+    b.beam(lt, X(1.35, 0.65, 0.25), X(1.35, 1.2, 0.25), 0.05); b.beam(pl, X(0.5, 1.2, 0.35), X(1.35, 1.2, 0.35), 0.06)
+    for u in (0.5, 0.95, 1.35): b.cyl(dk, X(u, 1.2, 0.03), X(u, 1.2, 0.33), 0.012, n=6)
+    for t in (0.3, 0.6, 0.9): b.box(G('cyan', 5), XY(0.5 + 0.85 * t, 1.2), (0.03, 0.02, 0.02), 0.395)
+    # spherical tank + pumps
+    b.sphere(M('cream', rust=0.3, soot=0.5), X(0.5, 1.55, 0.38), 0.27, seg=18, rings=10)
+    for k in range(4):
+        a = k * math.pi / 2 + 0.7; b.cyl(dk, X(0.5 + 0.17 * math.cos(a), 1.55 + 0.17 * math.sin(a), 0.03), X(0.5 + 0.17 * math.cos(a), 1.55 + 0.17 * math.sin(a), 0.25), 0.012, n=6)
+    b.cyl(G('mag', 6), X(0.5, 1.55, 0.37), X(0.5, 1.55, 0.385), 0.272, n=18)
+    for (u, v) in ((1.05, 1.5), (1.25, 1.5)): b.box(M('blue', rust=0.3), XY(u, v), (0.14, 0.2, 0.12), 0.03); b.box(G('cyan', 4), XY(u, v + 0.0), (0.06, 0.06, 0.01), 0.155)
+    b.box(M('teal', rust=0.3), XY(1.15, 1.8), (0.4, 0.2, 0.2), 0.03); b.box(G('cyan', 4), (1.15, -1.903), (0.32, 0.012, 0.04), 0.1)
+    # flare stack with flame
+    fu, fv = 1.72, 1.55; H = 1.75
+    b.cyl(M('steel_d', rust=0.5, soot=0.9), X(fu, fv, 0.03), X(fu, fv, H), 0.035, 0.02, n=8)
+    for k in range(3): b.beam(dk, X(fu + 0.18 * math.cos(k * 2.1), fv + 0.18 * math.sin(k * 2.1), 0.03), X(fu, fv, 0.9), 0.012)
+    b.sphere(G('hot', 14), X(fu, fv, H + 0.12), 0.07, seg=10, rings=8, scale=(0.7, 0.7, 1.9))
+    b.sphere(G('amber', 12), X(fu, fv, H + 0.08), 0.04, seg=8, rings=6, scale=(0.7, 0.7, 1.4))
+    point_light(X(fu, fv, H + 0.1), (1.0, 0.45, 0.1), 7, 0.08, False)
+    pool(fu, fv, 0.7, NEON['hot'], 0.55, power=1.6)
+    b.cyl(dk, X(fu, fv, H - 0.05), X(fu, fv, H), 0.04, 0.03, n=8)
+    pole_lamp(b, 0.1, 1.9, 0.3, 'cyan', 5, 0.55, 1.0); pole_lamp(b, 1.9, 0.1, 0.3, 'mag', 4, 0.5, 1.0)
+    point_light(X(0.9, 1.0, 0.7), (1.0, 0.18, 0.65), 14, 0.12, False); point_light(X(1.2, 1.0, 0.5), (0.2, 0.85, 1.0), 10, 0.1, False)
+    pool(0.9, 1.0, 1.0, NEON['mag'], 0.6, power=1.5)
+    return b.commit()
+
+def fabricator():
+    rnd = random.Random(74); b = B('fab')
+    ground_pad(b, 0.05, 0.05, 1.95, 1.95, z=0.03)
+    dk = M('steel_d', rust=0.2, soot=0.7); lt = M('steel_l', rust=0.1, soot=0.3)
+    cu, cv = 0.9, 0.8; sx, sy, sh = 1.5, 1.2, 0.62
+    b.box(M('steel', rust=0.35, soot=0.6, rough=0.55, metal=0.4), XY(cu, cv), (sx, sy, sh), 0.03)
+    b.box(dk, XY(cu, cv), (sx + 0.08, sy + 0.08, 0.04), 0.03 + sh)
+    vf = cv + sy / 2; uf = cu + sx / 2
+    # big lit shutter
+    b.box(dk, (cu - 0.1, -vf - 0.003), (0.92, 0.012, 0.46), 0.07)
+    b.box(G('cyan', 5), (cu - 0.1, -vf - 0.010), (0.84, 0.012, 0.4), 0.10)
+    for k in range(7): b.box(dk, (cu - 0.1, -vf - 0.015), (0.84, 0.01, 0.012), 0.12 + 0.052 * k)
+    # robot arm silhouette in front of the shutter
+    ru, rv = cu - 0.15, vf + 0.3
+    b.box(dk, XY(ru, rv), (0.2, 0.2, 0.05), 0.03); b.cyl(dk, X(ru, rv, 0.08), X(ru, rv, 0.2), 0.045, n=10)
+    j1 = X(ru, rv, 0.22); j2 = X(ru - 0.1, rv - 0.06, 0.52); j3 = X(ru + 0.12, rv - 0.1, 0.42)
+    b.beam(dk, j1, j2, 0.045); b.sphere(dk, j2, 0.04, seg=8, rings=5); b.beam(dk, j2, j3, 0.035)
+    b.sphere(dk, j1, 0.045, seg=8, rings=5); b.beam(dk, j3, X(ru + 0.17, rv - 0.1, 0.34), 0.02); b.beam(dk, X(ru + 0.19, rv - 0.1, 0.34), X(ru + 0.19, rv - 0.1, 0.28), 0.014)
+    b.sphere(G('cyan', 8), j2, 0.014, seg=6, rings=4)
+    sign(b, 'FAB', 'cyan', cu + 0.45, vf + 0.014, 0.44, 0.11, s=8)
+    # side windows
+    for k in range(4): b.box(G('cyan', 4.5), (uf + 0.004, -(0.35 + 0.22 * k)), (0.012, 0.12, 0.08), 0.32)
+    b.box(G('cyan', 6), (uf + 0.01, -(0.35 + 0.22 * 3 + 0.14)), (0.012, 0.012, 0.4), 0.1)
+    # roof: skylights, vents, gantry rail
+    for k in range(3):
+        b.box(dk, XY(0.4 + 0.45 * k, 0.6), (0.3, 0.25, 0.05), 0.69); b.box(G('cyan', 4), XY(0.4 + 0.45 * k, 0.6), (0.24, 0.2, 0.012), 0.74)
+    b.cyl(lt, X(1.3, 1.05, 0.69), X(1.3, 1.05, 0.9), 0.04, n=10); b.cyl(dk, X(1.3, 1.05, 0.9), X(1.3, 1.05, 0.93), 0.05, n=10)
+    b.cyl(lt, X(0.3, 1.2, 0.69), X(0.3, 1.2, 0.8), 0.03, n=8)
+    b.cyl(M('steel_d'), X(0.2, 0.3, 0.69), X(0.2, 0.3, 1.1), 0.01, n=6); b.sphere(G('red', 10), X(0.2, 0.3, 1.12), 0.022, seg=8, rings=4)
+    point_light(X(0.2, 0.3, 1.14), (1, 0.1, 0.1), 0.8, 0.03, False)
+    # yard: crates on pallets, cable drum
+    for k in range(3): b.box(M('steel_l', rust=0.2, soot=0.4), XY(0.3 + 0.2 * k, 1.8), (0.15, 0.15, 0.1 + 0.05 * k), 0.03)
+    b.box(G('cyan', 4), XY(0.5, 1.8), (0.1, 0.1, 0.01), 0.18)
+    b.cyl(M('orange', rust=0.3), X(1.45, 1.75, 0.03), X(1.45, 1.75, 0.2), 0.1, n=12); b.cyl(dk, X(1.45, 1.75, 0.2), X(1.45, 1.75, 0.22), 0.11, n=12)
+    b.box(M('mustard', rust=0.3), XY(1.75, 1.7), (0.22, 0.3, 0.14), 0.03)
+    pole_lamp(b, 0.12, 1.9, 0.3, 'cyan', 5, 0.5, 1.0); pole_lamp(b, 1.9, 1.9, 0.3, 'amber', 4, 0.5, 1.0)
+    point_light(X(cu - 0.1, vf + 0.2, 0.3), (0.15, 0.85, 1.0), 26, 0.1)
+    point_light(X(1.3, 0.7, 0.8), (0.2, 0.85, 1.0), 6, 0.1, False)
+    pool(cu - 0.1, vf + 0.45, 0.9, NEON['cyan'], 1.0, power=1.5)
+    return b.commit()
+
+def tower(b, u, v, sx, sy, z0, h, col, cols=3, rows=1, rnd=random, lit=0.0):
+    b.box(M(col, rust=0.08, soot=0.25, rough=0.5, metal=0.3), XY(u, v), (sx, sy, h), z0)
+    b.box(M('steel_d', rust=0.0, soot=0.3), XY(u, v), (sx + 0.025, sy + 0.025, 0.02), z0 + h)
+    b.box(M('steel_d', rust=0.0, soot=0.3), XY(u, v), (sx + 0.015, sy + 0.015, 0.016), z0)
+    vf = v + sy / 2; uf = u + sx / 2
+    for r in range(rows):
+        z = z0 + h * (r + 0.5) / rows - 0.03
+        for i in range(cols): winq(b, 'y-', u - sx / 2 + (i + 0.5) * sx / cols, vf, z, on=lit, w=0.085, h=0.07, rnd=rnd)
+        for i in range(cols): winq(b, 'x+', uf, v - sy / 2 + (i + 0.5) * sy / cols, z, on=lit, w=0.085, h=0.07, rnd=rnd)
+
+def house_t2():
+    rnd = random.Random(88); b = B('t2')
+    b.box(M('concrete', rust=0.0, soot=0.5, rough=0.7, metal=0.0), XY(0.5, 0.5), (0.94, 0.94, 0.035), 0.0)
+    pl = plants_mat('#3cff7a')
+    tower(b, 0.5, 0.5, 0.82, 0.82, 0.035, 0.34, 'teal', 4, 2, rnd)
+    tower(b, 0.5, 0.5, 0.72, 0.72, 0.4, 0.28, 'cream', 3, 2, rnd)
+    tower(b, 0.5, 0.5, 0.62, 0.62, 0.7, 0.26, 'blue', 3, 2, rnd)
+    tower(b, 0.5, 0.5, 0.46, 0.46, 0.98, 0.2, 'teal', 2, 1, rnd)
+    # balcony planters + railings on setbacks
+    for (z, e) in ((0.4, 0.41), (0.7, 0.36), (0.98, 0.31)):
+        b.box(pl, (0.5 + e - 0.03, -0.5 + 0.0), (0.05, 0.5, 0.04), z); b.box(pl, XY(0.5 + 0.0, 0.5 + e - 0.03), (0.5, 0.05, 0.04), z)
+        b.box(G('cyan', 4), (0.5 + e + 0.0, -0.5), (0.012, 0.012, 0.012), z + 0.05) if False else None
+        b.box(G('cyan', 4), (0.5 + e - 0.005, -0.5), (0.008, 0.62, 0.008), z + 0.075); b.box(G('cyan', 4), XY(0.5, 0.5 + e - 0.005), (0.62, 0.008, 0.008), z + 0.075)
+    # neon sign + strips
+    sign(b, 'INN', 'mag', 0.5, 0.5 + 0.41 + 0.015, 0.31, 0.085, s=9)
+    b.box(G('mag', 7), (0.5 + 0.41 + 0.01, -0.5 + 0.38), (0.012, 0.012, 0.3), 0.07); b.box(G('cyan', 6), (0.5 - 0.38, -0.5 - 0.41 - 0.01), (0.012, 0.012, 0.3), 0.07) if False else None
+    b.box(G('amber', 5), (0.5 + 0.41 + 0.008, -0.5 - 0.30), (0.012, 0.14, 0.05), 0.05)
+    # rooftop: AC, antenna, dish
+    b.box(M('steel_l', rust=0.1), XY(0.4, 0.42), (0.12, 0.1, 0.06), 1.18)
+    b.cyl(M('steel_d'), X(0.62, 0.38, 1.18), X(0.62, 0.38, 1.62), 0.008, n=6)
+    for z, w in ((1.38, 0.1), (1.5, 0.07)): b.beam(M('steel_d'), X(0.62 - w / 2, 0.38, z), X(0.62 + w / 2, 0.38, z), 0.008); b.beam(M('steel_d'), X(0.62, 0.38 - w / 2, z), X(0.62, 0.38 + w / 2, z), 0.008)
+    b.sphere(G('red', 10), X(0.62, 0.38, 1.64), 0.02, seg=8, rings=4)
+    point_light(X(0.62, 0.38, 1.66), (1, 0.1, 0.1), 0.6, 0.02, False)
+    b.cyl(M('cream', rust=0.1), X(0.45, 0.62, 1.18), X(0.5, 0.68, 1.3), 0.02, 0.1, n=10)
+    lamp(b, 0.95, 0.95, 0.2, 'amber', 5, 0.5, 1.0); lamp(b, 0.06, 0.94, 0.2, 'cyan', 3, 0.4, 0.9)
+    point_light(X(0.5, 0.95, 0.4), (1.0, 0.25, 0.7), 4, 0.06, False)
+    return b.commit()
+
 JOBS = {}
 JOBS['pod_house'] = (house, (0,), 1, 1, {})
 JOBS['hydroponics'] = (hydroponics, (), 2, 2, dict(H=1000))
@@ -374,3 +606,9 @@ JOBS['scrap_yard'] = (scrap_yard, (), 2, 2, dict(H=1100))
 JOBS['smelter'] = (smelter, (), 2, 2, dict(H=1500, W=1000))
 JOBS['wind_turbine'] = (wind_turbine, (), 1, 1, dict(H=1100, W=700))
 JOBS['depot'] = (depot, (), 2, 2, dict(H=1100, samples=64))
+
+JOBS['ration_plant'] = (ration_plant, (), 2, 2, dict(H=1100))
+JOBS['algae_skimmer'] = (algae_skimmer, (), 2, 2, dict(H=1100, W=1100))
+JOBS['refinery'] = (refinery, (), 2, 2, dict(H=1200))
+JOBS['fabricator'] = (fabricator, (), 2, 2, dict(H=1100))
+JOBS['pod_house_t2'] = (house_t2, (), 1, 1, dict(H=700))

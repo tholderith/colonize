@@ -1,5 +1,6 @@
-import { generateMap } from './mapgen';
-import { buildingAt, buildingDef, placementError } from './placement';
+import { economyTick, emptyStock } from './economy';
+import { generateMap, islands } from './mapgen';
+import { ECON, buildingAt, buildingDef, newBuilding, placementError } from './placement';
 import type { Command, GameMap, GameState } from './types';
 
 export const TICK_HZ = 10;
@@ -11,7 +12,33 @@ export class Sim {
 
   constructor(seed: number) {
     this.map = generateMap(seed);
-    this.state = { seed, tick: 0, speed: 1, paused: false, nextId: 1, buildings: [] };
+    this.state = {
+      seed, tick: 0, speed: 1, paused: false, nextId: 1, buildings: [],
+      stock: { ...emptyStock(), ...ECON.startStock }, rates: emptyStock(), flow: [], acc: {},
+      power: { supply: 0, demand: 0 }, pop: { laborers: 0, technicians: 0, laborerJobs: 0, technicianJobs: 0 },
+    };
+    this.placeStartDepot();
+  }
+
+  /** Free depot on the largest island, as close to its centre as fits. */
+  private placeStartDepot(): void {
+    const def = buildingDef('depot');
+    const island = islands(this.map)[0];
+    if (!def || !island) return;
+    const { w } = this.map;
+    const cx = island.reduce((t, i) => t + (i % w), 0) / island.length;
+    const cy = island.reduce((t, i) => t + Math.floor(i / w), 0) / island.length;
+    let best: [number, number] | null = null;
+    let bestD = Infinity;
+    for (const i of island) {
+      const x = i % w, y = Math.floor(i / w);
+      const d = Math.hypot(x + 1 - cx, y + 1 - cy);
+      if (d < bestD && placementError(this.map, [], def, x, y) === null) {
+        best = [x, y];
+        bestD = d;
+      }
+    }
+    if (best) this.state.buildings.push(newBuilding(this.state.nextId++, def, best[0], best[1]));
   }
 
   enqueue(cmd: Command): void {
@@ -31,8 +58,9 @@ export class Sim {
           break;
         case 'placeBuilding': {
           const def = buildingDef(cmd.building);
-          if (def && placementError(this.map, s.buildings, def, cmd.x, cmd.y) === null) {
-            s.buildings.push({ id: s.nextId++, type: def.id, x: cmd.x, y: cmd.y });
+          if (def && placementError(this.map, s.buildings, def, cmd.x, cmd.y, s.stock) === null) {
+            for (const [g, n] of Object.entries(def.cost)) s.stock[g] = (s.stock[g] ?? 0) - n;
+            s.buildings.push(newBuilding(s.nextId++, def, cmd.x, cmd.y));
           }
           break;
         }
@@ -48,7 +76,10 @@ export class Sim {
   /** One 10 Hz tick: apply commands, then advance unless paused. */
   step(): void {
     this.flush();
-    if (!this.state.paused) this.state.tick++;
+    if (!this.state.paused) {
+      economyTick(this.state);
+      this.state.tick++;
+    }
   }
 }
 

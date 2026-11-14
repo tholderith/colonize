@@ -1,0 +1,10 @@
+[
+  { "id": "credits", "name": "Credits", "short": "CR" },
+  { "id": "biomass", "name": "Biomass", "short": "BIO" },
+  { "id": "rations", "name": "Rations", "short": "RAT" },
+  { "id": "scrap", "name": "Scrap", "short": "SCR" },
+  { "id": "alloy", "name": "Alloy", "short": "ALY" },
+  { "id": "algae", "name": "Algae", "short": "ALG" },
+  { "id": "polymer", "name": "Polymer", "short": "POL" },
+  { "id": "goods", "name": "Goods", "short": "GDS" }
+]

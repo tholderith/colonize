@@ -10,7 +10,8 @@
     "test": "vitest run",
     "e2e": "playwright test",
     "lint": "eslint .",
-    "check": "tsc --noEmit && eslint . && vitest run"
+    "check": "tsc --noEmit && eslint . && vitest run",
+    "sim:balance": "rolldown scripts/balance.ts --platform node --file node_modules/.cache/balance.mjs --log-level warn && node node_modules/.cache/balance.mjs"
   },
   "dependencies": {
     "pixi.js": "^8.23.0"
