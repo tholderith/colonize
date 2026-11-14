@@ -1,23 +1,23 @@
 {
  "cart": {
   "size": [
-   203,
-   111
+   155,
+   73
   ],
   "anchor": [
-   94,
-   82
+   73,
+   66
   ],
   "flat": false
  },
  "chapel": {
   "size": [
    524,
-   482
+   336
   ],
   "anchor": [
    262,
-   425
+   279
   ],
   "flat": false
  },
@@ -68,99 +68,99 @@
  "farmhouse": {
   "size": [
    284,
-   322
+   264
   ],
   "anchor": [
    142,
-   265
+   207
   ],
   "flat": false
  },
  "house_0": {
   "size": [
    284,
-   322
+   264
   ],
   "anchor": [
    142,
-   265
+   207
   ],
   "flat": false
  },
  "house_1": {
   "size": [
    284,
-   322
+   264
   ],
   "anchor": [
    142,
-   265
+   207
   ],
   "flat": false
  },
  "house_2": {
   "size": [
    284,
-   322
+   264
   ],
   "anchor": [
    142,
-   265
+   207
   ],
   "flat": false
  },
  "house_3": {
   "size": [
    284,
-   322
+   264
   ],
   "anchor": [
    142,
-   265
+   207
   ],
   "flat": false
  },
  "lumberjack": {
   "size": [
    284,
-   287
+   183
   ],
   "anchor": [
    142,
-   230
+   137
   ],
   "flat": false
  },
  "pier": {
   "size": [
-   267,
-   157
+   214,
+   106
   ],
   "anchor": [
-   127,
-   104
+   97,
+   79
   ],
   "flat": true
  },
  "rock_0": {
   "size": [
-   273,
-   152
+   141,
+   81
   ],
   "anchor": [
-   132,
-   107
+   74,
+   70
   ],
   "flat": false
  },
  "rock_1": {
   "size": [
-   273,
-   152
+   141,
+   81
   ],
   "anchor": [
-   132,
-   107
+   74,
+   70
   ],
   "flat": false
  },
@@ -178,55 +178,55 @@
  "tree_0": {
   "size": [
    404,
-   403
+   308
   ],
   "anchor": [
    202,
-   346
+   251
   ],
   "flat": false
  },
  "tree_1": {
   "size": [
    404,
-   403
+   308
   ],
   "anchor": [
    202,
-   346
+   251
   ],
   "flat": false
  },
  "tree_2": {
   "size": [
    404,
-   403
+   308
   ],
   "anchor": [
    202,
-   346
+   251
   ],
   "flat": false
  },
  "tree_3": {
   "size": [
    404,
-   403
+   308
   ],
   "anchor": [
    202,
-   346
+   251
   ],
   "flat": false
  },
  "warehouse": {
   "size": [
-   524,
-   482
+   523,
+   336
   ],
   "anchor": [
-   262,
-   425
+   261,
+   279
   ],
   "flat": false
  },
@@ -243,12 +243,12 @@
  },
  "windmill": {
   "size": [
-   354,
-   386
+   353,
+   274
   ],
   "anchor": [
-   177,
-   329
+   176,
+   217
   ],
   "flat": false
  }
