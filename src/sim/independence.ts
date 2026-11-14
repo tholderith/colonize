@@ -114,6 +114,7 @@ function seize(ctx: Ctx, p: Patrol): void {
     if (!goods.length || h.immune > 0 || Math.hypot(h.x - p.x, h.y - p.y) > B.seizeRadius) continue;
     const text = goods.map(([g, n]) => `${n} ${g}`).join(', ');
     h.cargo = {};
+    addCredits(s, -B.seizePenalty);
     h.limp = B.limpTicks;
     h.immune = B.immuneTicks;
     // Limp home: head for the first port stop on the hauler's home island.
@@ -124,7 +125,7 @@ function seize(ctx: Ctx, p: Patrol): void {
       h.leg = '';
     }
     s.ind.seized++;
-    log(s, 'seized', `Blockade patrol seized ${text} from hauler #${h.id}`, h.x, h.y);
+    log(s, 'seized', `Blockade patrol seized ${text} from hauler #${h.id} (fined ${B.seizePenalty} cr)`, h.x, h.y);
   }
 }
 

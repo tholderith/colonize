@@ -50,11 +50,13 @@ describe('haulers', () => {
 });
 
 describe('concordat', () => {
-  it('levy maths: 10% base, +5% per population step, +5% penalty, -2% relief', () => {
-    expect(levyRate(0, false, false)).toBe(10);
-    expect(levyRate(25, false, false)).toBe(15);
-    expect(levyRate(50, true, false)).toBe(25);
-    expect(levyRate(0, false, true)).toBe(8);
+  it('levy maths: 6% base, +3% per population step (+7% past 100 pop), +5% penalty, -2% relief', () => {
+    expect(levyRate(0, false, false)).toBe(6);
+    expect(levyRate(25, false, false)).toBe(9);
+    expect(levyRate(100, false, false)).toBe(18);
+    expect(levyRate(150, false, false)).toBe(32);
+    expect(levyRate(50, true, false)).toBe(17);
+    expect(levyRate(0, false, true)).toBe(4);
   });
 
   it('takes the levy % of the credits earned at the end of the period', () => {
@@ -66,7 +68,7 @@ describe('concordat', () => {
     sim.step(); // tick 2999 -> 3000
     expect(s.credits).toBe(1000);
     sim.step(); // tick 3000: period over
-    expect(s.credits).toBe(1000 - 40);
+    expect(s.credits).toBe(1000 - 24);
     expect(s.concordat.earned).toBe(0);
   });
 
@@ -91,7 +93,7 @@ describe('concordat', () => {
     expect(missed.state.credits).toBe(c1 - 150);
     expect(missed.state.concordat.penaltyPeriods).toBe(2);
     missed.step();
-    expect(missed.state.concordat.levyPct).toBe(15);
+    expect(missed.state.concordat.levyPct).toBe(11);
   });
 
   it('is deterministic with ships and events running', () => {

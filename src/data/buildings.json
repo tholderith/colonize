@@ -1,35 +1,35 @@
 [
-  { "id": "depot", "name": "Depot", "group": "Core", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#63b3ed", "height": 30,
+  { "id": "depot", "name": "Depot", "desc": "Island warehouse: stores goods and sets the build radius. One per island.", "group": "Core", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#63b3ed", "height": 30,
     "cost": { "credits": 200, "alloy": 15 }, "radius": 10 },
-  { "id": "port", "name": "Port", "group": "Core", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#4299e1", "height": 26,
+  { "id": "port", "name": "Port", "desc": "Docks haulers and links the island to others. Needs a depot nearby and open water to the east.", "group": "Core", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#4299e1", "height": 26,
     "cost": { "credits": 250, "alloy": 20 }, "dockEast": true, "needsDepot": true },
-  { "id": "wind_turbine", "name": "Wind Turbine", "group": "Core", "footprint": [1, 1], "terrain": ["land", "shore"], "color": "#e2e8f0", "height": 90,
+  { "id": "wind_turbine", "name": "Wind Turbine", "desc": "Generates power for buildings within its radius.", "group": "Core", "footprint": [1, 1], "terrain": ["land", "shore"], "color": "#e2e8f0", "height": 90,
     "cost": { "credits": 60, "alloy": 4 }, "radius": 6, "supply": 10 },
-  { "id": "road", "name": "Road", "group": "Core", "footprint": [1, 1], "terrain": ["land", "shore"], "color": "#4a5568", "height": 2,
+  { "id": "road", "name": "Road", "desc": "Cheap paving connector.", "group": "Core", "footprint": [1, 1], "terrain": ["land", "shore"], "color": "#4a5568", "height": 2,
     "cost": { "credits": 4 } },
 
-  { "id": "pod_house", "name": "Pod House", "group": "Housing", "footprint": [1, 1], "terrain": ["land"], "color": "#4fd1c5", "height": 36,
+  { "id": "pod_house", "name": "Pod House", "desc": "Houses colonists. They pay tax and eat rations; technicians also want goods.", "group": "Housing", "footprint": [1, 1], "terrain": ["land"], "color": "#4fd1c5", "height": 36,
     "cost": { "credits": 40, "alloy": 1 }, "house": true },
 
-  { "id": "hydroponics", "name": "Hydroponics Shed", "group": "Food", "footprint": [2, 2], "terrain": ["land"], "color": "#68d391", "height": 28,
+  { "id": "hydroponics", "name": "Hydroponics Shed", "desc": "Grows biomass for the ration plant.", "group": "Food", "footprint": [2, 2], "terrain": ["land"], "color": "#68d391", "height": 28,
     "cost": { "credits": 100, "alloy": 5 }, "draw": 1, "worker": "laborer", "jobs": 2, "cycle": 150, "outputs": { "biomass": 4 } },
-  { "id": "ration_plant", "name": "Ration Plant", "group": "Food", "footprint": [2, 2], "terrain": ["land"], "color": "#f6e05e", "height": 34,
+  { "id": "ration_plant", "name": "Ration Plant", "desc": "Turns biomass into rations that colonists eat.", "group": "Food", "footprint": [2, 2], "terrain": ["land"], "color": "#f6e05e", "height": 34,
     "cost": { "credits": 140, "alloy": 8 }, "draw": 2, "worker": "laborer", "jobs": 2, "cycle": 200, "inputs": { "biomass": 2 }, "outputs": { "rations": 5 } },
 
-  { "id": "scrap_yard", "name": "Scrap Yard", "group": "Metal", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#a0866a", "height": 18,
+  { "id": "scrap_yard", "name": "Scrap Yard", "desc": "Salvages scrap metal.", "group": "Metal", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#a0866a", "height": 18,
     "cost": { "credits": 80 }, "draw": 1, "worker": "laborer", "jobs": 2, "cycle": 150, "outputs": { "scrap": 3 } },
-  { "id": "smelter", "name": "Smelter", "group": "Metal", "footprint": [2, 2], "terrain": ["land"], "color": "#f6ad55", "height": 56,
+  { "id": "smelter", "name": "Smelter", "desc": "Smelts scrap into alloy, the building material.", "group": "Metal", "footprint": [2, 2], "terrain": ["land"], "color": "#f6ad55", "height": 56,
     "cost": { "credits": 180, "alloy": 8 }, "draw": 3, "worker": "laborer", "jobs": 3, "cycle": 200, "inputs": { "scrap": 3 }, "outputs": { "alloy": 3 } },
 
-  { "id": "algae_skimmer", "name": "Algae Skimmer", "group": "Industry", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#38b2ac", "height": 24,
+  { "id": "algae_skimmer", "name": "Algae Skimmer", "desc": "Skims algae from the sea. Must sit on the shore.", "group": "Industry", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#38b2ac", "height": 24,
     "cost": { "credits": 120, "alloy": 5 }, "needsWater": true, "draw": 1, "worker": "laborer", "jobs": 2, "cycle": 200, "outputs": { "algae": 3 } },
-  { "id": "refinery", "name": "Refinery", "group": "Industry", "footprint": [2, 2], "terrain": ["land"], "color": "#b794f4", "height": 50,
+  { "id": "refinery", "name": "Refinery", "desc": "Refines algae into polymer. Needs technicians.", "group": "Industry", "footprint": [2, 2], "terrain": ["land"], "color": "#b794f4", "height": 50,
     "cost": { "credits": 220, "alloy": 12 }, "draw": 3, "worker": "technician", "jobs": 2, "cycle": 250, "inputs": { "algae": 3 }, "outputs": { "polymer": 2 } },
-  { "id": "fabricator", "name": "Fabricator", "group": "Industry", "footprint": [2, 2], "terrain": ["land"], "color": "#fc8181", "height": 44,
+  { "id": "fabricator", "name": "Fabricator", "desc": "Makes goods from polymer and alloy. Needs technicians.", "group": "Industry", "footprint": [2, 2], "terrain": ["land"], "color": "#fc8181", "height": 44,
     "cost": { "credits": 260, "alloy": 15 }, "draw": 3, "worker": "technician", "jobs": 3, "cycle": 250, "inputs": { "polymer": 2, "alloy": 1 }, "outputs": { "goods": 5 } },
 
-  { "id": "signal_relay", "name": "Signal Relay", "group": "Independence", "footprint": [1, 1], "terrain": ["land", "shore"], "color": "#ff3d9a", "height": 70,
+  { "id": "signal_relay", "name": "Signal Relay", "desc": "Broadcasts independence propaganda: raises sentiment steadily.", "group": "Independence", "footprint": [1, 1], "terrain": ["land", "shore"], "color": "#ff3d9a", "height": 70,
     "cost": { "credits": 150, "alloy": 10 } },
-  { "id": "coastal_battery", "name": "Coastal Battery", "group": "Independence", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#f87171", "height": 40,
-    "cost": { "credits": 300, "alloy": 30 }, "needsWater": true, "radius": 6, "upkeep": { "alloy": 1.5 } }
+  { "id": "coastal_battery", "name": "Coastal Battery", "desc": "Keeps blockade patrols out of its range. Burns 3 alloy a minute. Build on the coast.", "group": "Independence", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#f87171", "height": 40,
+    "cost": { "credits": 300, "alloy": 30 }, "needsWater": true, "radius": 6, "upkeep": { "alloy": 3 } }
 ]

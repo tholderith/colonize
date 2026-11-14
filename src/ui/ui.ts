@@ -15,6 +15,7 @@ export interface UiEvents {
   onExchangeOrder(good: string, mode: Order['mode'], amount: number): void;
   onSave(): void;
   onExport(): void;
+  onLoad(): void;
 }
 
 const costText = (cost: Stock) =>
@@ -26,6 +27,40 @@ const flowText = (f: Stock | undefined) =>
   Object.entries(f ?? {})
     .map(([g, n]) => `${n} ${goodName(g).toLowerCase()}`)
     .join(' + ');
+
+const perMin = (f: Stock, cycle: number) =>
+  Object.entries(f)
+    .map(([g, n]) => `${n} ${goodName(g).toLowerCase()}`)
+    .join(' + ') + ` / ${Math.round(cycle / 10)}s`;
+
+/** HUD card tooltip: what the resource is for and what makes / uses it (derived from the data files). */
+function hudTip(k: string): string | null {
+  if (k === 'island') return '<b>Island</b><br>The stock shown is for this island: the one selected, else under the camera. Move goods between islands with haulers.';
+  if (k === 'pop') return '<b>Colonists</b><br>L = laborers (Pod House tier 1), T = technicians (tier 2). They pay tax, eat rations and staff buildings. Technicians also raise independence.';
+  if (k === 'power') return '<b>Power</b><br>Demand / supply on this island. Wind turbines supply 10 each within their radius; short power halves production speed.';
+  if (k === 'credits')
+    return '<b>Credits</b> (shared by all islands)<br>Earned from colonist tax and trade. Spent on building. The Concordat takes a levy share of what you earn each period.<br><span class="k">Rate = net per minute.</span>';
+  const g = GOODS.find((o) => o.id === k);
+  if (!g) return null;
+  const makers = BUILDINGS.filter((b) => b.outputs?.[k]).map((b) => b.name);
+  const users = BUILDINGS.filter((b) => b.inputs?.[k] || b.upkeep?.[k]).map((b) => b.name);
+  if (ECON.tiers.some((t) => t.needsPerResidentPerMin[k])) users.push('Pod Houses');
+  const cost = BUILDINGS.filter((b) => b.cost[k]).length;
+  return `<b>${g.name}</b> (this island)<br><span class="k">Made by:</span> ${makers.join(', ') || '-'}<br><span class="k">Used by:</span> ${users.join(', ') || '-'}${cost ? '<br><span class="k">Also a building cost.</span>' : ''}<br><span class="k">Rate = net per minute.</span>`;
+}
+
+function buildTip(id: string): string | null {
+  const d = buildingDef(id);
+  if (!d) return null;
+  const lines = [`<b>${d.name}</b>`, d.desc ?? ''];
+  if (d.cycle && d.outputs) lines.push(`<span class="k">In:</span> ${d.inputs ? perMin(d.inputs, d.cycle) : '-'}<br><span class="k">Out:</span> ${perMin(d.outputs, d.cycle)}`);
+  if (d.draw) lines.push(`<span class="k">Power:</span> uses ${d.draw}`);
+  if (d.supply) lines.push(`<span class="k">Power:</span> supplies ${d.supply}, radius ${d.radius}`);
+  if (d.jobs) lines.push(`<span class="k">Jobs:</span> ${d.jobs} ${d.worker}s`);
+  if (d.upkeep) lines.push(`<span class="k">Upkeep:</span> ${flowText(d.upkeep)} / min`);
+  lines.push(`<span class="k">Cost:</span> ${costText(d.cost)} <span class="k">&middot; ${d.footprint[0]}x${d.footprint[1]}</span>`);
+  return lines.filter(Boolean).join('<br>');
+}
 
 export class Ui {
   private tool: BuildingDef | null = null;
@@ -68,13 +103,77 @@ export class Ui {
       menu.appendChild(btn);
       this.buttons.set(def.id, btn);
     }
+    $('btn-load').addEventListener('click', () => events.onLoad());
+    this.initTooltips();
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.setTool(null);
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (e.ctrlKey || e.metaKey || e.altKey || tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+      if (e.key === ' ') {
+        e.preventDefault();
+        if (!e.repeat) events.onSpeed(0);
+      } else if (e.key === '1' || e.key === '2' || e.key === '3') events.onSpeed(Number(e.key) as 1 | 2 | 3);
+    });
+    // A focused button would also "click" on Space; keep Space for pause only.
+    window.addEventListener('keyup', (e) => {
+      if (e.key === ' ') e.preventDefault();
     });
     window.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       this.setTool(null);
     });
+  }
+
+  /** Pulse these build-menu items (objective hints). */
+  setHighlight(ids: string[]): void {
+    for (const [id, btn] of this.buttons) btn.classList.toggle('hint', ids.includes(id));
+  }
+
+  /** In-page confirm box; `yes` runs on the confirm button. */
+  confirm(text: string, yesLabel: string, yes: () => void): void {
+    $('confirm-text').textContent = text;
+    $('confirm-yes').textContent = yesLabel;
+    const box = $('confirm');
+    const close = () => {
+      box.hidden = true;
+      $('confirm-yes').onclick = $('confirm-no').onclick = null;
+    };
+    $('confirm-yes').onclick = () => (close(), yes());
+    $('confirm-no').onclick = close;
+    box.hidden = false;
+  }
+
+  closeConfirm(): void {
+    $('confirm-no').click();
+  }
+
+  /** One floating tooltip for the HUD cards and build-menu items (the HUD is rebuilt every snapshot, so no title attributes). */
+  private initTooltips(): void {
+    const tip = $('tip');
+    let key = '';
+    const hide = () => ((tip.hidden = true), (key = ''));
+    const bind = (root: HTMLElement, sel: string, html: (el: HTMLElement) => string | null) => {
+      root.addEventListener('mousemove', (e) => {
+        const el = (e.target as HTMLElement).closest<HTMLElement>(sel);
+        const k = el ? (el.dataset.good ?? el.dataset.hud ?? el.dataset.building ?? '') : '';
+        if (!el || !k) return hide();
+        if (k !== key || tip.hidden) {
+          const h = html(el);
+          if (!h) return hide();
+          key = k;
+          tip.innerHTML = h;
+          tip.hidden = false;
+        }
+        const w = tip.offsetWidth, hh = tip.offsetHeight;
+        const x = e.clientX + 14 + w > window.innerWidth ? e.clientX - w - 14 : e.clientX + 14;
+        tip.style.left = `${Math.max(4, x)}px`;
+        tip.style.top = `${Math.max(4, Math.min(window.innerHeight - hh - 4, e.clientY + 16))}px`;
+      });
+      root.addEventListener('mouseleave', hide);
+    };
+    bind($('hud'), '[data-good], [data-hud]', (el) => hudTip(el.dataset.good ?? el.dataset.hud ?? ''));
+    bind($('build-menu'), 'button[data-building]', (el) => buildTip(el.dataset.building ?? ''));
+    window.addEventListener('keydown', hide);
   }
 
   get activeTool(): BuildingDef | null {

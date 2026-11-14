@@ -18,6 +18,8 @@ export interface BuildingDef {
   footprint: [number, number];
   terrain: TileClass[];
   color: string;
+  /** One-line description for tooltips. */
+  desc?: string;
   /** Placeholder box height in px. */
   height: number;
   cost: Stock;
@@ -70,7 +72,7 @@ export interface EconomyData {
 export interface TradeData {
   hauler: { cost: Stock; capacity: number; slots: number; tilesPerSec: number; dockTicks: number };
   tariff: number;
-  levy: { periodTicks: number; base: number; step: number; popPerStep: number; max: number; reliefPct: number; penaltyPct: number; penaltyPeriods: number };
+  levy: { periodTicks: number; base: number; step: number; popPerStep: number; steepAfterSteps: number; steepStep: number; max: number; reliefPct: number; penaltyPct: number; penaltyPeriods: number };
   demand: { firstAtTicks: number; intervalTicks: number; deadlineTicks: number; goods: string[]; amount: [number, number]; rewardMult: number; fineMult: number };
   trader: { firstAtTicks: number; intervalTicks: [number, number]; dockTicks: number; better: number; qty: [number, number]; exposurePer: number };
   audit: { firstAtTicks: number; intervalTicks: [number, number]; dockTicks: number; exposureForSure: number; fineBase: number; finePerExposure: number };
@@ -84,7 +86,7 @@ export interface IndependenceData {
   };
   blockade: {
     cycleTicks: number; cyclesToWin: number; popWinPct: number; popLosePct: number; seizeRadius: number; avoidRadius: number; avoidMargin: number;
-    patrolTilesPerSec: number; growTicks: number; spawnGapTicks: number; limpTicks: number; limpSpeed: number; immuneTicks: number;
+    patrolTilesPerSec: number; seizePenalty: number; growTicks: number; spawnGapTicks: number; limpTicks: number; limpSpeed: number; immuneTicks: number;
     traderBetter: number; traderIntervalTicks: [number, number]; upkeepShortfallMult: number; bankruptPeriods: number;
   };
   difficulty: Record<Difficulty, { label: string; levyMult: number; demandMult: number; patrols: [number, number] }>;

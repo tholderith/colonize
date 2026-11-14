@@ -3,7 +3,8 @@ import type { FromWorker, ToWorker } from './sim/protocol';
 import { generateMap, islandAt, islands } from './sim/mapgen';
 import type { SaveData } from './sim/sim';
 import { IndependenceUi } from './ui/independence-ui';
-import { downloadSave, writeSave, type StartDesc } from './ui/saves';
+import { Objectives } from './ui/objectives';
+import { downloadSave, readSave, saveMeta, writeSave, type StartDesc } from './ui/saves';
 import { buildingAt, buildingDef, placementError, stockAtTile } from './sim/placement';
 import { dayOf, hourOfDay } from './sim/time';
 import type { Command, GameMap, GameState, Stop } from './sim/types';
@@ -25,6 +26,7 @@ const command = (cmd: Command) => send({ type: 'command', cmd });
 let ui!: Ui;
 let renderer!: Renderer;
 let ind!: IndependenceUi;
+let objectives!: Objectives;
 /** Last concordat log entry the renderer has reacted to (seizure flashes). */
 let seenLog = -1;
 
@@ -58,7 +60,41 @@ const uiEvents: UiEvents = {
   },
   onSave: () => send({ type: 'save', slot: 'manual' }),
   onExport: () => send({ type: 'save', slot: 'export' }),
+  onLoad: () => {
+    const data = readSave('manual') ?? readSave('auto');
+    const meta = saveMeta(data);
+    if (!data || !meta) return ui.toast('No save to load');
+    if (meta.seed !== seed) return ui.toast(`That save is from seed ${meta.seed}: load it from the main menu`);
+    ui.confirm(`Load the saved game (${Math.floor(meta.tick / 600)} min played)? Unsaved progress is lost.`, 'LOAD', () => {
+      resetClient();
+      send({ type: 'load', data });
+    });
+  },
 };
+
+/** Forget everything tied to the previous game before a load or restart. */
+function resetClient(): void {
+  select(null);
+  selectHauler(null);
+  ui.setTool(null);
+  renderer.reset();
+  ind.reset();
+  objectives.reset();
+  seenLog = -1;
+  state = null;
+}
+
+/** Esc: drop the tool and close every open panel. */
+function closePanels(): void {
+  ui.setTool(null);
+  ui.closeConfirm();
+  select(null);
+  selectHauler(null);
+  for (const [panel, btn] of [['concordat', 'btn-concordat'], ['exchange', 'btn-exchange']] as const) {
+    document.getElementById(panel)!.hidden = true;
+    document.getElementById(btn)!.classList.remove('active');
+  }
+}
 
 const rendererEvents: RendererEvents = {
   onTileHover: (x, y) => updatePlaceInfo(x, y),
@@ -121,6 +157,7 @@ worker.onmessage = (e: MessageEvent<FromWorker>) => {
   state = msg.state;
   ui.setState(state, hudIsland());
   ind.update(state);
+  objectives.update(state);
   for (const ev of state.concordat.log) {
     if (ev.id > seenLog && seenLog >= 0 && ev.kind === 'seized' && ev.x !== undefined && ev.y !== undefined) renderer.flash(ev.x, ev.y);
   }
@@ -148,7 +185,16 @@ export async function startGame(desc: StartDesc): Promise<void> {
   seed = desc.kind === 'new' ? desc.seed : (JSON.parse(desc.data) as SaveData).seed;
   map = generateMap(seed);
   ui = new Ui(uiEvents);
-  ind = new IndependenceUi({ onDeclare: () => command({ type: 'declare' }) });
+  ind = new IndependenceUi({
+    onDeclare: () => command({ type: 'declare' }),
+    onNewGame: () => {
+      const difficulty = state?.difficulty ?? 'standard';
+      resetClient();
+      send({ type: 'init', seed, difficulty });
+    },
+  });
+  objectives = new Objectives((ids) => ui.setHighlight(ids));
+  window.addEventListener('keydown', (e) => e.key === 'Escape' && closePanels());
   renderer = new Renderer(map, rendererEvents);
   setInterval(() => {
     if (!state) return;

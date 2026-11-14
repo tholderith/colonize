@@ -13,10 +13,11 @@ export function newConcordat(): Concordat {
   };
 }
 
-/** Levy percentage: base plus a step per population threshold, plus the penalty surcharge, minus relief. */
+/** Levy percentage: base plus a gentle step per population threshold (steeper past `steepAfterSteps`), plus the penalty surcharge, minus relief. */
 export function levyRate(pop: number, penalty: boolean, relief: boolean, mult = 1): number {
   const steps = Math.floor(pop / T.levy.popPerStep);
-  const pct = Math.min(T.levy.max, T.levy.base + T.levy.step * steps) + (penalty ? T.levy.penaltyPct : 0) - (relief ? T.levy.reliefPct : 0);
+  const early = Math.min(steps, T.levy.steepAfterSteps);
+  const pct = Math.min(T.levy.max, T.levy.base + T.levy.step * early + T.levy.steepStep * (steps - early)) + (penalty ? T.levy.penaltyPct : 0) - (relief ? T.levy.reliefPct : 0);
   return Math.max(0, Math.round(pct * mult));
 }
 

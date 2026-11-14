@@ -17,6 +17,7 @@ const CAUSES: Record<EndCause, [string, string]> = {
 
 export interface IndependenceEvents {
   onDeclare(): void;
+  onNewGame(): void;
 }
 
 /** Sentiment meter, drivers, declare button (with in-page confirm), blockade strip and the end screen. */
@@ -39,6 +40,14 @@ export class IndependenceUi {
       this.sync();
     });
     $('btn-endmenu').addEventListener('click', () => location.reload());
+    $('btn-endnew').addEventListener('click', () => this.ev.onNewGame());
+  }
+
+  /** Back to a fresh game or a loaded save: hide the end screen. */
+  reset(): void {
+    this.ended = false;
+    this.confirming = false;
+    $('endscreen').hidden = true;
   }
 
   private canDeclare = false;

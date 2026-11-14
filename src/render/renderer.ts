@@ -1,4 +1,4 @@
-import { AnimatedSprite, type Texture, Application, BlurFilter, ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, TilingSprite } from 'pixi.js';
+import { AnimatedSprite, type Texture, Application, BlurFilter, ColorMatrixFilter, Container, CullerPlugin, Graphics, Rectangle, Sprite, TilingSprite, extensions } from 'pixi.js';
 import look from '../data/look.json';
 import { buildingDef, placementError, stockAtTile } from '../sim/placement';
 import type { Building, BuildingDef, GameMap, GameState, TileClass } from '../sim/types';
@@ -7,6 +7,11 @@ import { loadArt, type Art, type Sprite2 } from './assets';
 import { Camera } from './camera';
 import { Smoke, WaterFilter, beacon, flicker, gradeAt, rainTexture, vignetteTexture } from './fx';
 import { TILE_H, TILE_W, gridToWorld, worldToTile } from './iso';
+
+// Off-screen culling for containers flagged `cullable` (terrain chunks, buildings, roads, ships).
+extensions.add(CullerPlugin);
+const CHUNK = 8;
+const RAIN_SPEED = [900, 1500];
 
 const TERRAIN_COLOR: Record<TileClass, number> = {
   deep: 0x0b1d33,
@@ -98,6 +103,8 @@ export class Renderer {
   private camera!: Camera;
   private art: Art = { tiles: new Map(), buildings: new Map(), units: new Map(), anims: new Map() };
   private ships = new Map<number, Ship>();
+  /** Containers that mirror the camera transform (set once the layers exist). */
+  private mirrors: Container[] = [this.waterWorld, this.glowWorld, this.bloomWorld];
   private selectedShip: number | null = null;
   private flashes: { g: Graphics; x: number; y: number; t0: number }[] = [];
   private lastSnap = 0;
@@ -218,6 +225,7 @@ export class Renderer {
   private drawTerrain(): void {
     const g = new Graphics();
     const wg = new Graphics();
+    const chunks = new Map<number, Container>();
     const { w, h, tiles } = this.map;
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
@@ -228,7 +236,18 @@ export class Renderer {
         if (art) {
           // Anchor sits on the tile's south corner.
           const s = gridToWorld(x + 1, y + 1);
-          (cls === 'deep' || cls === 'shallow' ? this.water : this.terrain).addChild(this.makeSprite(art, s.x, s.y));
+          if (cls === 'deep' || cls === 'shallow') this.water.addChild(this.makeSprite(art, s.x, s.y));
+          else {
+            const ck = Math.floor(x / CHUNK) + Math.floor(y / CHUNK) * 1000;
+            let chunk = chunks.get(ck);
+            if (!chunk) {
+              chunk = new Container();
+              chunk.cullable = true;
+              chunks.set(ck, chunk);
+              this.terrain.addChild(chunk);
+            }
+            chunk.addChild(this.makeSprite(art, s.x, s.y));
+          }
           continue;
         }
         // Slight per-tile checker variation so the grid reads.
@@ -311,6 +330,19 @@ export class Renderer {
     this.redrawGhost();
   }
 
+  /** Drop every building and ship node (a different game was loaded into the same map). */
+  reset(): void {
+    for (const [id, o] of this.built) this.destroyBuilt(id, o);
+    for (const sh of this.ships.values()) {
+      sh.node.destroy({ children: true });
+      sh.glow?.sharp.destroy({ children: true });
+      sh.glow?.bloom.destroy({ children: true });
+    }
+    this.ships.clear();
+    this.selectedId = null;
+    this.selectedShip = null;
+  }
+
   private destroyBuilt(id: number, o: Built): void {
     o.node.destroy({ children: true });
     o.glow?.sharp.destroy({ children: true });
@@ -388,7 +420,7 @@ export class Renderer {
     const t = performance.now() / 1000;
     const { x, y } = this.world;
     const z = this.world.scale.x;
-    for (const c of [this.waterWorld, this.glowWorld, this.bloomWorld]) {
+    for (const c of this.mirrors) {
       c.position.set(x, y);
       c.scale.set(z);
     }
@@ -402,10 +434,10 @@ export class Renderer {
     for (const sh of this.ships.values()) if (sh.glow) sh.glow.sharp.alpha = sh.glow.bloom.alpha = this.glowK;
     this.smoke.update(Math.min(dt, 0.1), this.nightK);
     this.updateFlashes();
-    const speed = [900, 1500];
-    for (const [i, r] of this.rain.entries()) {
-      r.tilePosition.x -= speed[i]! * 0.22 * dt;
-      r.tilePosition.y += speed[i]! * dt;
+    for (let i = 0; i < this.rain.length; i++) {
+      const r = this.rain[i]!;
+      r.tilePosition.x -= RAIN_SPEED[i]! * 0.22 * dt;
+      r.tilePosition.y += RAIN_SPEED[i]! * dt;
     }
   }
 
@@ -418,6 +450,7 @@ export class Renderer {
   }
 
   private updateFlashes(): void {
+    if (!this.flashes.length) return;
     const now = performance.now();
     this.flashes = this.flashes.filter((f) => {
       const a = (now - f.t0) / 1400;
@@ -453,6 +486,7 @@ export class Renderer {
       let sh = this.ships.get(m.id);
       if (!sh) {
         sh = { node: new Container(), kind: m.kind, dir: 'se', fx: m.x, fy: m.y, tx: m.x, ty: m.y, t0: performance.now(), dur: this.snapMs };
+        sh.node.cullable = true;
         this.objects.addChild(sh.node);
         this.ships.set(m.id, sh);
         this.setShipDir(sh, 'se');
@@ -567,6 +601,7 @@ export class Renderer {
         g.poly([T.x, T.y, R.x, R.y, B.x, B.y, L.x, L.y]).fill(0x4a5568);
         node.addChild(g);
       }
+      node.cullable = true;
       this.roads.addChild(node);
       this.built.set(b.id, { node, key });
       return;
@@ -598,6 +633,7 @@ export class Renderer {
       node.addChild(g);
     }
     node.zIndex = b.x + fw - 1 + (b.y + fh - 1);
+    node.cullable = true;
     this.objects.addChild(node);
     this.built.set(b.id, { node, key, glow, beacon: b.type === 'wind_turbine' || b.type === 'port' });
   }

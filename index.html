@@ -32,6 +32,7 @@
         <h1 id="end-title"></h1>
         <p id="end-cause"></p>
         <table id="end-stats"></table>
+        <button id="btn-endnew" class="big">NEW GAME</button>
         <button id="btn-endmenu" class="big">MAIN MENU</button>
       </div>
     </div>
@@ -45,7 +46,9 @@
       <button id="btn-exchange">EXCHANGE</button>
       <button id="btn-bloom" title="Bloom on/off">BLOOM</button>
       <button id="btn-rain" title="Rain on/off">RAIN</button>
+      <button id="btn-objectives" title="Show or hide the objectives" class="active">OBJECTIVES</button>
       <button id="btn-save" title="Save to the manual slot">SAVE</button>
+      <button id="btn-load" title="Load the manual save (or the autosave)">LOAD</button>
       <button id="btn-export" title="Download a save file">EXPORT</button>
       <span class="clock" id="tod"><small>DAY <span id="day">001</span> <span class="dim">t<span id="tick">0</span></span></small><br><span id="clock">19:00</span></span>
     </header>
@@ -68,6 +71,9 @@
       <div id="concordat-body"></div></section>
     <section id="exchange" class="panel" hidden><h2>EXCHANGE</h2><div id="exchange-body"></div></section>
     <section id="hauler-panel" class="panel" hidden><h2>HAULER</h2><div id="hauler-body"></div></section>
+    <section id="objectives" class="panel"><h2>OBJECTIVES</h2><button id="obj-close" title="Dismiss (reopen with OBJECTIVES)">x</button><ol id="obj-list"></ol><div id="obj-hint"></div></section>
+    <div id="confirm" hidden><div class="menu-box"><p id="confirm-text"></p><button id="confirm-yes" class="big">LOAD</button><button id="confirm-no" class="big">CANCEL</button></div></div>
+    <div id="tip" hidden></div>
     <div id="toast"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

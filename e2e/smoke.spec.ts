@@ -105,6 +105,8 @@ test('build a tiny working colony, inspect it, screenshot', async ({ page }) => 
   await page.mouse.click(box.x + hp.x, box.y + hp.y);
   await expect(page.locator('#info-body')).toContainText('Hydroponics');
   await expect(page.locator('#info-body')).toContainText('Status');
+  await expect(page.locator('#objectives')).toBeVisible();
+  await expect(page.locator('#obj-list li.done').first()).toContainText('wind turbine');
   await page.mouse.move(box.x + 5, box.y + box.height - 5);
   await page.evaluate(() => (window as unknown as { __foundry: { setHour(h: number): void } }).__foundry.setHour(22)); // night shot
   await page.waitForTimeout(1500);

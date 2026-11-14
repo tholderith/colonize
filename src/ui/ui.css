@@ -120,3 +120,27 @@ input, select { font: inherit; color: var(--amber); background: rgba(5, 10, 20, 
 #end-title { font-size: 34px; }
 #end-cause { font-size: 13px; letter-spacing: 0; color: #d6c58a; }
 #end-stats { margin: 0 auto 10px; text-align: left; border-spacing: 14px 3px; }
+
+/* Objectives, tooltips, confirm */
+#objectives { top: 176px; left: 12px; width: 270px; font-size: 12px; }
+#objectives[hidden] { display: none; }
+#obj-close { position: absolute; top: 4px; right: 8px; padding: 0 6px; line-height: 1.2; z-index: 1; }
+#obj-list { margin: 0; padding: 0; list-style: none; }
+#obj-list li { padding: 1px 0; color: #8a8266; display: flex; gap: 6px; }
+#obj-list li::before { content: '\25CB'; color: #8a8266; }
+#obj-list li.done { text-decoration: line-through; color: #4b5563; }
+#obj-list li.done::before { content: '\2713'; color: var(--green); }
+#obj-list li.now { color: var(--amber); text-shadow: 0 0 6px rgba(251, 191, 36, 0.6); }
+#obj-list li.now::before { content: '\25B6'; color: var(--cyan); }
+#obj-hint { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line); color: var(--cyan); font-size: 11px; }
+#build-menu button.hint { border-color: var(--cyan); color: #d8fbff; animation: hint-pulse 1.4s ease-in-out infinite; }
+@keyframes hint-pulse { 0%, 100% { box-shadow: 0 0 0 rgba(34, 211, 238, 0); background: rgba(34, 211, 238, 0.08); } 50% { box-shadow: 0 0 10px rgba(34, 211, 238, 0.8); background: rgba(34, 211, 238, 0.28); } }
+#build-menu button.hint.poor { opacity: 0.75; }
+#tip { position: fixed; z-index: 30; pointer-events: none; max-width: 270px; padding: 6px 9px; font-size: 11px; line-height: 1.45; color: var(--amber); background: rgba(6, 10, 18, 0.96); border: 1px solid var(--cyan); box-shadow: 0 0 10px rgba(34, 211, 238, 0.25); }
+#tip[hidden] { display: none; }
+#tip b { color: var(--cyan); font-weight: normal; }
+#tip .k { color: #8a8266; }
+#confirm { position: fixed; inset: 0; z-index: 25; display: flex; align-items: center; justify-content: center; background: rgba(5, 10, 20, 0.6); }
+#confirm[hidden] { display: none; }
+#confirm .menu-box { min-width: 300px; }
+#confirm p { font-size: 13px; letter-spacing: 0; color: #d6c58a; }

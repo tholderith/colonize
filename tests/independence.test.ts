@@ -101,7 +101,9 @@ describe('blockade patrols', () => {
     const far = newHauler(901, { x: e.x + 14, y: e.y }, 0);
     far.cargo = { alloy: 5 };
     sim.state.haulers.push(near, far);
+    const c0 = sim.state.credits;
     run(sim, 3);
+    expect(sim.state.credits).toBe(c0 - IND.blockade.seizePenalty);
     expect(near.cargo).toEqual({});
     expect(near.limp).toBeGreaterThan(0);
     expect(far.cargo).toEqual({ alloy: 5 });

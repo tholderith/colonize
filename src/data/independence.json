@@ -7,8 +7,8 @@
   },
   "blockade": {
     "cycleTicks": 3000, "cyclesToWin": 3, "popWinPct": 0.8, "popLosePct": 0.5,
-    "seizeRadius": 3, "avoidRadius": 6, "avoidMargin": 0.8, "patrolTilesPerSec": 2, "growTicks": 3000, "spawnGapTicks": 100,
-    "limpTicks": 600, "limpSpeed": 0.5, "immuneTicks": 300, "traderBetter": 0.5, "traderIntervalTicks": [1800, 3000],
+    "seizeRadius": 3, "avoidRadius": 6, "avoidMargin": 0.8, "patrolTilesPerSec": 2.5, "seizePenalty": 700, "growTicks": 3000, "spawnGapTicks": 100,
+    "limpTicks": 600, "limpSpeed": 0.5, "immuneTicks": 300, "traderBetter": 0.5, "traderIntervalTicks": [4800, 7200],
     "upkeepShortfallMult": 2, "bankruptPeriods": 2
   },
   "difficulty": {
