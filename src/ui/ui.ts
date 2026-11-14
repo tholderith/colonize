@@ -35,9 +35,9 @@ const perMin = (f: Stock, cycle: number) =>
 
 /** HUD card tooltip: what the resource is for and what makes / uses it (derived from the data files). */
 function hudTip(k: string): string | null {
-  if (k === 'island') return '<b>Island</b><br>The stock shown is for this island: the one selected, else under the camera. Move goods between islands with haulers.';
+  if (k === 'island') return '<b>Island in view</b><br>Every number here (except credits) is this island\'s stock: the island you selected, else the one under the screen centre. Pan to another island to see its stock. Haulers move goods between islands.';
   if (k === 'pop') return '<b>Colonists</b><br>L = laborers (Pod House tier 1), T = technicians (tier 2). They pay tax, eat rations and staff buildings. Technicians also raise independence.';
-  if (k === 'power') return '<b>Power</b><br>Demand / supply on this island. Wind turbines supply 10 each within their radius; short power halves production speed.';
+  if (k === 'power') return '<b>Power: used / supplied</b><br>Buildings on this island use power (first number); wind turbines supply it (second number, 10 each, within their radius). If use exceeds supply, production runs at half speed.';
   if (k === 'credits')
     return '<b>Credits</b> (shared by all islands)<br>Earned from colonist tax and trade. Spent on building. The Concordat takes a levy share of what you earn each period.<br><span class="k">Rate = net per minute.</span>';
   const g = GOODS.find((o) => o.id === k);
@@ -155,8 +155,8 @@ export class Ui {
     const bind = (root: HTMLElement, sel: string, html: (el: HTMLElement) => string | null) => {
       root.addEventListener('mousemove', (e) => {
         const el = (e.target as HTMLElement).closest<HTMLElement>(sel);
-        const k = el ? (el.dataset.good ?? el.dataset.hud ?? el.dataset.building ?? '') : '';
-        if (!el || !k) return hide();
+        const k = el ? (el.dataset.good ?? el.dataset.hud ?? el.dataset.building ?? el.dataset.tip ?? '') : '';
+        if (!el || !k) return root === document.body ? undefined : hide();
         if (k !== key || tip.hidden) {
           const h = html(el);
           if (!h) return hide();
@@ -169,9 +169,10 @@ export class Ui {
         tip.style.left = `${Math.max(4, x)}px`;
         tip.style.top = `${Math.max(4, Math.min(window.innerHeight - hh - 4, e.clientY + 16))}px`;
       });
-      root.addEventListener('mouseleave', hide);
+      if (root !== document.body) root.addEventListener('mouseleave', hide);
     };
     bind($('hud'), '[data-good], [data-hud]', (el) => hudTip(el.dataset.good ?? el.dataset.hud ?? ''));
+    bind(document.body, '[data-tip]', (el) => el.dataset.tip ?? null);
     bind($('build-menu'), 'button[data-building]', (el) => buildTip(el.dataset.building ?? ''));
     window.addEventListener('keydown', hide);
   }
@@ -227,10 +228,10 @@ export class Ui {
     const p = s.pop;
     const pw = isl.power;
     $('hud').innerHTML =
-      card('data-hud="island"', 'Island', '', isl.name, '', 'island') +
+      card('data-hud="island"', 'Island in view', '', isl.name, '', 'island') +
       goods +
       card('data-hud="pop"', 'Colonists', '', `${p.laborers + p.technicians}`, `<em class="dim">L${p.laborers} T${p.technicians}</em>`, 'pop') +
-      card('data-hud="power"', 'Power', '', `${pw.demand}/${pw.supply}`, '', pw.demand > pw.supply ? 'bad' : 'power') +
+      card('data-hud="power"', 'Power use/supply', '', `${pw.demand}/${pw.supply}`, '', pw.demand > pw.supply ? 'bad' : 'power') +
       `<span class="g dim cap">cap ${cap}</span>`;
     this.trade.update(s);
     for (const [id, btn] of this.buttons) {

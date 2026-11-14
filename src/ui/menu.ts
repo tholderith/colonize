@@ -29,9 +29,11 @@ export function showMenu(): Promise<StartDesc> {
     return m ? `seed ${m.seed} &middot; ${m.difficulty} &middot; ${Math.floor(m.tick / 600)} min played` : null;
   };
   const cont = $<HTMLButtonElement>('m-continue');
-  const autoInfo = info('auto');
-  cont.disabled = !autoInfo;
-  $('m-continue-info').innerHTML = autoInfo ?? 'no autosave';
+  // CONTINUE loads whichever slot was saved last.
+  const tickOf = (slot: Slot) => saveMeta(readSave(slot))?.tick ?? -1;
+  const latest: Slot | null = Math.max(tickOf('auto'), tickOf('manual')) < 0 ? null : tickOf('manual') > tickOf('auto') ? 'manual' : 'auto';
+  cont.disabled = !latest;
+  $('m-continue-info').innerHTML = latest ? (info(latest) ?? '') : 'no saved game';
 
   return new Promise((resolve) => {
     const start = (d: StartDesc) => {
@@ -46,7 +48,7 @@ export function showMenu(): Promise<StartDesc> {
       start({ kind: 'new', seed, difficulty });
     });
     cont.addEventListener('click', () => {
-      const data = readSave('auto');
+      const data = latest && readSave(latest);
       if (data) start({ kind: 'load', data });
     });
     $('m-load').addEventListener('click', () => {

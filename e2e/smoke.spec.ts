@@ -43,7 +43,6 @@ test('build a tiny working colony, inspect it, screenshot', async ({ page }) => 
   const p = await page.evaluate(([x, y]) => (window as unknown as { __foundry: Foundry }).__foundry.tileToScreen(x, y), spot!);
   await page.mouse.move(box.x + p.x, box.y + p.y);
   await page.mouse.click(box.x + p.x, box.y + p.y);
-  await page.click('[data-building="wind_turbine"]'); // leave build mode
   await page.waitForFunction(() => (window as unknown as { __foundry: Foundry }).__foundry.state().buildings.some((b) => b.type === 'wind_turbine'));
 
   // Rest of the colony through the test hook, nearest free spots around the depot.

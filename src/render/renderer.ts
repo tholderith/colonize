@@ -182,6 +182,11 @@ export class Renderer {
       this.events.onTileClick(t.x, t.y);
     });
     window.addEventListener('pointerup', () => (this.painting = false));
+    canvas.addEventListener('pointerleave', () => {
+      this.hover = { x: -1, y: -1 };
+      this.events.onTileHover(-1, -1);
+      this.redrawGhost();
+    });
     canvas.addEventListener('pointermove', (e) => {
       const t = tileAtEvent(e);
       this.hover = t;

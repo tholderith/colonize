@@ -15,6 +15,7 @@ let map!: GameMap;
 let state: GameState | null = null;
 let selected: number | null = null;
 let selectedHauler: number | null = null;
+let shiftHeld = false;
 /** Dev/test override of the time of day (hours); null follows the sim. */
 let hourOverride: number | null = null;
 const hourNow = () => hourOverride ?? hourOfDay(state?.tick ?? 0);
@@ -108,9 +109,16 @@ const rendererEvents: RendererEvents = {
         command({ type: 'setRoute', hauler: h.id, route: [...JSON.parse(JSON.stringify(h.route)), { kind: 'port', building: port.id, orders: [] }] });
         ui.trade.picking = null;
       } else ui.toast('That is not a port');
+    } else if (tool && state && tool.id !== 'road' && buildingAt(state.buildings, x, y)) {
+      // Clicking an existing building selects it and disarms the tool.
+      ui.setTool(null);
+      select(buildingAt(state.buildings, x, y)?.id ?? null);
     } else if (tool) {
       const err = state ? placementError(map, state.buildings, tool, x, y, stockAtTile(map, state, x, y)) : 'loading';
-      if (err === null) command({ type: 'placeBuilding', building: tool.id, x, y });
+      if (err === null) {
+        command({ type: 'placeBuilding', building: tool.id, x, y });
+        if (!shiftHeld && tool.id !== 'road') ui.setTool(null); // one placement per pick; Shift keeps the tool
+      }
       else if (tool.id !== 'road' || !err.includes('occupied')) ui.toast(err);
     } else {
       const h = renderer.haulerAt(x, y);
@@ -123,7 +131,8 @@ const rendererEvents: RendererEvents = {
 function updatePlaceInfo(x: number, y: number): void {
   const tool = ui.activeTool;
   if (!tool || !state) return;
-  ui.setPlaceInfo(tool, x < 0 ? null : placementError(map, state.buildings, tool, x, y, stockAtTile(map, state, x, y)));
+  if (x < 0) return ui.setPlaceInfo(null, null); // cursor left the map
+  ui.setPlaceInfo(tool, placementError(map, state.buildings, tool, x, y, stockAtTile(map, state, x, y)));
 }
 
 function selectHauler(id: number | null): void {
@@ -194,7 +203,11 @@ export async function startGame(desc: StartDesc): Promise<void> {
     },
   });
   objectives = new Objectives((ids) => ui.setHighlight(ids));
-  window.addEventListener('keydown', (e) => e.key === 'Escape' && closePanels());
+  window.addEventListener('keydown', (e) => {
+    shiftHeld = e.shiftKey;
+    if (e.key === 'Escape') closePanels();
+  });
+  window.addEventListener('keyup', (e) => (shiftHeld = e.shiftKey));
   renderer = new Renderer(map, rendererEvents);
   setInterval(() => {
     if (!state) return;

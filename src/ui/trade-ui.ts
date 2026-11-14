@@ -32,13 +32,21 @@ export class TradeUi {
       const p = $('concordat');
       p.hidden = !p.hidden;
       $('btn-concordat').classList.toggle('active', !p.hidden);
+      if (!p.hidden) this.closeOther('exchange');
     });
     $('btn-exchange').addEventListener('click', () => {
       const p = $('exchange');
       p.hidden = !p.hidden;
       $('btn-exchange').classList.toggle('active', !p.hidden);
       this.exchangeKey = '';
+      if (!p.hidden) this.closeOther('concordat');
     });
+  }
+
+  /** Concordat and exchange share the same screen area: opening one closes the other. */
+  private closeOther(id: 'concordat' | 'exchange'): void {
+    $(id).hidden = true;
+    $(`btn-${id}`).classList.remove('active');
   }
 
   selectHauler(id: number | null): void {
@@ -71,11 +79,11 @@ export class TradeUi {
       trader ? `<span class="pos">Free trader docked</span> <span class="dim">(${mmss(trader.wait)} left)</span>` : '',
       '<div class="dim log">' + (c.log.slice(-5).reverse().map((e) => `${mmss(e.tick)} ${e.text}`).join('<br>') || 'No events yet') + '</div>',
     ] : [
-      `Levy <b>${c.levyPct}%</b> in ${mmss(next)} &middot; earned <b>${Math.floor(c.earned)}</b> cr${c.penaltyPeriods ? ' <span class="neg">(+penalty)</span>' : ''}${c.relief ? ' <span class="pos">(-relief)</span>' : ''}`,
+      `<span data-tip="Levy: the Concordat takes this share of the credits you earn each period (5 min). It rises with population. A big levy also builds independence sentiment.">Levy</span> <b>${c.levyPct}%</b> in ${mmss(next)} &middot; earned <b>${Math.floor(c.earned)}</b> cr${c.penaltyPeriods ? ' <span class="neg">(+penalty)</span>' : ''}${c.relief ? ' <span class="pos">(-relief)</span>' : ''}`,
       d
-        ? `Demand <b>${d.amount} ${goodName(d.good)}</b> by ${mmss(d.deadline - s.tick)}<br><span class="bar"><i style="width:${Math.min(100, (d.delivered / d.amount) * 100)}%"></i></span> ${d.delivered}/${d.amount} &middot; +${d.reward} / -${d.fine} cr`
-        : `Demand <span class="dim">next in ${mmss(c.nextDemandAt - s.tick)}</span>`,
-      `Tariff <b>${Math.round(c.tariff * 100)}%</b> &middot; contraband exposure <b class="${c.exposure > 5 ? 'neg' : ''}">${c.exposure.toFixed(1)}</b>`,
+        ? `<span data-tip="Demand: the Concordat orders goods delivered to its exchange by the deadline. Meet it for a credit reward and a lower levy; miss it and you are fined and taxed more.">Demand</span> <b>${d.amount} ${goodName(d.good)}</b> by ${mmss(d.deadline - s.tick)}<br><span class="bar"><i style="width:${Math.min(100, (d.delivered / d.amount) * 100)}%"></i></span> ${d.delivered}/${d.amount} &middot; +${d.reward} / -${d.fine} cr`
+        : `<span data-tip="Demand: the Concordat orders goods delivered to its exchange by the deadline. Meet it for a credit reward and a lower levy; miss it and you are fined and taxed more.">Demand</span> <span class="dim">next in ${mmss(c.nextDemandAt - s.tick)}</span>`,
+      `<span data-tip="Tariff: the cut the Concordat keeps when you sell at its exchange. Free traders at your ports pay better and charge no tariff.">Tariff</span> <b>${Math.round(c.tariff * 100)}%</b> &middot; <span data-tip="Contraband exposure: grows with every untaxed deal with a free trader. The higher it is, the likelier the next Concordat audit finds it and fines you (which also angers the colony).">contraband exposure</span> <b class="${c.exposure > 5 ? 'neg' : ''}">${c.exposure.toFixed(1)}</b>`,
       trader ? `<span class="pos">Free trader docked</span> <span class="dim">(${mmss(trader.wait)} left)</span>` : '',
       '<div class="dim log">' + (c.log.slice(-5).reverse().map((e) => `${mmss(e.tick)} ${e.text}`).join('<br>') || 'No events yet') + '</div>',
     ];
@@ -103,7 +111,7 @@ export class TradeUi {
       .join('');
     $('exchange-body').innerHTML =
       `<div class="dim">Tariff ${Math.round(c.tariff * 100)}% on sales. Buying costs the base price. Orders are added to the selected hauler's exchange stop.</div>` +
-      `<table><tr class="dim"><td>Good</td><td>Price</td><td>Sell net</td><td>Amount</td><td></td></tr>${rows}</table>`;
+      `<table><tr class="dim"><td>Good</td><td>Price</td><td data-tip="What you receive per unit after the Concordat tariff is taken off the price.">Sell net</td><td>Amount</td><td></td></tr>${rows}</table>`;
     $('exchange-body').querySelectorAll<HTMLButtonElement>('button').forEach((b) =>
       b.addEventListener('click', () => {
         const good = b.dataset.sell ?? (b.dataset.buy as string);

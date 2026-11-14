@@ -19,7 +19,7 @@ const linked = (s: GameState) =>
   s.haulers.some((h) => new Set(h.route.flatMap((st) => (st.kind === 'port' ? [s.buildings.find((b) => b.id === st.building)?.island] : []))).size >= 2);
 
 const STEPS: Step[] = [
-  { title: 'Place a wind turbine', done: (s) => has(s, 'wind_turbine'), hint: () => ['Everything needs power. Pick Wind Turbine and click land near your depot.', ['wind_turbine']] },
+  { title: 'Place a wind turbine', done: (s) => has(s, 'wind_turbine'), hint: () => ['Buildings need power (see Power use/supply in the HUD). Pick Wind Turbine and click land near your depot.', ['wind_turbine']] },
   {
     title: 'Build hydroponics, then a ration plant',
     done: (s) => has(s, 'hydroponics') && has(s, 'ration_plant'),
@@ -48,13 +48,13 @@ const STEPS: Step[] = [
     done: (s) => s.ind.calmUntil > 0,
     hint: (s) => {
       const d = s.concordat.demand;
-      return [d ? `Deliver ${d.amount - d.delivered} ${d.good} to the exchange (EXCHANGE panel, hauler orders) for ${d.reward} cr.` : 'A demand will arrive soon. Keep a hauler and some stock ready.', []];
+      return [d ? `Deliver ${d.amount - d.delivered} ${d.good} to the exchange (EXCHANGE panel, hauler orders) for ${d.reward} cr.` : 'A demand (a Concordat order for goods) will arrive soon. Keep a hauler and some stock ready.', []];
     },
   },
   {
     title: 'Reach 50% independence',
     done: (s) => s.ind.sentiment >= IND.sentiment.declareAt || s.ind.declared,
-    hint: (s) => [`Independence ${Math.floor(s.ind.sentiment)}%. Signal relays and technicians raise it; a heavy levy angers the colony.`, ['signal_relay']],
+    hint: (s) => [`Independence ${Math.floor(s.ind.sentiment)}%. Signal relays and technicians raise it; a high levy (the Concordat cut of your income) angers the colony.`, ['signal_relay']],
   },
   {
     title: 'Declare and survive the blockade',
