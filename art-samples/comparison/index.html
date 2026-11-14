@@ -46,7 +46,7 @@ header { display: grid; gap: 14px; }
 .stage { display: grid; gap: 14px; }
 .frame { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .frame img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
-.thumbs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.thumbs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .thumb { all: unset; cursor: pointer; display: grid; gap: 6px; border-radius: 6px; padding: 6px; border: 1px solid transparent; }
 .thumb img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 3px; display: block; }
 .thumb span { font: 600 13px/1.2 var(--body); }
@@ -97,7 +97,6 @@ ol.next { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 75c
 
 @media (max-width: 760px) {
   .thumbs, .crops { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .thumbs .thumb:first-child { grid-column: 1 / -1; }
   .styleinfo, .verdict { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: no-preference) { .frame img { transition: opacity .2s ease; } }
@@ -106,9 +105,9 @@ ol.next { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 75c
 <div class="wrap">
   <header>
     <div class="eyebrow">Colonize · art &amp; engine bake-off</div>
-    <h1>One harbour town, five looks, four engines</h1>
+    <h1>One harbour town, eight looks, four engines</h1>
     <p class="lede">Every image below draws the same 20 × 20 island: wheat fields, a windmill, the main street, a chapel, the harbour warehouse, two merchant ships at the pier. Each style was generated entirely in code by its own art director, then drawn by each engine and checked pixel-for-pixel against a reference.</p>
-    <div class="meta"><span><b>5</b> art styles</span><span><b>4</b> engines</span><span><b>20</b> renders, all matching</span><span>Branch <b>art-samples</b> · tholderith/colonize</span></div>
+    <div class="meta"><span><b>8</b> art styles</span><span><b>4</b> engines</span><span><b>32</b> renders</span><span>Branch <b>art-samples</b> · tholderith/colonize</span></div>
   </header>
 
   <section aria-labelledby="g">
@@ -143,7 +142,7 @@ ol.next { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 75c
   <section aria-labelledby="e">
     <div class="eyebrow">3 · Engines</div>
     <h2 id="e">The engine doesn't change the picture</h2>
-    <p>Here is the harbour from the Parchment style, which was the hardest to match because of its full-screen paper texture. Each engine's render differs from the reference by a fraction of one colour level out of 255. Bevy comes out a touch darker, because it blends transparent layers in linear colour space. So the choice of engine comes down to how fast we can build, not how the game looks.</p>
+    <p>Here is the harbour from the Parchment style, which was the hardest to match because of its full-screen paper texture. Each engine's render differs from the reference by a fraction of one colour level out of 255. Bevy comes out a touch darker, because it blends transparent layers in linear colour space. The neon style shows the same effect: its glow layers put Bevy slightly over the tolerance we set, at 2.3. So the choice of engine comes down to how fast we can build, not how the game looks.</p>
     <div class="crops">
       <figure><img src="img/parchment-browser-crop.png" alt="Browser render crop" width="320" height="200"><figcaption><b>Browser</b> · avg diff 0.28</figcaption></figure>
       <figure><img src="img/parchment-godot-crop.png" alt="Godot render crop" width="320" height="200"><figcaption><b>Godot</b> · avg diff 0.13</figcaption></figure>
@@ -176,13 +175,13 @@ ol.next { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 75c
       </div>
       <div class="card">
         <div class="tag">Art direction</div>
-        <div class="big">Your call. My lean: Realistic or Painted</div>
-        <p>You asked for a look that isn't childish, which points to these two. Realistic is the most grown-up: path-traced materials, real shadows and muted colour, from a 10-minute Blender build that can be re-run at any time. Animation costs one render per frame, though. Painted keeps more age-of-sail warmth and is cheaper to extend. Pixel Art is the most charming and the cheapest to extend. Low-Poly is the most scalable pipeline, since every building is a few lines of 3D shapes and gets lighting, shadows, upgrades and damage states for free, but it feels the most generic. Parchment has the strongest identity but is the hardest to keep readable.</p>
+        <div class="big">Your call. My lean: Realistic, Painted or Pre-rendered '98</div>
+        <p>You asked for a look that isn't childish, which points to these three. Pre-rendered '98 has the warmth of late-90s city builders with a grown-up palette, and rebuilds in about 30 seconds. VGA Classic is serious but dense. Neon Foundry is the boldest, but it reframes the whole setting. Realistic is the most grown-up: path-traced materials, real shadows and muted colour, from a 10-minute Blender build that can be re-run at any time. Animation costs one render per frame, though. Painted keeps more age-of-sail warmth and is cheaper to extend. Pixel Art is the most charming and the cheapest to extend. Low-Poly is the most scalable pipeline, since every building is a few lines of 3D shapes and gets lighting, shadows, upgrades and damage states for free, but it feels the most generic. Parchment has the strongest identity but is the hardest to keep readable.</p>
       </div>
     </div>
     <h3>Before production, whichever style wins</h3>
     <ol class="next">
-      <li><b>Coast transitions.</b> All five art directors flagged the stair-stepped coastline. The spec needs edge-aware terrain, meaning tiles chosen by what's around them.</li>
+      <li><b>Coast transitions.</b> Every art director flagged the stair-stepped coastline. The spec needs edge-aware terrain, meaning tiles chosen by what's around them.</li>
       <li><b>Taller sprites in draw order.</b> Ship sails can cover the pier. Moving units will need a proper depth rule.</li>
       <li><b>Camera angle.</b> My brief gave the wrong tilt for a 2:1 view. The correct pitch is 30°, which the Realistic art director caught. The spec will state it explicitly.</li>
       <li><b>Animation.</b> Windmill sails, sailing ships and walking colonists, as frame sets or 3D turntables.</li>
@@ -208,6 +207,18 @@ const STYLES = [
     desc: "Drawn at 64 × 32 per tile and doubled, with a hand-made pixel font, plank top bar and parchment stock panel.",
     plus: ["Charming and very readable", "Smallest assets: 220 KB for the whole set", "A new building is about 15 lines from shared helpers"],
     minus: ["Stair-stepped diamond coastline", "Large buildings and ships need hand-tuning", "Fine curves are hard at this resolution"], nearest: true },
+  { key: "retro98", name: "Pre-rendered '98", short: "Late-90s city builder: rendered 3D in 256 colours",
+    desc: "Blender-rendered buildings reduced to a custom 256-colour palette with visible dithering, hard sun shadows, a vivid sea with white crests, cobbled streets, and a carved wood-and-gold UI. Inspired by the era's technique, with all buildings and UI our own.",
+    plus: ["The cheerful density of a late-90s city builder", "Fast to produce: the full set rebuilds in about 30 s, and a building takes about 1 s", "Crisp silhouettes, and the ship and pier are clear"],
+    minus: ["90s sprites have no soft transparency, so shadows are solid pixels that look off on sand", "Right-hand walls come out flat and grey", "Small serif text is rough"], nearest: true },
+  { key: "vga", name: "VGA Classic", short: "Early-90s historical strategy, quarter-res pixels",
+    desc: "Hand-pixelled at a quarter of final size with an 86-colour VGA palette, Bayer dithering, dark outlines and a parchment-ledger UI with an engraver's bitmap font. Inspired by the era's technique, with all designs our own.",
+    plus: ["A serious, atlas-like mood, distinct from the cozy Pixel Art style", "The period-document UI", "Builds in about 10 s, and animation frames are cheap"],
+    minus: ["Ship sails merge into a blob at this resolution", "Trees and houses are busy, and the dithered shadows heavy", "Icons are only 9 × 9 native pixels"], nearest: true },
+  { key: "neon", name: "Neon Foundry", short: "Retro-future industrial colony at night",
+    desc: "The same island reimagined: container-pod housing, hydroponic grow-beds, a wind turbine, a corporate relay spire, a container depot with crane and rust-streaked cargo haulers. Sodium and neon accents, bloom, and a scanline HUD with a Concordat tariff and independence meter.",
+    plus: ["The strongest mood of the set, and it still reads at play zoom", "Container-pod houses and the haulers read well", "The HUD builds the tax and independence theme right in"],
+    minus: ["Roofs are dark under the weak moonlight", "Concrete shore tiles look blotchy and repetitive", "It rewrites the setting, not just the look"] },
   { key: "parchment", name: "Parchment Chart", short: "A living 17th-century sea chart",
     desc: "Ink linework with hatching and stipple, watercolour washes, an inked coast with contour lines, a compass rose, and wax-seal UI.",
     plus: ["The most distinctive identity of the four", "Reads as one drawn map", "Re-theming is just a palette change"],
