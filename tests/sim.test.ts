@@ -66,7 +66,7 @@ describe('placement', () => {
     expect(placementError(map, [], def, x, y)).toBeNull();
     expect(placementError(map, [], def, 0, 0)).toMatch(/deep/);
     expect(placementError(map, [], def, -1, 5)).toBe('out of bounds');
-    expect(placementError(map, [], def, 64, 64)).toBe('out of bounds');
+    expect(placementError(map, [], def, 80, 80)).toBe('out of bounds');
     const existing: Building[] = [newBuilding(1, def, x, y)];
     expect(placementError(map, existing, def, x, y)).toBe('tile occupied');
   });

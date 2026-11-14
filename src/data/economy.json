@@ -9,7 +9,7 @@
   "turbineSupply": 10,
   "growTicks": 100,
   "decayTicks": 300,
-  "upgradeTicks": 900,
+  "upgradeTicks": 600,
   "downgradeTicks": 600,
   "tiers": [
     {

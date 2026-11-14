@@ -1,6 +1,6 @@
 import { Renderer } from './render/renderer';
 import type { FromWorker, ToWorker } from './sim/protocol';
-import { generateMap, islandAt } from './sim/mapgen';
+import { generateMap, islandAt, islands } from './sim/mapgen';
 import { buildingAt, buildingDef, placementError, stockAtTile } from './sim/placement';
 import type { Command, GameState, Stop } from './sim/types';
 import { Ui } from './ui/ui';
@@ -124,6 +124,22 @@ send({ type: 'init', seed });
   tileToScreen: (x: number, y: number) => renderer.tileToScreen(x, y),
   state: () => state,
   command,
+  /** Nearest tile to (cx, cy) within r where `id` can be placed (ignores cost). */
+  spot: (id: string, cx: number, cy: number, r: number) => {
+    const def = buildingDef(id);
+    if (!def || !state) return null;
+    let best: [number, number] | null = null, bd = Infinity;
+    for (let y = Math.floor(cy - r); y <= cy + r; y++)
+      for (let x = Math.floor(cx - r); x <= cx + r; x++) {
+        const d = Math.hypot(x - cx, y - cy);
+        if (d <= r && d < bd && placementError(map, state.buildings, def, x, y) === null) { best = [x, y]; bd = d; }
+      }
+    return best;
+  },
+  islandCentre: (i: number) => {
+    const t = islands(map)[i] ?? [];
+    return { x: t.reduce((a, k) => a + (k % map.w), 0) / t.length, y: t.reduce((a, k) => a + Math.floor(k / map.w), 0) / t.length };
+  },
   shipToScreen: (id: number) => renderer.shipToScreen(id),
   place: (building: string, x: number, y: number) => command({ type: 'placeBuilding', building, x, y }),
 };

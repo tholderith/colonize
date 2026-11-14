@@ -5,7 +5,11 @@ interface Foundry {
   canPlace(id: string, x: number, y: number): boolean;
   tileToScreen(x: number, y: number): { x: number; y: number };
   place(id: string, x: number, y: number): void;
-  state(): { tick: number; buildings: { id: number; type: string; x: number; y: number; status: string }[]; stock: Record<string, number> };
+  command(cmd: unknown): void;
+  spot(id: string, cx: number, cy: number, r: number): [number, number] | null;
+  islandCentre(i: number): { x: number; y: number };
+  state(): {
+    haulers: { id: number; x: number; y: number }[]; tick: number; buildings: { id: number; type: string; x: number; y: number; status: string; island: number }[]; islands: { stock: Record<string, number> }[] };
 }
 
 test('build a tiny working colony, inspect it, screenshot', async ({ page }) => {
@@ -58,6 +62,38 @@ test('build a tiny working colony, inspect it, screenshot', async ({ page }) => 
   await page.click('[data-speed="3"]');
   await page.waitForTimeout(12_000);
 
+  // Second island: depot, a port on each island, one hauler sailing between them.
+  type F = Foundry;
+  const f = (fn: (f: F, a?: unknown) => unknown, arg?: unknown) => page.evaluate(([src, a]) => (new Function('f', 'a', `return (${src})(f, a)`))((window as unknown as { __foundry: F }).__foundry, a), [fn.toString(), arg] as [string, unknown]);
+  await f((fo) => {
+    const c = fo.islandCentre(1);
+    const p = fo.spot('depot', c.x, c.y, 8)!;
+    fo.place('depot', p[0], p[1]);
+  });
+  await page.waitForFunction(() => (window as unknown as { __foundry: Foundry }).__foundry.state().buildings.some((b) => b.type === 'depot' && b.island === 1));
+  await f((fo) => {
+    for (const isl of [0, 1]) {
+      const d = fo.state().buildings.find((b) => b.type === 'depot' && b.island === isl)!;
+      const p = fo.spot('port', d.x + 1, d.y + 1, 9)!;
+      fo.place('port', p[0], p[1]);
+    }
+  });
+  await page.waitForFunction(() => (window as unknown as { __foundry: Foundry }).__foundry.state().buildings.filter((b) => b.type === 'port').length === 2);
+  await f((fo) => {
+    const ports = fo.state().buildings.filter((b) => b.type === 'port');
+    fo.command({ type: 'buildHauler', port: ports[0]!.id });
+  });
+  await page.waitForFunction(() => (window as unknown as { __foundry: Foundry }).__foundry.state().haulers.length === 1);
+  await f((fo) => {
+    const ports = fo.state().buildings.filter((b) => b.type === 'port');
+    fo.command({ type: 'setRoute', hauler: fo.state().haulers[0]!.id, route: ports.map((p) => ({ kind: 'port', building: p.id, orders: [] })) });
+  });
+  const start = await f((fo) => ({ ...fo.state().haulers[0]! }));
+  await page.waitForTimeout(6_000);
+  const now = (await f((fo) => ({ ...fo.state().haulers[0]! }))) as { x: number; y: number };
+  expect(Math.hypot(now.x - (start as { x: number }).x, now.y - (start as { y: number }).y)).toBeGreaterThan(3);
+  await expect(page.locator('#concordat-body')).toContainText('Levy');
+
   // Select the hydroponics shed: the building panel shows status.
   const hydro = await page.evaluate(() => (window as unknown as { __foundry: Foundry }).__foundry.state().buildings.find((b) => b.type === 'hydroponics') ?? null);
   expect(hydro).not.toBeNull();
@@ -69,6 +105,6 @@ test('build a tiny working colony, inspect it, screenshot', async ({ page }) => 
   await page.screenshot({ path: 'test-results/m1.png' });
 
   const st = await page.evaluate(() => (window as unknown as { __foundry: Foundry }).__foundry.state());
-  expect(st.stock.biomass).toBeGreaterThan(0);
+  expect(st.islands[0]!.stock.biomass).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });

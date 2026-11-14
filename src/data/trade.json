@@ -1,7 +1,7 @@
 {
   "hauler": { "cost": { "credits": 150, "alloy": 10 }, "capacity": 30, "slots": 2, "tilesPerSec": 2, "dockTicks": 30 },
   "tariff": 0.15,
-  "levy": { "periodTicks": 3000, "base": 10, "step": 5, "popPerStep": 15, "max": 45, "reliefPct": 2, "penaltyPct": 5, "penaltyPeriods": 2 },
+  "levy": { "periodTicks": 3000, "base": 10, "step": 5, "popPerStep": 25, "max": 40, "reliefPct": 2, "penaltyPct": 5, "penaltyPeriods": 2 },
   "demand": { "firstAtTicks": 4800, "intervalTicks": 4800, "deadlineTicks": 3000, "goods": ["rations", "alloy", "scrap", "polymer", "goods"], "amount": [20, 40], "rewardMult": 1.6, "fineMult": 0.8 },
   "trader": { "firstAtTicks": 4200, "intervalTicks": [3000, 5400], "dockTicks": 600, "better": 0.25, "qty": [10, 25], "exposurePer": 10 },
   "audit": { "firstAtTicks": 6000, "intervalTicks": [3000, 4800], "dockTicks": 80, "exposureForSure": 10, "fineBase": 100, "finePerExposure": 40 }
