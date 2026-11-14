@@ -254,6 +254,11 @@ fn main() {
         ));
     }
 
+    // Warm-up frames: let the extract/prepare stages upload textures and render the scene
+    // before we ask for a readback (otherwise the first capture is a cleared/black frame).
+    for _ in 0..4 {
+        app.update();
+    }
     let captured: Arc<Mutex<Option<Image>>> = Arc::default();
     let sink = captured.clone();
     app.world_mut()
