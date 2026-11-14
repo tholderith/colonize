@@ -79,6 +79,11 @@ A sprite entry lists one or more files. For an item at tile (x, y) use
 3. Objects whose sprite has `"flat": true`, in layout order.
 4. Remaining objects sorted by depth `(x + fw - 1) + (y + fh - 1)` ascending, then by
    `x + fw - 1` ascending, then by layout order (stable).
+2b. **Underlays** (optional), in manifest order, after terrain and before any objects:
+   world-space images positioned like overlays (`pos` + `anchor`, in the default
+   1920×1080 frame's coordinates) but they belong to the WORLD — in an interactive view
+   they pan and zoom with the map, unlike overlays. Used for a continuous baked terrain
+   surface (organic coastlines, blended ground) that per-tile sprites can't express.
 5. Overlays (screen-space UI etc.) in manifest order: P = `pos`, honouring `anchor`.
 
 Texture filtering: `"filter": "linear"` (default) or `"nearest"` (pixel art).
@@ -94,6 +99,7 @@ Texture filtering: `"filter": "linear"` (default) or `"nearest"` (pixel art).
     "grass": { "files": ["grass_0.png", "grass_1.png"], "anchor": [64, 64] },
     "wheat_field": { "files": ["wheat.png"], "anchor": [128, 128], "flat": true }
   },
+  "underlays": [ { "file": "terrain_full.png", "pos": [0, 0], "anchor": [0, 0] } ],
   "overlays": [
     { "file": "ui_topbar.png", "pos": [0, 0], "anchor": [0, 0] },
     { "file": "ui_panel.png", "pos": [24, 1056], "anchor": [0, 300] }

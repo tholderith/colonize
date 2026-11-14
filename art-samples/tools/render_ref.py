@@ -28,6 +28,10 @@ def main(style_dir, out):
     tiles = [(x, y) for y in range(lay["height"]) for x in range(lay["width"])]
     for x, y in sorted(tiles, key=lambda t: (t[0] + t[1], t[0])):
         draw(legend[lay["terrain"][y][x]], x, y, south(x, y))
+    # 2b. underlays: world-space images (e.g. a continuous baked terrain), drawn over tiles, under objects
+    for ul in m.get("underlays", []):
+        im = img(ul["file"]); a = ul.get("anchor", [0, 0])
+        blit(im, ul["pos"][0] - a[0], ul["pos"][1] - a[1])
     objs = list(enumerate(lay["objects"]))
     def anchor_tile(o):
         fw, fh = FOOT.get(o["sprite"], (1, 1)); return o["x"] + fw - 1, o["y"] + fh - 1
