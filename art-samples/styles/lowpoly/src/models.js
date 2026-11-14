@@ -1,6 +1,6 @@
 // ---------- palette (soft saturated pastels) ----------
 const P = {
-  deep: 0x4f86c6, deep2: 0x4a7fbf, shallow: 0x6fc3d8, shallow2: 0x7accdc, foam: 0xeafcff,
+  deep: 0x4f86c6, deep2: 0x4b82c2, shallow: 0x6fc3d8, shallow2: 0x76c8db, foam: 0xeafcff,
   sand: 0xf0dca4, sandSide: 0xd9b985, grass: 0x9bd477, grass2: 0x8fcc6e, grassSide: 0x9a7a5a, road: 0xdcc59a, road2: 0xcdb386,
   wood: 0xb98a5b, woodDk: 0x8f6540, woodLt: 0xd6aa73, plank: 0xcfa271,
   wallCream: 0xf7ead0, wallPeach: 0xf6cfb0, wallBlue: 0xcfe0f2, wallMint: 0xd2ecd6, wallWhite: 0xf6f1e6,
@@ -17,8 +17,8 @@ function terrainTile(kind, variant) {
   const r = rng(kind.length * 977 + variant * 131 + 7);
   const land = ['sand', 'grass', 'road'].includes(kind);
   const base = { deep_water: [P.deep, P.deep2], shallow_water: [P.shallow, P.shallow2], sand: [P.sand, 0xebd49a], grass: [P.grass, P.grass2], road: [P.road, P.road2] }[kind];
-  const y0 = land ? LAND_H : 0, o = 0.0105; // overscan so adjacent tiles never leave hairline seams
-  const ct = new THREE.Vector3(0.5 + (r() - .5) * 0.25, y0 + (land ? 0.014 : 0.02) * (r() > .5 ? 1 : 0.4) * (kind === 'road' ? 0.3 : 1), 0.5 + (r() - .5) * 0.25);
+  const y0 = land ? LAND_H : 0, o = 0.03, o2 = 0.0105; // overscan so adjacent tiles never leave hairline seams
+  const ct = new THREE.Vector3(0.5 + (r() - .5) * 0.25, y0 + (land ? 0.014 : 0.008) * (r() > .5 ? 1 : 0.4) * (kind === 'road' ? 0.3 : 1), 0.5 + (r() - .5) * 0.25);
   const corners = [[-o, -o], [1 + o, -o], [1 + o, 1 + o], [-o, 1 + o]];
   const mids = corners.map((c, i) => { const n = corners[(i + 1) % 4]; return [(c[0] + n[0]) / 2, (c[1] + n[1]) / 2]; });
   // 8 fan triangles around the (slightly displaced) centre: corner, mid, centre ...
@@ -27,7 +27,7 @@ function terrainTile(kind, variant) {
   for (let i = 0; i < 8; i++) {
     const a = ring[i], b = ring[(i + 1) % 8];
     pos.push(a[0], y0, a[1], ct.x, ct.y, ct.z, b[0], y0, b[1]);
-    const c = C(base[(i + variant) % 2 === 0 ? 0 : 1]); const j = 1 + (r() - .5) * 0.035; c.multiplyScalar(j);
+    const c = C(base[(i + variant) % 2 === 0 ? 0 : 1]); const j = 1 + (r() - .5) * (land ? 0.035 : 0.018); c.multiplyScalar(j);
     for (let k = 0; k < 3; k++) col.push(c.r, c.g, c.b);
   }
   // little decorative facets
@@ -51,7 +51,7 @@ function terrainTile(kind, variant) {
   }
   if (land) { // earth/cliff sides (only visible where land meets water)
     const sideCol = kind === 'sand' ? P.sandSide : P.grassSide;
-    const s1 = new THREE.Mesh(new THREE.BoxGeometry(1 + 2 * o, y0 - 0.0, 1 + 2 * o), M(kind === 'road' ? P.grassSide : sideCol)); s1.position.set(0.5, y0 / 2 - 0.004, 0.5); scn.add(s1);
+    const s1 = new THREE.Mesh(new THREE.BoxGeometry(1 + 2 * o2, y0, 1 + 2 * o2), M(kind === 'road' ? P.grassSide : sideCol)); s1.position.set(0.5, y0 / 2 - 0.0008, 0.5); scn.add(s1);
   }
   const W = 128, H = 64 + 10 + 2, ax = 64, ay = 64 + 10 + 1; // south corner at (1,0,1)
   const cvs = shoot(scn, W, H, ax, ay, new THREE.Vector3(1, 0, 1));
@@ -138,7 +138,7 @@ function windmill() {
     arm.add(sail); arm.add(bar); blades.add(arm);
   }
   hub.add(blades); g.add(hub);
-  return g;
+  return sailify(g);
 }
 function lumberjack() {
   const g = new THREE.Group();
@@ -195,6 +195,7 @@ function warehouse() { // 2x2
   g.add(box(0.6, 0.012, 0.08, P.sailS, 0.0, 0.42, 0.302 + 0.002));
   return g;
 }
+function sailify(g) { g.traverse(o => { if (o.isMesh && (o.material.color.getHex() === P.sailW)) { o.material = o.material.clone(); o.material.emissive = C(0x5a5448); } }); return g; }
 function wheat() { // 2x2 flat, ground-level crops
   const g = new THREE.Group();
   const soil = box(1.9, 0.03, 1.9, P.soil, 0, 0, 0); g.add(soil);
@@ -262,8 +263,7 @@ function ship() { // 2x2, along +x
   });
   // pennant
   const pen = box(0.01, 0.07, 0.2, P.sailS, 0.1, 2.0 + 0.0, -0.1); pen.position.set(0.1, 1.95, -0.1); g.add(pen);
-  g.add(box(0.2, 0.025, 0.012, P.woodDk, 0, 0, 0)); g.children.pop();
-  return g;
+  return sailify(g);
 }
 function cart() {
   const g = new THREE.Group();
