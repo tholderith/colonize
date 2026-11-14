@@ -52,6 +52,15 @@ func _build_scene(layout: Dictionary) -> void:
 	for t in tiles:
 		_place(legend[rows[t.y][t.x]], t.x, t.y, _south(t))
 
+	# 1b) world-space underlays in manifest order, after terrain and before objects
+	for ul in manifest.get("underlays", []):
+		var ua: Array = ul.get("anchor", [0, 0])
+		var us := Sprite2D.new()
+		us.texture = _tex(ul["file"])
+		us.centered = false
+		us.position = Vector2(ul["pos"][0] - ua[0], ul["pos"][1] - ua[1])
+		add_child(us)
+
 	# 2) flat objects in layout order, 3) the rest depth-sorted (index makes it stable)
 	var flat := []
 	var rest := []

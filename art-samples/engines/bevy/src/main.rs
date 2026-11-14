@@ -92,6 +92,15 @@ fn build_draw_list(manifest: &Value, layout: &Value) -> Vec<Draw> {
         place(key, x, y, south(x, y));
     }
 
+    // 1b. Underlays (world-space images) after terrain, before objects.
+    if let Some(uls) = manifest["underlays"].as_array() {
+        for ul in uls {
+            let (px, py) = pair(&ul["pos"]);
+            let (ax, ay) = if ul["anchor"].is_null() { (0, 0) } else { pair(&ul["anchor"]) };
+            out.push(Draw { file: ul["file"].as_str().unwrap().to_string(), x: px - ax, y: py - ay });
+        }
+    }
+
     // 2. Objects: flat ones in layout order, then the rest depth-sorted (stable).
     struct Obj<'a> {
         idx: usize,

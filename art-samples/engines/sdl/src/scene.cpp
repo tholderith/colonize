@@ -119,6 +119,18 @@ Scene loadScene(const std::string& styleDir, const std::string& layoutPath) {
         }
     }
 
+    // 2b. underlays (world space), after terrain, before objects
+    if (m.contains("underlays"))
+        for (auto& ul : m["underlays"]) {
+            int ax = 0, ay = 0;
+            if (ul.contains("anchor")) {
+                ax = ul["anchor"].at(0).get<int>();
+                ay = ul["anchor"].at(1).get<int>();
+            }
+            sc.cmds.push_back({ul.at("file").get<std::string>(), ul.at("pos").at(0).get<int>() - ax,
+                               ul.at("pos").at(1).get<int>() - ay, true});
+        }
+
     // 3./4. objects
     struct Obj { std::string key; int x, y, ax, ay, idx; };
     std::vector<Obj> flat, rest;

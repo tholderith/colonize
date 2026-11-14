@@ -20,6 +20,7 @@ export interface Manifest {
   background: string;
   filter?: 'linear' | 'nearest';
   sprites: Record<string, SpriteDef>;
+  underlays?: OverlayDef[];
   overlays?: OverlayDef[];
 }
 
@@ -136,6 +137,7 @@ export function buildDrawList(m: Manifest, lay: Layout): DrawItem[] {
 export function manifestFiles(m: Manifest): string[] {
   const s = new Set<string>();
   for (const def of Object.values(m.sprites)) def.files.forEach((f) => s.add(f));
+  for (const ul of m.underlays ?? []) s.add(ul.file);
   for (const ov of m.overlays ?? []) s.add(ov.file);
   return [...s];
 }
