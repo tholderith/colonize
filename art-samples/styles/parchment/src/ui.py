@@ -58,7 +58,7 @@ def frame(a, w, h, bw=8):
     # stains
     for _ in range(6):
         x, y = a.rng.uniform(bw + 20, w - bw - 20), a.rng.uniform(bw + 10, h - bw - 10)
-        a.ellipse((x, y), a.rng.uniform(14, 40), a.rng.uniform(8, 18), (214, 190, 140), False)
+        a.ellipse((x, y), a.rng.uniform(14, 40), a.rng.uniform(8, 18), (224, 204, 158), False)
     a.line(inner + [inner[0]], 1.5, INK, .5)
     g = [(bw - 3, bw - 3), (w - bw + 3, bw - 3), (w - bw + 3, h - bw + 3), (bw - 3, h - bw + 3)]
     a.line(g + [g[0]], 1.4, GOLD, .3)

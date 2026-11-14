@@ -39,8 +39,8 @@ def chart_ink(layout, out):
     def paint(mask, col, alpha):
         mm = big(gaussian_filter(mask.astype(float), .7))
         a_ = mm * alpha
-        for i in range(3): rgba[..., i] = rgba[..., i] * (1 - a_) + col[i] * a_ if False else np.where(a_ > rgba[..., 3], col[i], rgba[..., i])
-        rgba[..., 3] = np.maximum(rgba[..., 3], a_)
+        for i in range(3): rgba[..., i] = rgba[..., i] * (1 - a_) + col[i] * a_ if False else np.where(a_ * 255 > rgba[..., 3], col[i], rgba[..., i])
+        rgba[..., 3] = np.maximum(rgba[..., 3], a_ * 255)
     # shore wash (sand tint) just offshore, verdigris contour lines, then ink coast
     paint((dist > 0) & (dist < 7) & ~prot, (232, 214, 160), .35)
     for lvl, al, wd in ((12, .5, .8), (20, .4, .7), (30, .32, .7), (42, .24, .6)):
@@ -80,9 +80,9 @@ def paper(out):
     v = ((xx - Wd / 2) / (Wd / 2)) ** 2 * .9 + ((yy - Hd / 2) / (Hd / 2)) ** 2 * .9
     vig = np.clip(v - .35, 0, 1) ** 1.3
     # dark (ink-brown) alpha: grain + stains + vignette
-    alpha = np.abs(g) * 9 + np.abs(fibre) * 3 + np.clip(blot, 0, 3) * 5 + vig * 120
+    alpha = np.abs(g) * 7 + np.abs(fibre) * 3 + np.clip(blot, 0, 3) * 5 + vig * 85
     img = np.zeros((Hd, Wd, 4), "uint8")
-    img[..., 0], img[..., 1], img[..., 2] = 74, 50, 30
+    img[..., 0], img[..., 1], img[..., 2] = 92, 56, 24
     img[..., 3] = np.clip(alpha, 0, 255).astype("uint8")
     # warm light haze (paper glow) as lighter specks
     Image.fromarray(img, "RGBA").save(out)
