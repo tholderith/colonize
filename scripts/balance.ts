@@ -1,9 +1,15 @@
-// Headless balance run: fixed build list, 20 in-game minutes, per-minute stock + population.
+// Headless balance run: fixed build list, per-minute stock + population + independence sentiment.
+// Declares at 50% sentiment (batteries placed beforehand) and plays the blockade out; reports time to 50% and win/loss.
 import { GOODS, buildingDef, placementError, stockAtTile } from '../src/sim/placement';
 import { islandAt, islands } from '../src/sim/mapgen';
+import { sentimentRate } from '../src/sim/independence';
 import { Sim } from '../src/sim/sim';
+import type { Difficulty } from '../src/sim/types';
 
-const MINUTES = 20;
+const RELAYS_EARLY = 2;
+const RELAYS_LATE = 2;
+const MINUTES = 70;
+const DIFFICULTY = (process.argv[2] ?? 'standard') as Difficulty;
 /** [minute, building id, count, island (default 0)] */
 const PLAN: [number, string, number, number?][] = [
   [6, 'port', 1], [6, 'depot', 1, 1], [8, 'wind_turbine', 2, 1], [8, 'scrap_yard', 1, 1], [8, 'smelter', 1, 1], [8, 'pod_house', 4, 1], [9, 'port', 1, 1],
@@ -11,9 +17,13 @@ const PLAN: [number, string, number, number?][] = [
   [2, 'algae_skimmer', 1], [2, 'wind_turbine', 1], [2, 'pod_house', 4],
   [4, 'fabricator', 1], [6, 'refinery', 1], [4, 'wind_turbine', 1], [4, 'pod_house', 4],
   [8, 'ration_plant', 1], [8, 'pod_house', 4], [12, 'ration_plant', 1], [10, 'wind_turbine', 1], [10, 'pod_house', 4],
+  [14, 'wind_turbine', 1], [14, 'pod_house', 4], [14, 'fabricator', 1], [14, 'ration_plant', 1],
+  // Independence: relays from minute 12, two batteries before the declaration (island 0 and 1 coasts).
+  [12, 'signal_relay', RELAYS_EARLY], [18, 'signal_relay', RELAYS_LATE],
+  [16, 'coastal_battery', 1], [16, 'coastal_battery', 1, 1],
 ];
 
-const sim = new Sim(1337);
+const sim = new Sim(1337, DIFFICULTY);
 const centre = (island: number) => {
   const tiles = islands(sim.map)[island]!;
   const w = sim.map.w;
@@ -66,17 +76,31 @@ function setupHauler(): void {
 const failed: string[] = [];
 const pending: [string, number][] = [];
 const cols = GOODS.map((g) => g.short.padStart(5));
-console.log(`min ${cols.join('')}   LAB TECH  jobsL jobsT  pow   bldg  (stock = island 0 | island 1 rations/alloy)`);
+console.log(`min ${cols.join('')}   LAB TECH  jobsL jobsT  pow   bldg  (stock = island 0 | island 1 rations/alloy)  sentiment`);
 const row = (m: number) => {
   const s = sim.state;
   const stock = GOODS.map((g) => String(Math.floor(g.id === 'credits' ? s.credits : (s.islands[0]!.stock[g.id] ?? 0))).padStart(5)).join('');
   const p = s.pop;
   console.log(
-    `${String(m).padStart(3)} ${stock}  ${String(p.laborers).padStart(4)} ${String(p.technicians).padStart(4)}  ${String(p.laborerJobs).padStart(5)} ${String(p.technicianJobs).padStart(5)}  ${s.islands[0]!.power.demand}/${s.islands[0]!.power.supply}  ${s.buildings.length}  | ${Math.floor(s.islands[1]!.stock.rations ?? 0)}/${Math.floor(s.islands[1]!.stock.alloy ?? 0)} levy ${s.concordat.levyPct}%`,
+    `${String(m).padStart(3)} ${stock}  ${String(p.laborers).padStart(4)} ${String(p.technicians).padStart(4)}  ${String(p.laborerJobs).padStart(5)} ${String(p.technicianJobs).padStart(5)}  ${s.islands[0]!.power.demand}/${s.islands[0]!.power.supply}  ${s.buildings.length}  | ${Math.floor(s.islands[1]!.stock.rations ?? 0)}/${Math.floor(s.islands[1]!.stock.alloy ?? 0)} levy ${s.concordat.levyPct}%  sent ${s.ind.sentiment.toFixed(1)}% (${sentimentRate(s.ind) >= 0 ? '+' : ''}${sentimentRate(s.ind).toFixed(2)}/m)${s.ind.declared ? ` BLOCKADE cycle ${s.ind.cycles} patrols ${s.patrols.length} seized ${s.ind.seized}` : ''}`,
   );
 };
-for (let m = 0; m <= MINUTES; m++) {
-  if (m > 0) for (let t = 0; t < 600; t++) sim.step();
+let t50: number | null = null;
+let declaredAtTick: number | null = null;
+const batteryCount = () => sim.state.buildings.filter((b) => b.type === 'coastal_battery').length;
+for (let m = 0; m <= MINUTES && !sim.state.outcome; m++) {
+  if (m > 0)
+    for (let t = 0; t < 600 && !sim.state.outcome; t++) {
+      const s = sim.state;
+      if (t50 === null && s.ind.sentiment >= 50) t50 = s.tick;
+      if (!s.ind.declared && s.ind.sentiment >= 50 && batteryCount() >= 2) {
+        sim.enqueue({ type: 'declare' });
+        declaredAtTick = s.tick;
+      }
+      // Under blockade the scripted player lives off the free traders.
+      if (s.ind.declared && s.visitors.some((v) => v.kind === 'trader' && v.phase === 'dock' && v.offer && !v.offer.done)) sim.enqueue({ type: 'tradeWithTrader' });
+      sim.step();
+    }
   row(m);
     for (const [at, id, n, isl] of PLAN) if (at === m && m < MINUTES) for (let i = 0; i < n; i++) pending.push([id, isl ?? 0]);
   // Unaffordable entries wait and retry each minute (the colony is credit-limited).
@@ -87,6 +111,10 @@ for (let m = 0; m <= MINUTES; m++) {
   if (!sim.state.haulers.length && [0, 1].every((i) => sim.state.buildings.some((b) => b.type === 'port' && b.island === i))) setupHauler();
 }
 const s = sim.state;
+const min = (tk: number | null) => (tk === null ? 'never' : `${(tk / 600).toFixed(1)} min`);
+console.log(`\nRESULT (${DIFFICULTY}): sentiment reached 50% at ${min(t50)}; declared at ${min(declaredAtTick)}; ` +
+  (s.outcome ? `${s.outcome.win ? 'WON' : 'LOST'} (${s.outcome.cause}) at ${min(s.outcome.tick)}` : `no outcome by minute ${MINUTES}`) +
+  `; seized ${s.ind.seized}; peak pop ${s.stats.peakPop}; credits ${Math.floor(s.credits)}`);
 console.log(`haulers ${s.haulers.length}, concordat events ${s.concordat.seq}, credits earned this period ${Math.floor(s.concordat.earned)} (period start tick ${s.concordat.periodStart}, tick ${s.tick})`);
 const tiers = [1, 2].map((t) => s.buildings.filter((b) => b.type === 'pod_house' && b.tier === t).length);
 console.log(`houses tier1/tier2: ${tiers.join('/')}; statuses: ${JSON.stringify(Object.fromEntries([...new Set(s.buildings.map((b) => b.status))].map((k) => [k, s.buildings.filter((b) => b.status === k).length])))}`);

@@ -118,3 +118,35 @@ test('build a tiny working colony, inspect it, screenshot', async ({ page }) => 
   expect(st.islands[0]!.stock.biomass).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
+
+test('import a save with high sentiment, declare independence, blockade starts', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  // New game, save to the manual slot, then re-import that save with the sentiment raised.
+  await page.goto('/?seed=1337');
+  await page.click('#m-new');
+  await page.waitForFunction(() => (window as unknown as { __foundry: Foundry }).__foundry?.ready());
+  await page.click('#btn-save');
+  await expect(page.locator('#toast')).toContainText('saved');
+  const raw = await page.evaluate(() => localStorage.getItem('foundry.save.manual'));
+  expect(raw).not.toBeNull();
+  const save = JSON.parse(raw!);
+  save.state.ind.sentiment = 62;
+  const buffer = (globalThis as unknown as { Buffer: { from(s: string): never } }).Buffer.from(JSON.stringify(save)); // Node Buffer (no @types/node here)
+  await page.goto('/');
+  await page.click('#m-load');
+  await page.setInputFiles('#m-file', { name: 'save.json', mimeType: 'application/json', buffer });
+  await expect(page.locator('#menu')).toBeHidden();
+  await page.waitForFunction(() => (window as unknown as { __foundry: Foundry }).__foundry?.ready());
+  await expect(page.locator('#btn-declare')).toBeVisible();
+  await page.click('#btn-declare');
+  await expect(page.locator('#declare-confirm')).toBeVisible();
+  await page.click('#btn-declare-yes');
+  await expect(page.locator('#ind-blockade')).toContainText('BLOCKADE');
+  await page.click('[data-speed="3"]');
+  await page.waitForTimeout(4000);
+  await expect(page.locator('#ind-blockade')).toContainText('patrols 2');
+  const cb = (await page.locator('#concordat').boundingBox())!;
+  await page.screenshot({ path: 'test-results/m4-blockade.png', clip: { x: cb.x - 8, y: cb.y - 8, width: cb.width + 16, height: cb.height + 16 } });
+  expect(errors).toEqual([]);
+});

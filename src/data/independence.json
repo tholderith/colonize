@@ -1,7 +1,7 @@
 {
   "_doc": "Rates are per in-game minute (600 ticks). Sentiment is 0-100.",
   "sentiment": {
-    "declareAt": 50, "levyFloor": 15, "perLevyPct": 0.12, "perTech": 0.04, "perRelay": 0.4,
+    "declareAt": 50, "levyFloor": 15, "perLevyPct": 0.05, "perTech": 0.02, "perRelay": 0.2,
     "missedDemand": 4, "auditFine": 3, "grievanceDrain": 3, "calmPerMin": 0.5, "calmTicks": 6000,
     "suppressAt": 30, "suppressFines": 3
   },
