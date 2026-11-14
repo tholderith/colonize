@@ -1,0 +1,194 @@
+{
+ "tiles": {
+  "deep_water": {
+   "file": "tiles/deep_water.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shallow_water": {
+   "file": "tiles/shallow_water.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "land": {
+   "file": "tiles/land.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road": {
+   "file": "tiles/road.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_0": {
+   "file": "tiles/shore_0.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_1": {
+   "file": "tiles/shore_1.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_2": {
+   "file": "tiles/shore_2.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_3": {
+   "file": "tiles/shore_3.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_4": {
+   "file": "tiles/shore_4.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_5": {
+   "file": "tiles/shore_5.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_6": {
+   "file": "tiles/shore_6.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_7": {
+   "file": "tiles/shore_7.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_8": {
+   "file": "tiles/shore_8.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_9": {
+   "file": "tiles/shore_9.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_10": {
+   "file": "tiles/shore_10.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_11": {
+   "file": "tiles/shore_11.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_12": {
+   "file": "tiles/shore_12.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_13": {
+   "file": "tiles/shore_13.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_14": {
+   "file": "tiles/shore_14.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shore_15": {
+   "file": "tiles/shore_15.png",
+   "anchor": [
+    66,
+    66
+   ]
+  }
+ },
+ "buildings": {
+  "pod_house": {
+   "file": "buildings/pod_house.png",
+   "glow": "buildings/pod_house_glow.png",
+   "anchor": [
+    137,
+    123
+   ]
+  },
+  "hydroponics": {
+   "file": "buildings/hydroponics.png",
+   "glow": "buildings/hydroponics_glow.png",
+   "anchor": [
+    180,
+    141
+   ]
+  },
+  "scrap_yard": {
+   "file": "buildings/scrap_yard.png",
+   "glow": "buildings/scrap_yard_glow.png",
+   "anchor": [
+    143,
+    175
+   ]
+  },
+  "smelter": {
+   "file": "buildings/smelter.png",
+   "glow": "buildings/smelter_glow.png",
+   "anchor": [
+    237,
+    248
+   ]
+  },
+  "wind_turbine": {
+   "file": "buildings/wind_turbine.png",
+   "glow": "buildings/wind_turbine_glow.png",
+   "anchor": [
+    147,
+    243
+   ]
+  },
+  "depot": {
+   "file": "buildings/depot.png",
+   "glow": "buildings/depot_glow.png",
+   "anchor": [
+    250,
+    281
+   ]
+  }
+ }
+}

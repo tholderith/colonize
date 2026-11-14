@@ -1,0 +1,98 @@
+{
+ "depot": {
+  "file": "buildings/depot.png",
+  "glow": "buildings/depot_glow.png",
+  "anchor": [
+   250,
+   281
+  ],
+  "size": [
+   458,
+   346
+  ],
+  "footprint": [
+   2,
+   2
+  ]
+ },
+ "hydroponics": {
+  "file": "buildings/hydroponics.png",
+  "glow": "buildings/hydroponics_glow.png",
+  "anchor": [
+   180,
+   141
+  ],
+  "size": [
+   351,
+   176
+  ],
+  "footprint": [
+   2,
+   2
+  ]
+ },
+ "pod_house": {
+  "file": "buildings/pod_house.png",
+  "glow": "buildings/pod_house_glow.png",
+  "anchor": [
+   137,
+   123
+  ],
+  "size": [
+   207,
+   186
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "scrap_yard": {
+  "file": "buildings/scrap_yard.png",
+  "glow": "buildings/scrap_yard_glow.png",
+  "anchor": [
+   143,
+   175
+  ],
+  "size": [
+   298,
+   240
+  ],
+  "footprint": [
+   2,
+   2
+  ]
+ },
+ "smelter": {
+  "file": "buildings/smelter.png",
+  "glow": "buildings/smelter_glow.png",
+  "anchor": [
+   237,
+   248
+  ],
+  "size": [
+   439,
+   313
+  ],
+  "footprint": [
+   2,
+   2
+  ]
+ },
+ "wind_turbine": {
+  "file": "buildings/wind_turbine.png",
+  "glow": "buildings/wind_turbine_glow.png",
+  "anchor": [
+   147,
+   243
+  ],
+  "size": [
+   322,
+   308
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ }
+}

@@ -120,7 +120,6 @@ def road():
 
 def water(kind):
     deep = kind == 'deep'; CUR[0] = 40 if deep else 0
-    X, Y, px, py = grid(WALL)
     # water is drawn WALL px lower than the land plane: shift the lattice so the diamond sits at rows [WALL, WALL+64)
     X, Y, px, py = grid(0); pad = WALL * SSF
     n1 = noise('w1', 41, 2.0); n2 = noise('w2', 42, 1.0); n3 = noise('w3', 43, 3.0); ph = noise('w4', 44, 2.6)
@@ -142,15 +141,13 @@ def water(kind):
 
 def wall_tex(t, d, face):
     """concrete seawall: t = along-edge coordinate in tile units (periodic, period 1), d = depth px 0..WALL."""
-    nz = pnoise(77 + face, 1.6, 256)
-    n = bil(nz, t * 1.0, np.full_like(t, 0.25)) * 0.0
     nn = pnoise(80 + face, 2.0, 256); a = bil(nn, t % 1.0, d / 40.0 % 1.0)
     base = hexc('#6a6c70') if face == 0 else hexc('#5a6068')
     col = base * (0.85 + 0.1 * a[..., None])
     col = col * np.array([1.12, 0.98, 0.84], 'float32') if face == 0 else col * np.array([0.84, 0.97, 1.15], 'float32')   # sodium on E face, moon on S face
     joint = (np.abs(((t * 4) % 1.0) - 0.0) < 0.012) | (np.abs(((t * 4) % 1.0) - 1.0) < 0.012)
     col = np.where(joint[..., None], col * 0.6, col)
-    col *= (0.65 + 0.35 * smooth(0, WALL, d))[..., None] ** -1 * 0 + (1.0 - 0.45 * smooth(WALL * 0.45, WALL, d))[..., None]  # darken toward waterline
+    col *= (1.0 - 0.45 * smooth(WALL * 0.45, WALL, d))[..., None]  # darken toward waterline
     kerb = smooth(5.0, 0.0, d)                      # lit kerb: cyan light spilling down from the lip
     col += kerb[..., None] * hexc('#22eaff') * 0.55
     col = np.where((d > WALL - 1.6)[..., None], col * 0.5 + hexc('#38a0b0') * 0.35, col)   # wet foam line at the water
