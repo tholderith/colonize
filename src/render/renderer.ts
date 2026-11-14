@@ -87,7 +87,7 @@ export class Renderer {
   private blur = new BlurFilter({ strength: look.bloom.strength, quality: 3, resolution: 0.5 });
   private screenRect = new Rectangle();
   private rain: TilingSprite[] = [];
-  private rainOn = true;
+  private rainOn = false;
   private vignette = new Sprite();
   private hour = 19;
   private glowK = 1;
@@ -153,7 +153,8 @@ export class Renderer {
 
     this.camera = new Camera(this.world, this.app.canvas);
     const b = this.landBounds();
-    this.camera.fit(b, this.app.screen.width, this.app.screen.height);
+    const hud = document.getElementById('hud')?.getBoundingClientRect();
+    this.camera.fit(b, this.app.screen.width, this.app.screen.height, hud ? hud.bottom + 8 : 0);
     this.app.ticker.add((t) => {
       this.camera.update(t.deltaMS);
       this.moveShips();
@@ -390,7 +391,7 @@ export class Renderer {
       c.position.set(x, y);
       c.scale.set(z);
     }
-    this.waterFilter.set(t, x, y, z, 0.15 + 0.25 * this.nightK);
+    this.waterFilter.set(t, x, y, z, 0.15 + 0.25 * this.nightK, this.nightK);
     this.blur.strength = Math.max(3, look.bloom.strength * Math.min(1.4, z + 0.3));
     for (const [id, o] of this.built) {
       if (!o.glow) continue;

@@ -63,10 +63,11 @@ export class Camera {
   }
 
   /** Scale and position so the world-space box fills the view with a margin. */
-  fit(box: { x: number; y: number; w: number; h: number }, viewW: number, viewH: number): void {
-    const z = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.min(viewW / box.w, viewH / box.h) * 0.9));
+  fit(box: { x: number; y: number; w: number; h: number }, viewW: number, viewH: number, top = 0): void {
+    const availH = viewH - top;
+    const z = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.min(viewW / box.w, availH / box.h) * 0.9));
     this.world.scale.set(z);
     this.world.x = viewW / 2 - (box.x + box.w / 2) * z;
-    this.world.y = viewH / 2 - (box.y + box.h / 2) * z;
+    this.world.y = top + availH / 2 - (box.y + box.h / 2) * z;
   }
 }

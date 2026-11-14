@@ -68,6 +68,7 @@ uniform float uCamX;
 uniform float uCamY;
 uniform float uZoom;
 uniform float uSheen;
+uniform float uNight;
 void main(void){
   vec2 px = vTextureCoord * uInputSize.xy + uOutputFrame.xy;
   vec2 w = (px - vec2(uCamX, uCamY)) / uZoom;
@@ -75,10 +76,11 @@ void main(void){
   vec2 d = vec2(sin(w.y*0.05 + t*0.8) + sin((w.x+w.y)*0.031 - t*0.55),
                 cos(w.x*0.043 - t*0.65) + sin((w.x-w.y)*0.037 + t*0.45)) * 1.5 * uZoom;
   vec4 c = texture(uTexture, vTextureCoord + d * uInputSize.zw);
-  float s1 = smoothstep(0.55, 1.0, sin(w.x*0.004 + w.y*0.007 + t*0.15 + sin(w.y*0.006 + t*0.2)*1.2));
-  float s2 = smoothstep(0.6, 1.0, sin(w.x*0.006 - w.y*0.005 - t*0.1 + sin(w.x*0.007)*1.5));
-  vec3 sheen = vec3(0.10, 0.50, 0.60) * s1 + vec3(0.60, 0.16, 0.50) * s2;
-  c.rgb += (sheen * 0.3 + vec3(0.0, 0.05, 0.05) * 1.2) * uSheen * c.a;
+  float s1 = smoothstep(0.55, 1.0, sin(w.x*0.012 + w.y*0.02 + t*0.15 + sin(w.y*0.006 + t*0.2)*1.2));
+  float s2 = smoothstep(0.6, 1.0, sin(w.x*0.016 - w.y*0.014 - t*0.1 + sin(w.x*0.007)*1.5));
+  vec3 sheen = vec3(0.05, 0.28, 0.32) * s1 + vec3(0.25, 0.08, 0.22) * s2;
+  c.rgb *= mix(vec3(1.0), vec3(0.5, 0.66, 0.64), uNight);
+  c.rgb += (sheen * 0.12 + vec3(0.0, 0.02, 0.02)) * uSheen * c.a;
   finalColor = c;
 }`;
 
@@ -92,17 +94,19 @@ export class WaterFilter extends Filter {
       uCamY: { value: 0, type: 'f32' },
       uZoom: { value: 1, type: 'f32' },
       uSheen: { value: 0.3, type: 'f32' },
+      uNight: { value: 0, type: 'f32' },
     });
     super({ glProgram: GlProgram.from({ vertex: WATER_VERT, fragment: WATER_FRAG, name: 'water' }), resources: { waterUniforms: u } });
     this.u = u;
   }
-  set(t: number, camX: number, camY: number, zoom: number, sheen: number): void {
+  set(t: number, camX: number, camY: number, zoom: number, sheen: number, night = 0): void {
     const v = this.u.uniforms as Record<string, number>;
     v.uTime = t;
     v.uCamX = camX;
     v.uCamY = camY;
     v.uZoom = zoom;
     v.uSheen = sheen;
+    v.uNight = night;
   }
 }
 
