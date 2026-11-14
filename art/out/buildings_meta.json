@@ -510,5 +510,37 @@
    1,
    1
   ]
+ },
+ "coastal_battery": {
+  "file": "buildings/coastal_battery.png",
+  "glow": "buildings/coastal_battery_glow.png",
+  "anchor": [
+   217,
+   161
+  ],
+  "size": [
+   412,
+   214
+  ],
+  "footprint": [
+   2,
+   2
+  ]
+ },
+ "signal_relay": {
+  "file": "buildings/signal_relay.png",
+  "glow": "buildings/signal_relay_glow.png",
+  "anchor": [
+   161,
+   202
+  ],
+  "size": [
+   336,
+   267
+  ],
+  "footprint": [
+   1,
+   1
+  ]
  }
 }

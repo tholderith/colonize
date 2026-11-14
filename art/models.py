@@ -836,3 +836,148 @@ SHIPS = dict(hauler=hauler_model, trader=trader_model, patrol=patrol_model)
 JOBS['port'] = (port, (), 2, 2, dict(H=1100))
 for _k, _fn in SHIPS.items():
     for _d in DIR_ANG: JOBS['%s_%s' % (_k, _d)] = (ship, (_fn, _d), 1, 1, dict(W=800, H=800, catcher=False, K=1.0))
+
+# =============================================================== M4: signal relay + coastal battery
+def cable(b, mat, p0, p1, sag=0.05, n=4, w=0.008):
+    p0 = Vector(p0); p1 = Vector(p1); pts = []
+    for i in range(n + 1):
+        t = i / n; p = p0.lerp(p1, t); p.z -= sag * 4 * t * (1 - t); pts.append(p)
+    for a, c in zip(pts[:-1], pts[1:]): b.beam(mat, a, c, w)
+
+def signal_relay():
+    rnd = random.Random(77); b = B('relay')
+    ground_pad(b, 0.06, 0.06, 0.94, 0.94, z=0.03)
+    st = M('steel_l', rust=0.7, soot=0.6, rough=0.5, metal=0.5); dk = M('steel_d', rust=0.5, soot=0.6)
+    cb = M('black', rust=0, soot=0.1, rough=0.6, metal=0.1)
+    cu, cv, H, z0 = 0.5, 0.45, 1.75, 0.03
+    hw = lambda z: 0.2 - 0.16 * (z - z0) / (H - z0)           # lattice half-width tapers with height
+    N = 7; zs = [z0 + (H - z0) * i / N for i in range(N + 1)]
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            for a, c in zip(zs[:-1], zs[1:]):
+                b.beam(st, X(cu + sx * hw(a), cv + sy * hw(a), a), X(cu + sx * hw(c), cv + sy * hw(c), c), 0.026)
+    for i, (a, c) in enumerate(zip(zs[:-1], zs[1:])):
+        for (p, q) in (((-1, -1), (1, -1)), ((1, -1), (1, 1)), ((1, 1), (-1, 1)), ((-1, 1), (-1, -1))):
+            fl = 1 if i % 2 else -1
+            pa = (p, q) if fl > 0 else (q, p)
+            b.beam(dk, X(cu + pa[0][0] * hw(a), cv + pa[0][1] * hw(a), a), X(cu + pa[1][0] * hw(c), cv + pa[1][1] * hw(c), c), 0.012)
+            b.beam(dk, X(cu + p[0] * hw(c), cv + p[1] * hw(c), c), X(cu + q[0] * hw(c), cv + q[1] * hw(c), c), 0.012)
+    # mismatched add-ons: salvaged crates, generator, tarp
+    cont(b, 0.78, 0.78, 0.03, 'x', 'orange', L=0.32, Wd=0.2, H=0.17, rnd=rnd, door=False)
+    b.box(M('steel_d', rust=0.4), XY(0.22, 0.8), (0.18, 0.14, 0.12), 0.03)
+    b.box(M('#5a2a6a', rust=0.0, soot=0.3, rough=0.9, metal=0.0), XY(0.25, 0.25), (0.2, 0.16, 0.05), 0.03, rot=0.4)     # purple tarp
+    b.box(G('cyan', 5), XY(0.22, 0.88), (0.1, 0.012, 0.02), 0.1)
+    # hand-painted FREE SIGNAL board hung on the tower
+    bz = 0.62; bv = cv + 0.2
+    b.box(M('#2a2428', rust=0.2, soot=0.5, rough=0.8, metal=0.0), XY(cu, bv), (0.84, 0.025, 0.21), bz - 0.04, rot=0.0)
+    for sx in (-0.28, 0.28): b.beam(dk, X(cu + sx, bv, bz + 0.14), X(cu + sx * 0.4, cv + 0.12, bz + 0.2), 0.012)
+    for sx in (-0.28, 0.28): b.beam(dk, X(cu + sx, bv, bz - 0.03), X(cu + sx * 0.4, cv + 0.12, bz - 0.1), 0.012)
+    text3d('FREE SIGNAL', G('mag', 9), (cu, -bv - 0.0135, bz - 0.02), 0.115, rot=(math.radians(90), math.radians(-2.5), 0), extrude=0.012)
+    b.box(G('cyan', 7), XY(cu, bv), (0.8, 0.012, 0.014), bz - 0.06)
+    for sx in (-0.38, 0.38): b.box(G('amber', 5), (cu + sx, -bv - 0.012), (0.03, 0.012, 0.03), bz + 0.1)
+    # dish, strapped on crooked + feed horn
+    d = Vector((0.55, -0.7, 0.2)).normalized(); base = Vector((cu + 0.02, -cv - 0.05, 1.25))
+    b.cyl(M('#7a8088', rust=0.5, soot=0.7, rough=0.6, metal=0.4), base, base + d * 0.1, 0.02, 0.12, n=14)
+    b.cyl(dk, base + d * 0.1, base + d * 0.12, 0.12, 0.12, n=14, caps=False)
+    b.cyl(dk, base + d * 0.02, base + d * 0.22, 0.008, n=6)
+    b.sphere(G('amber', 5), base + d * 0.2, 0.014, seg=8, rings=4)
+    b.beam(dk, base - d * 0.02, Vector((cu, -cv, 1.2)), 0.02)
+    # second small yagi
+    ya = Vector((cu, -cv, 1.5)); 
+    b.beam(dk, ya + Vector((-0.2, 0.1, 0)), ya + Vector((0.2, -0.12, 0.04)), 0.012)
+    for k in range(4): b.beam(dk, ya + Vector((-0.1 + 0.07 * k, 0.05 - 0.04 * k, 0.04 * k / 3)) + Vector((0, -0.05, 0)), ya + Vector((-0.1 + 0.07 * k, 0.05 - 0.04 * k, 0.04 * k / 3)) + Vector((0, 0.05, 0)), 0.008)
+    # top mast, pennant of rags, pulsing lights
+    b.cyl(dk, X(cu, cv, H), X(cu, cv, H + 0.3), 0.008, n=6)
+    b.sphere(G('mag', 20), X(cu, cv, H + 0.32), 0.032, seg=8, rings=4); point_light(X(cu, cv, H + 0.32), _rgb(NEON['mag']), 22, 0.04)
+    b.sphere(G('cyan', 20), X(cu + 0.12, cv + 0.12, 1.45), 0.028, seg=8, rings=4); point_light(X(cu + 0.12, cv + 0.12, 1.45), _rgb(NEON['cyan']), 12, 0.04, False)
+    b.sphere(G('mag', 14), X(cu - 0.1, cv + 0.1, 1.05), 0.024, seg=8, rings=4)
+    b.sphere(G('cyan', 14), X(cu + 0.09, cv - 0.09, 0.85), 0.024, seg=8, rings=4)
+    b.face(M('#c02080', rust=0, soot=0.2, rough=0.9, metal=0), [X(cu, cv - 0.01, H + 0.28), X(cu + 0.2, cv - 0.04, H + 0.2), X(cu + 0.05, cv - 0.02, H + 0.12)])
+    # guy cables to ground anchors + cables looping between levels
+    for (au, av, z) in ((0.08, 0.08, 1.55), (0.95, 0.1, 1.55), (0.92, 0.92, 1.45), (0.1, 0.92, 1.45)):
+        cable(b, cb, X(cu, cv, z), X(au, av, 0.03), sag=0.05, w=0.009)
+        b.cyl(dk, X(au, av, 0.03), X(au, av, 0.09), 0.02, n=6)
+    for (a, c) in (((cu - 0.1, cv - 0.1, 1.2), (0.12, 0.7, 0.04)), ((cu + 0.1, cv - 0.1, 0.9), (0.95, 0.5, 0.04)), ((cu, cv + 0.1, 0.5), (0.2, 0.95, 0.04))):
+        cable(b, cb, X(*a), X(*c), sag=0.12, n=5, w=0.014)
+    for k in range(5):      # festoon of fairy cables around the sign
+        cable(b, cb, X(cu - 0.3, bv, bz + 0.1), X(cu + 0.3, bv, bz + 0.1), sag=0.05 + 0.01 * k, w=0.005)
+        break
+    lamp(b, 0.9, 0.55, 0.22, 'mag', 6, 0.55, 1.2); lamp(b, 0.2, 0.62, 0.2, 'cyan', 5, 0.5, 1.0)
+    point_light(X(cu, bv + 0.12, bz), _rgb(NEON['mag']), 7, 0.05, False)
+    return b.commit()
+
+def coastal_battery():
+    rnd = random.Random(88); b = B('battery')
+    conc = M('concrete', rust=0.2, soot=0.8, rough=0.85, metal=0.0); dk = M('steel_d', rust=0.4, soot=0.6)
+    hz = hazard_mat(); bag = M('#7a6e4c', rust=0.0, soot=0.6, rough=0.95, metal=0.0)
+    ground_pad(b, 0.05, 0.05, 1.95, 1.95, z=0.04)
+    c = 1.0; S_ = 1.56; TOP = 0.04 + 0.3
+    b.box(conc, XY(c, c), (S_, S_, 0.3), 0.04)
+    b.box(M('concrete', rust=0.1, soot=0.9), XY(c, c), (S_ + 0.08, S_ + 0.08, 0.04), 0.04)          # plinth lip
+    # sloped glacis on the sea side faces (x+, y-): stepped
+    for k in range(3):
+        b.box(conc, XY(c, c), (S_ - 0.0 + 0.0, S_, 0.0), 0.0) if False else None
+    # warning stripes: low band on both visible faces
+    h2 = S_ / 2
+    b.box(hz, (c + h2 + 0.004, -c), (0.012, S_ * 0.98, 0.05), 0.075)
+    b.box(hz, (c, -(c + h2) - 0.004 * 0 - 0.004), (S_ * 0.98, 0.012, 0.05), 0.075)
+    b.box(hz, (c + h2 + 0.004, -c), (0.012, S_ * 0.98, 0.04), TOP - 0.06)
+    b.box(hz, (c, -(c + h2) - 0.004), (S_ * 0.98, 0.012, 0.04), TOP - 0.06)
+    # embrasure slits (dark with amber light) and a blast door
+    for k in range(3):
+        v = c - 0.45 + 0.45 * k
+        b.box(M('black', rust=0, soot=0.1), (c + h2 + 0.003, -v), (0.012, 0.22, 0.05), 0.17)
+        b.box(G('amber', 3), (c + h2 + 0.006, -v), (0.012, 0.18, 0.016), 0.185)
+    b.box(dk, (c - 0.35, -(c + h2) - 0.005), (0.24, 0.012, 0.19), 0.1)
+    b.box(hz, (c - 0.35, -(c + h2) - 0.014), (0.2, 0.012, 0.03), 0.14)
+    sign(b, 'BTRY 3', 'amber', c + 0.2, c + h2 + 0.012, 0.1, 0.07, 'y-', s=6)
+    # sandbag rim (two staggered courses) round the top edge
+    def bags(z, off):
+        n = 12; e = h2 - 0.07
+        for side in range(4):
+            for i in range(n):
+                t = -e + (i + 0.5 + off) * (2 * e / n)
+                if abs(t) > e: continue
+                if side == 0: p = (c + e, c + t); rot = math.pi / 2
+                elif side == 1: p = (c - e, c + t); rot = math.pi / 2
+                elif side == 2: p = (c + t, c + e); rot = 0
+                else: p = (c + t, c - e); rot = 0
+                b.sphere(bag, (p[0] + rnd.uniform(-0.01, 0.01), -p[1], z + 0.04), 0.07, seg=8, rings=4, scale=(1.35, 0.9, 0.62), jitter=0.1, rng=rnd) if False else \
+                b.box(bag, XY(*p), (0.15, 0.095, 0.065), z, rot=rot + rnd.uniform(-0.12, 0.12))
+    bags(TOP, 0.0); bags(TOP + 0.065, 0.5)
+    # turret: ring pit, rotating drum, twin barrels
+    tc = Vector((c, -c, TOP))
+    b.cyl(dk, tc, tc + Vector((0, 0, 0.06)), 0.34, n=20, caps=True)
+    b.cyl(M('steel', rust=0.4, soot=0.7), tc + Vector((0, 0, 0.06)), tc + Vector((0, 0, 0.12)), 0.27, 0.25, n=20)
+    ang = math.radians(-40); fwd = Vector((math.cos(ang), math.sin(ang), 0)); side = Vector((-fwd.y, fwd.x, 0))
+    hc = tc + Vector((0, 0, 0.12))
+    tm = M('#5a6055', rust=0.3, soot=0.6, rough=0.55, metal=0.4)
+    b.box(tm, (hc.x, hc.y), (0.46, 0.36, 0.13), hc.z, rot=ang)
+    b.box(dk, (hc.x + fwd.x * 0.2, hc.y + fwd.y * 0.2), (0.1, 0.4, 0.1), hc.z + 0.015, rot=ang)       # mantlet
+    for s in (-1, 1):
+        p0 = hc + Vector((0, 0, 0.065)) + side * s * 0.075 + fwd * 0.22; p1 = p0 + fwd * 0.62 + Vector((0, 0, 0.1))
+        b.cyl(M('steel_d', rust=0.1, soot=0.5, metal=0.7), p0, p1, 0.032, 0.026, n=10)
+        b.cyl(dk, p1 - (p1 - p0).normalized() * 0.04, p1, 0.04, n=10)                                    # muzzle brake
+    b.box(tm, (hc.x - fwd.x * 0.1, hc.y - fwd.y * 0.1), (0.2, 0.3, 0.05), hc.z + 0.13, rot=ang)           # cupola
+    b.box(hz, (hc.x - fwd.x * 0.24, hc.y - fwd.y * 0.24), (0.02, 0.36, 0.1), hc.z + 0.01, rot=ang)       # rear stripe
+    # searchlight on a corner pylon (back-left) aimed out to sea
+    pu, pv = 0.38, 1.62
+    b.cyl(dk, X(pu, pv, TOP + 0.13), X(pu, pv, TOP + 0.4), 0.02, n=8)
+    sd = Vector((0.7, -0.6, 0.12)).normalized(); sc_ = Vector((pu, -pv, TOP + 0.43))
+    b.cyl(M('steel_l', rust=0.2), sc_ - sd * 0.06, sc_ + sd * 0.1, 0.07, 0.075, n=12)
+    b.cyl(G('white', 7), sc_ + sd * 0.1, sc_ + sd * 0.105, 0.05, n=12)
+    b.cyl(beam_mat(), sc_ + sd * 0.11, sc_ + sd * 0.6, 0.02, 0.09, n=14, caps=False)
+    point_light(sc_ + sd * 0.2, (0.85, 0.95, 1.0), 5, 0.04, False)
+    # red status light on a mast
+    b.cyl(dk, X(1.7, 0.32, TOP + 0.13), X(1.7, 0.32, TOP + 0.52), 0.012, n=6)
+    b.sphere(G('red', 16), X(1.7, 0.32, TOP + 0.55), 0.034, seg=8, rings=4)
+    point_light(X(1.7, 0.32, TOP + 0.58), (1, 0.1, 0.1), 10, 0.04, False)
+    # access ladder + ammo crates
+    b.box(M('mustard', rust=0.3, soot=0.5), XY(0.3, 0.28), (0.2, 0.12, 0.09), 0.04, rot=0.2)
+    b.box(M('red', rust=0.3, soot=0.5), XY(0.55, 0.22), (0.14, 0.1, 0.07), 0.04, rot=-0.1)
+    lamp(b, 1.9, 1.9, 0.3, 'amber', 4, 0.5, 0.9)
+    b.cyl(dk, X(1.9, 1.9, 0.04), X(1.9, 1.9, 0.3), 0.012, n=6)
+    return b.commit()
+
+JOBS['signal_relay'] = (signal_relay, (), 1, 1, dict(H=1100, W=700))
+JOBS['coastal_battery'] = (coastal_battery, (), 2, 2, dict(H=900, W=1000))

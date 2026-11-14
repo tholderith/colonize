@@ -98,6 +98,7 @@ def sheet():
         if fx + w > W: fx = 10; y += rowh + 4
         sh.paste(cell, (fx, y)); d.text((fx + 4, y + 2), 'f%d' % i, fill=(255, 255, 0, 255)); fx += w + 4; rowh = h
     y += rowh + 10
+    d.text((10, y), 'TITLE KEY ART (ui/title.png, 1920x1080, thumbnail 640x360)', fill=(200, 220, 255, 255)); sh.paste(img(man['ui']['title']).convert('RGB').resize((640, 360), Image.LANCZOS), (10, y + 16)); y += 390
     py = y + 20; d.text((10, py - 14), 'TEST PATCH: island, road autotiles (straight/T/corners/dead ends), mixed land_0-2, new buildings with glow', fill=(200, 220, 255, 255))
     sh.alpha_composite(p, (10, py)); sh = sh.crop((0, 0, W, py + p.height + 10))
     os.makedirs(os.path.join(HERE, 'out'), exist_ok=True); sh.convert('RGB').save(os.path.join(HERE, 'out', 'contact.png')); p.convert('RGB').save(os.path.join(HERE, 'out', 'patch.png'))

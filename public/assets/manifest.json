@@ -412,6 +412,22 @@
     250,
     252
    ]
+  },
+  "signal_relay": {
+   "file": "buildings/signal_relay.png",
+   "glow": "buildings/signal_relay_glow.png",
+   "anchor": [
+    161,
+    202
+   ]
+  },
+  "coastal_battery": {
+   "file": "buildings/coastal_battery.png",
+   "glow": "buildings/coastal_battery_glow.png",
+   "anchor": [
+    217,
+    161
+   ]
   }
  },
  "units": {
@@ -586,5 +602,8 @@
    ],
    "fps": 8
   }
+ },
+ "ui": {
+  "title": "ui/title.png"
  }
 }
