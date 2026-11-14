@@ -84,11 +84,11 @@
   "glow": "buildings/wind_turbine_glow.png",
   "anchor": [
    147,
-   243
+   261
   ],
   "size": [
    322,
-   308
+   326
   ],
   "footprint": [
    1,
@@ -377,6 +377,134 @@
   "size": [
    190,
    94
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "wind_turbine_f0": {
+  "file": "buildings/wind_turbine_f0.png",
+  "glow": "buildings/wind_turbine_f0_glow.png",
+  "anchor": [
+   147,
+   261
+  ],
+  "size": [
+   322,
+   326
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "wind_turbine_f1": {
+  "file": "buildings/wind_turbine_f1.png",
+  "glow": "buildings/wind_turbine_f1_glow.png",
+  "anchor": [
+   147,
+   261
+  ],
+  "size": [
+   322,
+   326
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "wind_turbine_f2": {
+  "file": "buildings/wind_turbine_f2.png",
+  "glow": "buildings/wind_turbine_f2_glow.png",
+  "anchor": [
+   147,
+   261
+  ],
+  "size": [
+   322,
+   326
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "wind_turbine_f3": {
+  "file": "buildings/wind_turbine_f3.png",
+  "glow": "buildings/wind_turbine_f3_glow.png",
+  "anchor": [
+   147,
+   261
+  ],
+  "size": [
+   322,
+   326
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "wind_turbine_f4": {
+  "file": "buildings/wind_turbine_f4.png",
+  "glow": "buildings/wind_turbine_f4_glow.png",
+  "anchor": [
+   147,
+   261
+  ],
+  "size": [
+   322,
+   326
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "wind_turbine_f5": {
+  "file": "buildings/wind_turbine_f5.png",
+  "glow": "buildings/wind_turbine_f5_glow.png",
+  "anchor": [
+   147,
+   261
+  ],
+  "size": [
+   322,
+   326
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "wind_turbine_f6": {
+  "file": "buildings/wind_turbine_f6.png",
+  "glow": "buildings/wind_turbine_f6_glow.png",
+  "anchor": [
+   147,
+   261
+  ],
+  "size": [
+   322,
+   326
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "wind_turbine_f7": {
+  "file": "buildings/wind_turbine_f7.png",
+  "glow": "buildings/wind_turbine_f7_glow.png",
+  "anchor": [
+   147,
+   261
+  ],
+  "size": [
+   322,
+   326
   ],
   "footprint": [
    1,

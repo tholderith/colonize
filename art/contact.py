@@ -57,7 +57,7 @@ def sheet():
     p = patch(); W = max(1500, p.width + 20)
     keys = list(man['tiles']); bk = list(man['buildings'])
     rows_h = 80 + 20 + 2 * 90 + 20
-    sh = Image.new('RGBA', (W, 40 + 6 * 96 + 5200 + p.height), BG); d = ImageDraw.Draw(sh)
+    sh = Image.new('RGBA', (W, 40 + 6 * 96 + 5600 + p.height), BG); d = ImageDraw.Draw(sh)
     d.text((10, 6), 'TILES (anchor = south corner)', fill=(200, 220, 255, 255))
     for i, k in enumerate(keys):
         x = 10 + (i % 10) * 142; y = 24 + (i // 10) * 96
@@ -88,6 +88,16 @@ def sheet():
                 sh.paste(cell, (cx0, y)); d.text((cx0 + 4, y + 4), k + ' (' + mode + ')', fill=(180, 190, 200, 255))
                 d.ellipse((cx0 + 180 - 2, y + 112 - 2, cx0 + 180 + 2, y + 112 + 2), outline=(255, 255, 0, 255))
             y += 176
+    d.text((10, y), 'ICONS on dark panel: 32 px (x1) | 64 px (@2x)    +    WIND TURBINE ROTOR f0..f7 (then loops to f0), composed', fill=(200, 220, 255, 255)); y += 18
+    panel = Image.new('RGBA', (W - 20, 118), (22, 28, 40, 255)); ix = 8
+    for k, v in man['icons'].items(): panel.alpha_composite(img(v['file']), (ix, 6)); panel.alpha_composite(img(v['file2x']), (ix, 6 + 36)); ix += 70
+    sh.alpha_composite(panel, (10, y)); y += 126
+    an = man['anims']['wind_turbine']; fx = 10; rowh = 0
+    for i, (fb, fg) in enumerate(zip(an['frames'], an['glowFrames'])):
+        bi = img(fb); w, h = bi.size; cell = Image.new('RGBA', (w, h), BG); cell.alpha_composite(bi); add_glow(cell, img(fg), (0, 0))
+        if fx + w > W: fx = 10; y += rowh + 4
+        sh.paste(cell, (fx, y)); d.text((fx + 4, y + 2), 'f%d' % i, fill=(255, 255, 0, 255)); fx += w + 4; rowh = h
+    y += rowh + 10
     py = y + 20; d.text((10, py - 14), 'TEST PATCH: island, road autotiles (straight/T/corners/dead ends), mixed land_0-2, new buildings with glow', fill=(200, 220, 255, 255))
     sh.alpha_composite(p, (10, py)); sh = sh.crop((0, 0, W, py + p.height + 10))
     os.makedirs(os.path.join(HERE, 'out'), exist_ok=True); sh.convert('RGB').save(os.path.join(HERE, 'out', 'contact.png')); p.convert('RGB').save(os.path.join(HERE, 'out', 'patch.png'))

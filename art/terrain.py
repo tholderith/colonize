@@ -118,7 +118,7 @@ def road():
         col += np.exp(-(d / 0.04) ** 2)[..., None] * hexc('#ffc040') * 1.2 + np.exp(-(d / 0.08) ** 2)[..., None] * hexc('#ff8a10') * 0.12
     save(col, diamond_mask(X, Y), 'road'); return 'road'
 
-def water(kind):
+def water(kind, var=None):
     deep = kind == 'deep'; CUR[0] = 40 if deep else 0
     # water is drawn WALL px lower than the land plane: shift the lattice so the diamond sits at rows [WALL, WALL+64)
     X, Y, px, py = grid(0); pad = WALL * SSF
@@ -131,13 +131,29 @@ def water(kind):
     col *= (0.88 + 0.22 * rip[..., None] ** 2)
     irid = 0.5 + 0.5 * np.cos(2 * np.pi * (bil(ph, X, Y)[..., None] * 0.35 + np.array([0.0, 0.33, 0.67], 'float32')))
     col += irid * (smooth(0.2, 1.6, bil(n3, X * 2 + 0.4, Y * 2 + 0.1)) * (0.5 + 0.5 * rip))[..., None] * 0.06
-    rng = np.random.default_rng(900 + deep); cols = [hexc('#22eaff'), hexc('#ff2ea6'), hexc('#ffa622')]; inter = interior(X, Y, 0.2)
+    rng = np.random.default_rng(900 + deep + (0 if var is None else 10 * (var + 1))); cols = [hexc('#22eaff'), hexc('#ff2ea6'), hexc('#ffa622')]; inter = interior(X, Y, 0.2)
     for _ in range(3):
         cx = rng.uniform(25, 105); cy = rng.uniform(14, 52); w = rng.uniform(5, 16)
         col += (np.exp(-(((px - cx) / w) ** 2 + ((py - cy) / 0.9) ** 2)) * 0.25)[..., None] * cols[rng.integers(0, 3)] * inter[..., None]
+    if var is not None:
+        # variant detail is faded in with interior() -> every edge equals the shared base field, so all variants tile seamlessly together
+        w = interior(X, Y, 0.2); nv = noise('wv%d' % var, 450 + var, 1.8); nr = noise('wr%d' % var, 470 + var, 2.4)
+        irc = lambda ph: 0.5 + 0.5 * np.cos(2 * np.pi * (ph[..., None] + np.array([0.0, 0.33, 0.67], 'float32')))
+        if var == 0:      # oil sheen patch: big iridescent blob
+            r = np.sqrt((X - 0.45) ** 2 + (Y - 0.55) ** 2) * (1 + 0.5 * bil(nv, X * 2.2, Y * 2.2)); m = smooth(0.34, 0.1, r) * w
+            ph = r * 3.0 + bil(nr, X * 3, Y * 3) * 0.25
+            col = mixc(col, col * 0.45 + irc(ph) * 0.16, m * 0.85)
+        elif var == 1:    # floating slick: dark elongated streak with a bright rim and a few glints
+            u = (X + Y - 1.0) * 0.8 + 0.07 * bil(nv, X * 3, Y * 3); v = (X - Y) * 0.8
+            d = np.sqrt((u / 0.2) ** 2 + ((v + 0.05) / 0.5) ** 2); m = smooth(1.0, 0.8, d) * w; rim = np.exp(-((d - 0.95) / 0.09) ** 2) * w
+            col = mixc(col, col * 0.4, m * 0.8); col += rim[..., None] * (hexc('#22eaff') * 0.06 + hexc('#ff2ea6') * 0.05)
+            for gx, gy in ((0.42, 0.5), (0.55, 0.45), (0.5, 0.6)): col += (np.exp(-(((X - gx) / 0.02) ** 2 + ((Y - gy) / 0.012) ** 2)) * w)[..., None] * hexc('#9af4ff') * 0.25
+        else:             # faint ripple pattern: concentric rings from an off-centre point
+            r = np.sqrt((X - 0.55) ** 2 + (Y - 0.4) ** 2) + 0.01 * bil(nr, X * 4, Y * 4)
+            col *= (1 + 0.18 * (np.sin(r * 60) * np.exp(-r * 3.5) * w))[..., None]; col += (np.exp(-(((r * 60) % (2 * np.pi) - 1.6) / 0.5) ** 2) * np.exp(-r * 4) * w)[..., None] * hexc('#22eaff') * 0.03
     full = np.zeros((X.shape[0] + pad, X.shape[1], 3), 'float32'); al = np.zeros(full.shape[:2], 'float32')
     full[pad:] = col; al[pad:] = diamond_mask(X, Y, (0.03,) * 4)
-    save(full, al, 'deep_water' if deep else 'shallow_water')
+    save(full, al, ('deep_water' if deep else 'shallow_water') + ('' if var is None else '_%d' % var))
 
 def wall_tex(t, d, face):
     """concrete seawall: t = along-edge coordinate in tile units (periodic, period 1), d = depth px 0..WALL."""
@@ -265,6 +281,7 @@ def land_variant(k):
 
 if __name__ == '__main__':
     land(); road(); water('deep'); water('shallow')
+    for k in range(3): water('deep', k); water('shallow', k)
     for k in range(16): shore(k)
     for k in range(16): road_auto(k)
     for k in range(3): land_variant(k)

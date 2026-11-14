@@ -10,9 +10,9 @@ if __name__ == '__main__':
         ms = [k for k in MD.JOBS if k.startswith(n.rstrip('*'))]
         for m in ms:
             fn, fa, fw, fh, kw = MD.JOBS[m]
-            kw = dict(kw); 
+            kw = dict(kw); seed = kw.pop('seed', sum(map(ord, m)) % 1000)
             if spp: kw['samples'] = spp
             kw.setdefault('samples', 64)
-            try: lib.sprite(m, lambda fn=fn, fa=fa: fn(*fa), fw, fh, seed=sum(map(ord, m)) % 1000, **kw)
+            try: lib.sprite(m, lambda fn=fn, fa=fa: fn(*fa), fw, fh, seed=seed, **kw)
             except Exception as e:
                 import traceback; traceback.print_exc(); print('FAILED', m, flush=True)

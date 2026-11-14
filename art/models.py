@@ -293,7 +293,7 @@ def smelter():
     return b.commit()
 
 
-def wind_turbine():
+def wind_turbine(ph_deg=18):
     b = B('turb')
     b.box(M('concrete', rust=0.0, soot=0.9), XY(0.5, 0.5), (0.7, 0.7, 0.05), 0.0)
     tw = M('cream', rust=0.45, soot=0.7, rough=0.5, metal=0.2)
@@ -311,7 +311,7 @@ def wind_turbine():
     hub = ctr + a * 0.15 + Vector((0, 0, 0.0))
     b.sphere(M('cream', rust=0.2), hub, 0.06, seg=10, rings=6, scale=(1.2, 1.2, 1.2))
     perp = Vector((0, 0, 1)).cross(a).normalized(); up = a.cross(perp).normalized()
-    ph = math.radians(18)
+    ph = math.radians(ph_deg)
     for k in range(3):
         ang = ph + k * 2 * math.pi / 3; d = perp * math.cos(ang) + Vector((0, 0, 1)) * math.sin(ang)
         n = d.cross(a).normalized()
@@ -822,6 +822,8 @@ JOBS['hydroponics'] = (hydroponics, (), 2, 2, dict(H=1000))
 JOBS['scrap_yard'] = (scrap_yard, (), 2, 2, dict(H=1100))
 JOBS['smelter'] = (smelter, (), 2, 2, dict(H=1500, W=1000))
 JOBS['wind_turbine'] = (wind_turbine, (), 1, 1, dict(H=1100, W=700))
+_TS = sum(map(ord, 'wind_turbine')) % 1000
+for _i in range(8): JOBS['wind_turbine_f%d' % _i] = (wind_turbine, (18 + 15 * _i,), 1, 1, dict(H=1100, W=700, seed=_TS))   # 3 blades -> 120 deg period = 8 x 15 deg
 JOBS['depot'] = (depot, (), 2, 2, dict(H=1100, samples=64))
 
 JOBS['ration_plant'] = (ration_plant, (), 2, 2, dict(H=1100))

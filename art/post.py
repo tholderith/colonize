@@ -29,6 +29,23 @@ def premul_resize(pm, size):
     ch = [np.asarray(Image.fromarray(np.ascontiguousarray(pm[..., c]), 'F').resize(size, Image.LANCZOS)) for c in range(pm.shape[2])]
     return np.stack(ch, -1)
 
+_BX = {}
+def boxof(m, base, gl, cx, cy, W, H):
+    n = m['name']; rel = cx is None
+    if n not in _BX:
+        if base is None:
+            base = load(os.path.join(WORK, 'raw', n + '.png')); gl = make_glow(load(os.path.join(WORK, 'raw', n + '__glow.png')))
+            W, H = base.shape[1], base.shape[0]; cx, cy = W // 2, H // 2 + m['off']
+        fw, fh = m['fw'], m['fh']
+        sel = (base[..., 3] > 0.02) | (gl.max(-1) > 0.03)
+        ys, xs = np.nonzero(sel)
+        l, t, r, b = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
+        l = min(l, cx - 64 * SS * fh - 4); r = max(r, cx + 64 * SS * fw + 4); b = max(b, cy + 2); t = min(t, cy - 32 * SS * (fw + fh) - 2)
+        _BX[n] = (l - cx, t - cy, r - cx, b - cy)
+    l, t, r, b = _BX[n]
+    if rel: return (l, t, r, b)
+    return (l + cx, t + cy, r + cx, b + cy)
+
 def run(only):
     os.makedirs(SUB, exist_ok=True)
     meta = {}
@@ -38,10 +55,10 @@ def run(only):
         unit = m['name'].startswith(UNITS); sub = USUB if unit else SUB; os.makedirs(sub, exist_ok=True)
         base = load(os.path.join(WORK, 'raw', m['name'] + '.png')); gl = make_glow(load(os.path.join(WORK, 'raw', m['name'] + '__glow.png')))
         W, H = base.shape[1], base.shape[0]; cx, cy = W // 2, H // 2 + m['off']; fw, fh = m['fw'], m['fh']
-        sel = (base[..., 3] > 0.02) | (gl.max(-1) > 0.03)
-        ys, xs = np.nonzero(sel)
-        l, t, r, b = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
-        l = min(l, cx - 64 * SS * fh - 4); r = max(r, cx + 64 * SS * fw + 4); b = max(b, cy + 2); t = min(t, cy - 32 * SS * (fw + fh) - 2)
+        l, t, r, b = boxof(m, base, gl, cx, cy, W, H)
+        if m['name'].startswith('wind_turbine'):      # static + rotor frames share one crop box (swap in place)
+            bx = [boxof(json.load(open(g)), None, None, None, None, None, None) for g in sorted(glob.glob(os.path.join(WORK, 'raw', 'wind_turbine*.json')))]
+            l, t, r, b = min(x[0] for x in bx) + cx, min(x[1] for x in bx) + cy, max(x[2] for x in bx) + cx, max(x[3] for x in bx) + cy
         l, t = -((-(l - cx)) // SS) * SS, -((-(t - cy)) // SS) * SS; r, b = -(-(r - cx) // SS) * SS, -(-(b - cy) // SS) * SS
         x0, y0, x1, y1 = cx + l, cy + t, cx + r, cy + b
         def crop(arr):

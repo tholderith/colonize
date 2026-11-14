@@ -28,6 +28,48 @@
     66
    ]
   },
+  "deep_water_0": {
+   "file": "tiles/deep_water_0.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "deep_water_1": {
+   "file": "tiles/deep_water_1.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "deep_water_2": {
+   "file": "tiles/deep_water_2.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shallow_water_0": {
+   "file": "tiles/shallow_water_0.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shallow_water_1": {
+   "file": "tiles/shallow_water_1.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shallow_water_2": {
+   "file": "tiles/shallow_water_2.png",
+   "anchor": [
+    66,
+    66
+   ]
+  },
   "land_0": {
    "file": "tiles/land_0.png",
    "anchor": [
@@ -312,7 +354,7 @@
    "glow": "buildings/wind_turbine_glow.png",
    "anchor": [
     147,
-    243
+    261
    ]
   },
   "depot": {
@@ -468,6 +510,81 @@
     78,
     45
    ]
+  }
+ },
+ "icons": {
+  "credits": {
+   "file": "ui/icons/credits.png",
+   "file2x": "ui/icons/credits@2x.png"
+  },
+  "biomass": {
+   "file": "ui/icons/biomass.png",
+   "file2x": "ui/icons/biomass@2x.png"
+  },
+  "rations": {
+   "file": "ui/icons/rations.png",
+   "file2x": "ui/icons/rations@2x.png"
+  },
+  "scrap": {
+   "file": "ui/icons/scrap.png",
+   "file2x": "ui/icons/scrap@2x.png"
+  },
+  "alloy": {
+   "file": "ui/icons/alloy.png",
+   "file2x": "ui/icons/alloy@2x.png"
+  },
+  "algae": {
+   "file": "ui/icons/algae.png",
+   "file2x": "ui/icons/algae@2x.png"
+  },
+  "polymer": {
+   "file": "ui/icons/polymer.png",
+   "file2x": "ui/icons/polymer@2x.png"
+  },
+  "goods": {
+   "file": "ui/icons/goods.png",
+   "file2x": "ui/icons/goods@2x.png"
+  },
+  "laborers": {
+   "file": "ui/icons/laborers.png",
+   "file2x": "ui/icons/laborers@2x.png"
+  },
+  "technicians": {
+   "file": "ui/icons/technicians.png",
+   "file2x": "ui/icons/technicians@2x.png"
+  },
+  "power": {
+   "file": "ui/icons/power.png",
+   "file2x": "ui/icons/power@2x.png"
+  }
+ },
+ "anims": {
+  "wind_turbine": {
+   "frames": [
+    "buildings/wind_turbine_f0.png",
+    "buildings/wind_turbine_f1.png",
+    "buildings/wind_turbine_f2.png",
+    "buildings/wind_turbine_f3.png",
+    "buildings/wind_turbine_f4.png",
+    "buildings/wind_turbine_f5.png",
+    "buildings/wind_turbine_f6.png",
+    "buildings/wind_turbine_f7.png"
+   ],
+   "glowFrames": [
+    "buildings/wind_turbine_f0_glow.png",
+    "buildings/wind_turbine_f1_glow.png",
+    "buildings/wind_turbine_f2_glow.png",
+    "buildings/wind_turbine_f3_glow.png",
+    "buildings/wind_turbine_f4_glow.png",
+    "buildings/wind_turbine_f5_glow.png",
+    "buildings/wind_turbine_f6_glow.png",
+    "buildings/wind_turbine_f7_glow.png"
+   ],
+   "anchor": [
+    147,
+    261
+   ],
+   "fps": 8
   }
  }
 }
