@@ -5,3 +5,4 @@ dist/
 build/
 *.o
 art-samples/engines/browser/site/
+*.log
