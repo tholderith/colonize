@@ -44,12 +44,27 @@ export interface WorldSprite {
 export function buildWorld(style: LoadedStyle, layout: Layout): { container: Container; sprites: WorldSprite[] } {
   const container = new Container();
   const sprites: WorldSprite[] = [];
-  for (const it of buildDrawList(style.manifest, layout)) {
+  const ul = style.manifest.underlays ?? [];
+  const items = buildDrawList(style.manifest, layout);
+  let uDone = false;
+  const addUnderlays = (): void => {
+    // World-space underlays: after all terrain, before any object (not hit-testable, not in `sprites`).
+    uDone = true;
+    for (const def of ul) {
+      const s = new Sprite(style.textures.get(def.file)!);
+      const [ax, ay] = def.anchor ?? [0, 0];
+      s.position.set(def.pos[0] - ax, def.pos[1] - ay);
+      container.addChild(s);
+    }
+  };
+  for (const it of items) {
+    if (!uDone && it.kind !== 'terrain') addUnderlays();
     const sprite = new Sprite(style.textures.get(it.file)!);
     sprite.position.set(it.left, it.top);
     container.addChild(sprite);
     sprites.push({ item: it, sprite });
   }
+  if (!uDone) addUnderlays();
   return { container, sprites };
 }
 

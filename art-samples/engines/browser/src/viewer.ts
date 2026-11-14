@@ -92,7 +92,10 @@ export async function startViewer(params: URLSearchParams): Promise<void> {
     const firstStanding = world.findIndex(
       (ws) => ws.item.kind === 'object' && !s.manifest.sprites[ws.item.key].flat,
     );
-    worldLayer.addChildAt(highlight, firstStanding < 0 ? world.length : firstStanding);
+    worldLayer.addChildAt(
+      highlight,
+      firstStanding < 0 ? worldLayer.children.length : worldLayer.getChildIndex(world[firstStanding].sprite),
+    );
     camera.addChild(worldLayer);
     ui.addChild(uiLayer);
     app.renderer.background.color = s.manifest.background;

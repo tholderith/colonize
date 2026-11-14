@@ -68,12 +68,12 @@ fn read_json(p: &Path) -> Value {
 fn build_draw_list(manifest: &Value, layout: &Value) -> Vec<Draw> {
     let sprites = &manifest["sprites"];
     let mut out = Vec::new();
-    let mut place = |key: &str, x: i32, y: i32, p: (i32, i32)| {
+    let place = |key: &str, x: i32, y: i32, p: (i32, i32)| -> Draw {
         let s = &sprites[key];
         let files = s["files"].as_array().unwrap_or_else(|| panic!("sprite '{key}' missing"));
         let idx = ((x * 7 + y * 13) as usize) % files.len();
         let (ax, ay) = pair(&s["anchor"]);
-        out.push(Draw { file: files[idx].as_str().unwrap().to_string(), x: p.0 - ax, y: p.1 - ay });
+        Draw { file: files[idx].as_str().unwrap().to_string(), x: p.0 - ax, y: p.1 - ay }
     };
 
     // 1. Terrain, ordered by (x + y), then x.
@@ -89,7 +89,7 @@ fn build_draw_list(manifest: &Value, layout: &Value) -> Vec<Draw> {
     for (x, y) in tiles {
         let ch = rows[y as usize][x as usize].to_string();
         let key = layout["terrain_legend"][&ch].as_str().unwrap();
-        place(key, x, y, south(x, y));
+        out.push(place(key, x, y, south(x, y)));
     }
 
     // 1b. Underlays (world-space images) after terrain, before objects.
@@ -125,11 +125,11 @@ fn build_draw_list(manifest: &Value, layout: &Value) -> Vec<Draw> {
     let is_flat = |k: &str| sprites[k]["flat"].as_bool().unwrap_or(false);
     let (flat, mut rest): (Vec<&Obj>, Vec<&Obj>) = objs.iter().partition(|o| is_flat(o.key));
     for o in flat {
-        place(o.key, o.x, o.y, south(o.ax, o.ay));
+        out.push(place(o.key, o.x, o.y, south(o.ax, o.ay)));
     }
     rest.sort_by_key(|o| (o.ax + o.ay, o.ax, o.idx));
     for o in rest {
-        place(o.key, o.x, o.y, south(o.ax, o.ay));
+        out.push(place(o.key, o.x, o.y, south(o.ax, o.ay)));
     }
 
     // 3. Screen-space overlays in manifest order.

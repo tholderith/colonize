@@ -116,3 +116,4 @@ take: C++/SDL is the best choice if we value full control, a tiny deterministic 
 core, and painless CI — and it pairs well with a "simulation as a pure library" architecture
 — but for a UI-heavy strategy game it front-loads a lot of non-game work; it only wins if
 we commit to RmlUi (or similar) for UI early and keep the engine layer deliberately small.
+- Underlays (SPEC step 2b): manifest `underlays` images are drawn in manifest order after all terrain and before any object, world-space (pan/zoom with the map in the browser viewer).
