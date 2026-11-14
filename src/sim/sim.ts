@@ -2,12 +2,22 @@ import { concordatTick, newConcordat, tradeWithTrader } from './concordat';
 import { economyTick, newIsland } from './economy';
 import { generateMap, islandAt, islandNames, islands } from './mapgen';
 import { Navigator } from './nav';
-import { ECON, TRADE, buildingAt, buildingDef, newBuilding, placementError, stockAtTile } from './placement';
+import { blockadeTick, declare, newIndependence, outcomeTick, sentimentTick, upkeepTick } from './independence';
+import { ECON, IND, TRADE, buildingAt, buildingDef, newBuilding, placementError, stockAtTile } from './placement';
 import { createRng } from './rng';
 import { dockTile, haulersTick, newHauler, type Ctx } from './trade';
-import type { Command, GameMap, GameState } from './types';
+import type { Command, Difficulty, GameMap, GameState } from './types';
 
 export const TICK_HZ = 10;
+export const SAVE_VERSION = 1;
+
+export interface SaveData {
+  version: number;
+  seed: number;
+  difficulty: Difficulty;
+  rng: number;
+  state: GameState;
+}
 
 export class Sim {
   readonly map: GameMap;
@@ -15,15 +25,16 @@ export class Sim {
   private queue: Command[] = [];
   private ctx: Ctx;
 
-  constructor(seed: number) {
+  constructor(seed: number, difficulty: Difficulty = 'standard') {
     this.map = generateMap(seed);
     const { credits, ...homeStock } = ECON.startStock;
     this.state = {
-      seed, tick: 0, speed: 1, paused: false, nextId: 1, buildings: [], credits: credits ?? 0, creditRate: 0, creditAcc: 0, creditFlow: [],
+      seed, difficulty, tick: 0, speed: 1, paused: false, nextId: 1, buildings: [], credits: credits ?? 0, creditRate: 0, creditAcc: 0, creditFlow: [],
       islands: islandNames(seed).map((name, i) => newIsland(i, name, i === 0 ? homeStock : ECON.islandStartStock)),
       pop: { laborers: 0, technicians: 0, laborerJobs: 0, technicianJobs: 0 }, haulers: [], visitors: [], concordat: newConcordat(),
+      patrols: [], ind: newIndependence(), stats: { peakPop: 0, creditsEarned: 0, cargoMoved: 0 }, outcome: null,
     };
-    this.ctx = { s: this.state, map: this.map, nav: new Navigator(this.map), rng: createRng(seed ^ 0xc04dac7) };
+    this.ctx = { s: this.state, map: this.map, nav: new Navigator(this.map, IND.blockade.avoidRadius + IND.blockade.avoidMargin), rng: createRng(seed ^ 0xc04dac7) };
     this.placeStartDepot();
   }
 
@@ -120,6 +131,9 @@ export class Sim {
         case 'tradeWithTrader':
           tradeWithTrader(this.ctx);
           break;
+        case 'declare':
+          declare(this.ctx);
+          break;
         case 'demolish': {
           const b = buildingAt(s.buildings, cmd.x, cmd.y);
           if (b) s.buildings = s.buildings.filter((o) => o !== b);
@@ -136,8 +150,27 @@ export class Sim {
       economyTick(this.state);
       haulersTick(this.ctx);
       concordatTick(this.ctx);
+      sentimentTick(this.state);
+      upkeepTick(this.state);
+      blockadeTick(this.ctx);
+      outcomeTick(this.state);
       this.state.tick++;
     }
+  }
+
+  toSave(): SaveData {
+    return { version: SAVE_VERSION, seed: this.state.seed, difficulty: this.state.difficulty, rng: this.ctx.rng.state, state: JSON.parse(JSON.stringify(this.state)) as GameState };
+  }
+
+  /** Rebuild a sim from a save (the map is regenerated from the seed). Throws on a bad or old save. */
+  static fromSave(data: SaveData): Sim {
+    if (!data || data.version !== SAVE_VERSION) throw new Error(`Unsupported save version ${String(data?.version)} (expected ${SAVE_VERSION})`);
+    if (typeof data.seed !== 'number' || !data.state || !Array.isArray(data.state.buildings) || !data.state.ind) throw new Error('Corrupt save');
+    const sim = new Sim(data.seed, data.difficulty);
+    sim.state = JSON.parse(JSON.stringify(data.state)) as GameState;
+    sim.ctx.s = sim.state;
+    sim.ctx.rng.state = data.rng;
+    return sim;
   }
 }
 

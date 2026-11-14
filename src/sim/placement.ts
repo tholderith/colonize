@@ -2,13 +2,15 @@ import raw from '../data/buildings.json';
 import goodsRaw from '../data/goods.json';
 import econRaw from '../data/economy.json';
 import tradeRaw from '../data/trade.json';
+import indRaw from '../data/independence.json';
 import { islandAt, tileAt } from './mapgen';
-import type { Building, BuildingDef, EconomyData, GameMap, GameState, Stock, TradeData } from './types';
+import type { Building, BuildingDef, EconomyData, IndependenceData, GameMap, GameState, Stock, TradeData } from './types';
 
 export const BUILDINGS = raw as unknown as BuildingDef[];
 export const GOODS = goodsRaw as { id: string; name: string; short: string; price?: number }[];
 export const TRADE = tradeRaw as unknown as TradeData;
 export const price = (good: string) => GOODS.find((g) => g.id === good)?.price ?? 0;
+export const IND = indRaw as unknown as IndependenceData;
 export const ECON = econRaw as unknown as EconomyData;
 
 export function buildingDef(id: string): BuildingDef | undefined {

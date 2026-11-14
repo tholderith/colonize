@@ -61,12 +61,16 @@ export class TradeUi {
     const c = s.concordat;
     // Toasts for new events (first snapshot only records what already happened).
     if (this.seen < 0) this.seen = c.seq;
-    for (const e of c.log) if (e.id > this.seen) this.ev.toast(e.text, e.kind === 'demand_missed' || e.kind === 'levy' || (e.kind === 'audit' && !e.text.endsWith('clean')) ? 'bad' : 'info');
+    for (const e of c.log) if (e.id > this.seen) this.ev.toast(e.text, e.kind === 'demand_missed' || e.kind === 'levy' || e.kind === 'seized' || e.kind === 'declared' || (e.kind === 'audit' && !e.text.endsWith('clean')) ? 'bad' : 'info');
     this.seen = c.seq;
     const next = c.periodStart + TRADE.levy.periodTicks - s.tick;
     const d = c.demand;
     const trader = s.visitors.find((v) => v.kind === 'trader' && v.phase === 'dock');
-    const lines = [
+    const lines = s.ind.declared ? [
+      '<span class="dim">Levy, demands and audits ended. The exchange is closed: free traders are your lifeline (+50% prices).</span>',
+      trader ? `<span class="pos">Free trader docked</span> <span class="dim">(${mmss(trader.wait)} left)</span>` : '',
+      '<div class="dim log">' + (c.log.slice(-5).reverse().map((e) => `${mmss(e.tick)} ${e.text}`).join('<br>') || 'No events yet') + '</div>',
+    ] : [
       `Levy <b>${c.levyPct}%</b> in ${mmss(next)} &middot; earned <b>${Math.floor(c.earned)}</b> cr${c.penaltyPeriods ? ' <span class="neg">(+penalty)</span>' : ''}${c.relief ? ' <span class="pos">(-relief)</span>' : ''}`,
       d
         ? `Demand <b>${d.amount} ${goodName(d.good)}</b> by ${mmss(d.deadline - s.tick)}<br><span class="bar"><i style="width:${Math.min(100, (d.delivered / d.amount) * 100)}%"></i></span> ${d.delivered}/${d.amount} &middot; +${d.reward} / -${d.fine} cr`
@@ -82,6 +86,11 @@ export class TradeUi {
     if ($('exchange').hidden) return;
     const c = s.concordat;
     const key = `${c.demand?.good}|${c.tariff}`;
+    if (s.ind.declared) {
+      this.exchangeKey = 'closed';
+      $('exchange-body').innerHTML = '<span class="neg">CLOSED.</span> The Concordat blockade has shut the exchange. Trade with free traders at the ports.';
+      return;
+    }
     if (key === this.exchangeKey) return;
     this.exchangeKey = key;
     const rows = tradeGoods

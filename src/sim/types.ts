@@ -39,6 +39,8 @@ export interface BuildingDef {
   cycle?: number;
   inputs?: Stock;
   outputs?: Stock;
+  /** Goods consumed per minute from the island stock (coastal battery). */
+  upkeep?: Stock;
 }
 
 export interface TierDef {
@@ -72,6 +74,20 @@ export interface TradeData {
   demand: { firstAtTicks: number; intervalTicks: number; deadlineTicks: number; goods: string[]; amount: [number, number]; rewardMult: number; fineMult: number };
   trader: { firstAtTicks: number; intervalTicks: [number, number]; dockTicks: number; better: number; qty: [number, number]; exposurePer: number };
   audit: { firstAtTicks: number; intervalTicks: [number, number]; dockTicks: number; exposureForSure: number; fineBase: number; finePerExposure: number };
+}
+
+export type Difficulty = 'relaxed' | 'standard' | 'hard';
+export interface IndependenceData {
+  sentiment: {
+    declareAt: number; levyFloor: number; perLevyPct: number; perTech: number; perRelay: number; missedDemand: number; auditFine: number;
+    grievanceDrain: number; calmPerMin: number; calmTicks: number; suppressAt: number; suppressFines: number;
+  };
+  blockade: {
+    cycleTicks: number; cyclesToWin: number; popWinPct: number; popLosePct: number; seizeRadius: number; avoidRadius: number; avoidMargin: number;
+    patrolTilesPerSec: number; growTicks: number; spawnGapTicks: number; limpTicks: number; limpSpeed: number; immuneTicks: number;
+    traderBetter: number; traderIntervalTicks: [number, number]; upkeepShortfallMult: number; bankruptPeriods: number;
+  };
+  difficulty: Record<Difficulty, { label: string; levyMult: number; demandMult: number; patrols: [number, number] }>;
 }
 
 export type Status = 'idle' | 'working' | 'no input' | 'no workers' | 'unpowered' | 'no depot' | 'storage full';
@@ -151,6 +167,9 @@ export interface Hauler extends Mover {
   phase: 'sail' | 'dock';
   wait: number;
   cargo: Stock;
+  /** Ticks left limping home after a seizure (slow), and ticks of seizure immunity. */
+  limp: number;
+  immune: number;
 }
 export interface TraderOffer {
   side: 'buys' | 'sells';
@@ -169,6 +188,14 @@ export interface Visitor extends Mover {
   offer?: TraderOffer;
 }
 
+/** Blockade patrol: roams the sea lanes towards (gx, gy), seizes hauler cargo within range. */
+export interface Patrol extends Mover {
+  kind: 'patrol';
+  hasGoal: boolean;
+  gx: number;
+  gy: number;
+}
+
 export interface Demand {
   good: string;
   amount: number;
@@ -180,8 +207,11 @@ export interface Demand {
 export interface GameEvent {
   id: number;
   tick: number;
-  kind: 'levy' | 'demand_issued' | 'demand_met' | 'demand_missed' | 'trader' | 'audit';
+  kind: 'levy' | 'demand_issued' | 'demand_met' | 'demand_missed' | 'trader' | 'audit' | 'seized' | 'declared' | 'cycle' | 'info';
   text: string;
+  /** Map position (seizures). */
+  x?: number;
+  y?: number;
 }
 export interface Concordat {
   periodStart: number;
@@ -203,8 +233,41 @@ export interface Concordat {
   log: GameEvent[];
 }
 
+export interface Independence {
+  /** 0-100. */
+  sentiment: number;
+  /** Current drivers, points per minute (calm is negative). */
+  drivers: { levy: number; tech: number; relay: number; grievance: number; calm: number };
+  /** Points from missed demands / audit fines still to be paid out into sentiment. */
+  grievance: number;
+  calmUntil: number;
+  declared: boolean;
+  declaredAt: number;
+  popAtDeclare: number;
+  /** Completed blockade cycles. */
+  cycles: number;
+  nextPatrolSpawn: number;
+  /** Consecutive levy periods ending with credits < 0. */
+  negPeriods: number;
+  /** Audit fines received while sentiment >= suppression threshold, undeclared. */
+  suppressFines: number;
+  seized: number;
+}
+export type EndCause = 'victory' | 'bankruptcy' | 'collapse' | 'suppression';
+export interface Outcome {
+  win: boolean;
+  cause: EndCause;
+  tick: number;
+}
+export interface Stats {
+  peakPop: number;
+  creditsEarned: number;
+  cargoMoved: number;
+}
+
 export interface GameState {
   seed: number;
+  difficulty: Difficulty;
   tick: number;
   speed: Speed;
   paused: boolean;
@@ -220,6 +283,10 @@ export interface GameState {
   haulers: Hauler[];
   visitors: Visitor[];
   concordat: Concordat;
+  patrols: Patrol[];
+  ind: Independence;
+  stats: Stats;
+  outcome: Outcome | null;
 }
 
 export type Command =
@@ -230,4 +297,5 @@ export type Command =
   | { type: 'buildHauler'; port: number }
   | { type: 'scrapHauler'; hauler: number }
   | { type: 'setRoute'; hauler: number; route: Stop[] }
-  | { type: 'tradeWithTrader' };
+  | { type: 'tradeWithTrader' }
+  | { type: 'declare' };

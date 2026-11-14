@@ -13,6 +13,8 @@ export interface UiEvents {
   onScrapHauler(hauler: number): void;
   onTrade(): void;
   onExchangeOrder(good: string, mode: Order['mode'], amount: number): void;
+  onSave(): void;
+  onExport(): void;
 }
 
 const costText = (cost: Stock) =>
@@ -48,6 +50,8 @@ export class Ui {
     document.querySelectorAll<HTMLButtonElement>('#topbar [data-speed]').forEach((btn) => {
       btn.addEventListener('click', () => events.onSpeed(Number(btn.dataset.speed) as 0 | 1 | 2 | 3));
     });
+    $('btn-save').addEventListener('click', () => events.onSave());
+    $('btn-export').addEventListener('click', () => events.onExport());
     const menu = $('build-menu');
     let group = '';
     for (const def of BUILDINGS) {

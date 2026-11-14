@@ -99,6 +99,7 @@ export class Renderer {
   private art: Art = { tiles: new Map(), buildings: new Map(), units: new Map(), anims: new Map() };
   private ships = new Map<number, Ship>();
   private selectedShip: number | null = null;
+  private flashes: { g: Graphics; x: number; y: number; t0: number }[] = [];
   private lastSnap = 0;
   private snapMs = 100;
   private roads = new Container();
@@ -400,11 +401,39 @@ export class Renderer {
     }
     for (const sh of this.ships.values()) if (sh.glow) sh.glow.sharp.alpha = sh.glow.bloom.alpha = this.glowK;
     this.smoke.update(Math.min(dt, 0.1), this.nightK);
+    this.updateFlashes();
     const speed = [900, 1500];
     for (const [i, r] of this.rain.entries()) {
       r.tilePosition.x -= speed[i]! * 0.22 * dt;
       r.tilePosition.y += speed[i]! * dt;
     }
+  }
+
+  /** Red expanding ring at a map position (a seized cargo). */
+  flash(x: number, y: number): void {
+    const g = new Graphics();
+    g.zIndex = 1e5;
+    this.objects.addChild(g);
+    this.flashes.push({ g, x, y, t0: performance.now() });
+  }
+
+  private updateFlashes(): void {
+    const now = performance.now();
+    this.flashes = this.flashes.filter((f) => {
+      const a = (now - f.t0) / 1400;
+      if (a >= 1) {
+        f.g.destroy();
+        return false;
+      }
+      const pts: number[] = [];
+      const r = 0.6 + a * 2.6;
+      for (let i = 0; i < 32; i++) {
+        const p = gridToWorld(f.x + Math.cos((i / 32) * Math.PI * 2) * r, f.y + Math.sin((i / 32) * Math.PI * 2) * r);
+        pts.push(p.x, p.y);
+      }
+      f.g.clear().poly(pts).stroke({ color: 0xff4d4d, width: 5 * (1 - a) + 1, alpha: 1 - a });
+      return true;
+    });
   }
 
   /** Grid tile at the centre of the screen. */
@@ -419,7 +448,7 @@ export class Renderer {
   /** Create/remove ship nodes and retarget each tween from where it is drawn now to its new tick position. */
   private syncShips(state: GameState): void {
     const live = new Set<number>();
-    for (const m of [...state.haulers, ...state.visitors]) {
+    for (const m of [...state.haulers, ...state.visitors, ...state.patrols]) {
       live.add(m.id);
       let sh = this.ships.get(m.id);
       if (!sh) {
@@ -587,19 +616,19 @@ export class Renderer {
     const def = b && buildingDef(b.type);
     if (b && def) {
       this.footprintOutline(this.selection, b.x, b.y, def.footprint[0], def.footprint[1], 0x22d3ee);
-      if (def.radius) this.radiusRing(this.selection, b.x, b.y, def.footprint[0], def.footprint[1], def.radius);
+      if (def.radius) this.radiusRing(this.selection, b.x, b.y, def.footprint[0], def.footprint[1], def.radius, def.upkeep ? 0xf87171 : 0x22d3ee);
     }
   }
 
   /** Coverage circle (iso ellipse) around a footprint's centre. */
-  private radiusRing(g: Graphics, x: number, y: number, w: number, h: number, radius: number): void {
+  private radiusRing(g: Graphics, x: number, y: number, w: number, h: number, radius: number, color = 0x22d3ee): void {
     const pts: number[] = [];
     for (let i = 0; i < 48; i++) {
       const a = (i / 48) * Math.PI * 2;
       const p = gridToWorld(x + w / 2 + Math.cos(a) * radius, y + h / 2 + Math.sin(a) * radius);
       pts.push(p.x, p.y);
     }
-    g.poly(pts).fill({ color: 0x22d3ee, alpha: 0.08 }).stroke({ color: 0x22d3ee, width: 2, alpha: 0.7 });
+    g.poly(pts).fill({ color, alpha: 0.08 }).stroke({ color, width: 2, alpha: 0.7 });
   }
 
   private redrawGhost(): void {
@@ -625,6 +654,6 @@ export class Renderer {
       g.addChild(gfx);
     }
     this.footprintOutline(gfx, x, y, w, h, color);
-    if (def.radius) this.radiusRing(gfx, x, y, w, h, def.radius);
+    if (def.radius) this.radiusRing(gfx, x, y, w, h, def.radius, def.upkeep ? 0xf87171 : 0x22d3ee);
   }
 }

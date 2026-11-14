@@ -6,6 +6,8 @@ export interface Rng {
   int(n: number): number;
   /** Float in [a, b). */
   range(a: number, b: number): number;
+  /** Generator state, for saving. */
+  state: number;
 }
 
 export function createRng(seed: number): Rng {
@@ -18,6 +20,12 @@ export function createRng(seed: number): Rng {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
   return {
+    get state() {
+      return s;
+    },
+    set state(v: number) {
+      s = v >>> 0;
+    },
     next,
     int: (n) => Math.floor(next() * n),
     range: (a, b) => a + next() * (b - a),

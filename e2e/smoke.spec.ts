@@ -15,7 +15,11 @@ interface Foundry {
 test('build a tiny working colony, inspect it, screenshot', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/');
+  await page.goto('/?seed=1337');
+  await expect(page.locator('#menu')).toBeVisible();
+  await page.screenshot({ path: 'test-results/m4-menu.png' });
+  await page.click('#m-new'); // standard difficulty, seed from the field
+  await expect(page.locator('#menu')).toBeHidden();
   await page.locator('#map canvas').waitFor();
   await page.waitForFunction(() => (window as unknown as { __foundry: Foundry }).__foundry?.ready());
   const box = (await page.locator('#map canvas').boundingBox())!;
@@ -104,7 +108,11 @@ test('build a tiny working colony, inspect it, screenshot', async ({ page }) => 
   await page.mouse.move(box.x + 5, box.y + box.height - 5);
   await page.evaluate(() => (window as unknown as { __foundry: { setHour(h: number): void } }).__foundry.setHour(22)); // night shot
   await page.waitForTimeout(1500);
-  await page.screenshot({ path: 'test-results/m3.png' });
+  await page.screenshot({ path: 'test-results/m4.png' });
+  await expect(page.locator('#ind-pct')).toContainText('%');
+  await expect(page.locator('#btn-declare')).toBeHidden(); // sentiment is far below 50%
+  const cb = (await page.locator('#concordat').boundingBox())!;
+  await page.screenshot({ path: 'test-results/m4-concordat.png', clip: { x: cb.x - 8, y: cb.y - 8, width: cb.width + 16, height: cb.height + 16 } });
 
   const st = await page.evaluate(() => (window as unknown as { __foundry: Foundry }).__foundry.state());
   expect(st.islands[0]!.stock.biomass).toBeGreaterThan(0);

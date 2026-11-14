@@ -26,5 +26,10 @@
   { "id": "refinery", "name": "Refinery", "group": "Industry", "footprint": [2, 2], "terrain": ["land"], "color": "#b794f4", "height": 50,
     "cost": { "credits": 220, "alloy": 12 }, "draw": 3, "worker": "technician", "jobs": 2, "cycle": 250, "inputs": { "algae": 3 }, "outputs": { "polymer": 2 } },
   { "id": "fabricator", "name": "Fabricator", "group": "Industry", "footprint": [2, 2], "terrain": ["land"], "color": "#fc8181", "height": 44,
-    "cost": { "credits": 260, "alloy": 15 }, "draw": 3, "worker": "technician", "jobs": 3, "cycle": 250, "inputs": { "polymer": 2, "alloy": 1 }, "outputs": { "goods": 5 } }
+    "cost": { "credits": 260, "alloy": 15 }, "draw": 3, "worker": "technician", "jobs": 3, "cycle": 250, "inputs": { "polymer": 2, "alloy": 1 }, "outputs": { "goods": 5 } },
+
+  { "id": "signal_relay", "name": "Signal Relay", "group": "Independence", "footprint": [1, 1], "terrain": ["land", "shore"], "color": "#ff3d9a", "height": 70,
+    "cost": { "credits": 150, "alloy": 10 } },
+  { "id": "coastal_battery", "name": "Coastal Battery", "group": "Independence", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#f87171", "height": 40,
+    "cost": { "credits": 300, "alloy": 30 }, "needsWater": true, "radius": 6, "upkeep": { "alloy": 1.5 } }
 ]

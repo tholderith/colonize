@@ -24,6 +24,7 @@ export function add(isl: IslandState, good: string, amt: number): void {
 export function addCredits(s: GameState, amt: number, earned = false): void {
   s.credits += amt;
   s.creditAcc += amt;
+  if (amt > 0) s.stats.creditsEarned += amt;
   if (earned) s.concordat.earned += amt;
 }
 

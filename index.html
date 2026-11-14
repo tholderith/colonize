@@ -8,6 +8,33 @@
   </head>
   <body>
     <div id="map"></div>
+    <div id="menu">
+      <div class="menu-box">
+        <h1>FOUNDRY</h1>
+        <p class="dim">SECTOR 3 // COLONY CHARTER OF THE CONCORDAT</p>
+        <div id="menu-main">
+          <div class="field"><span class="dim">SEED</span><input id="m-seed" type="text" size="10" aria-label="Seed"><button id="m-dice" title="Random seed">RANDOM</button></div>
+          <div class="field" id="m-diff"><span class="dim">DIFFICULTY</span></div>
+          <button id="m-new" class="big">NEW GAME</button>
+          <button id="m-continue" class="big">CONTINUE <small id="m-continue-info" class="dim"></small></button>
+          <button id="m-load" class="big">LOAD</button>
+        </div>
+        <div id="menu-load" hidden>
+          <div id="m-slots"></div>
+          <label class="file big">IMPORT SAVE FILE<input id="m-file" type="file" accept=".json,application/json"></label>
+          <button id="m-back">BACK</button>
+        </div>
+        <div id="m-msg" class="neg"></div>
+      </div>
+    </div>
+    <div id="endscreen" hidden>
+      <div class="menu-box">
+        <h1 id="end-title"></h1>
+        <p id="end-cause"></p>
+        <table id="end-stats"></table>
+        <button id="btn-endmenu" class="big">MAIN MENU</button>
+      </div>
+    </div>
     <header id="topbar" class="panel">
       <span class="brand">FOUNDRY<small>SECTOR 3 // COLONY</small></span>
       <button data-speed="0" id="btn-pause">PAUSE</button>
@@ -18,13 +45,27 @@
       <button id="btn-exchange">EXCHANGE</button>
       <button id="btn-bloom" title="Bloom on/off">BLOOM</button>
       <button id="btn-rain" title="Rain on/off">RAIN</button>
+      <button id="btn-save" title="Save to the manual slot">SAVE</button>
+      <button id="btn-export" title="Download a save file">EXPORT</button>
       <span class="clock" id="tod"><small>DAY <span id="day">001</span> <span class="dim">t<span id="tick">0</span></span></small><br><span id="clock">19:00</span></span>
     </header>
     <section id="hud" class="panel"></section>
     <div id="place-info" class="panel" hidden></div>
     <nav id="build-menu" class="panel"><h2>BUILD</h2></nav>
     <section id="info" class="panel"><h2>INFO</h2><div id="info-body" class="dim">Nothing selected</div></section>
-    <section id="concordat" class="panel"><h2>CONCORDAT</h2><div id="concordat-body"></div></section>
+    <section id="concordat" class="panel"><h2>CONCORDAT</h2>
+      <div id="independence">
+        <div class="ind-head"><span>INDEPENDENCE</span><b id="ind-pct">0%</b></div>
+        <div class="meter"><i id="ind-fill"></i><u></u></div>
+        <div id="ind-drivers"></div>
+        <div id="ind-blockade" hidden></div>
+        <button id="btn-declare" hidden>DECLARE INDEPENDENCE</button>
+        <div id="declare-confirm" hidden>
+          <span class="neg">Declare independence?</span> The levy and demands end, but the Concordat closes the exchange and blockades the sea lanes.
+          <div class="row"><button id="btn-declare-yes">CONFIRM</button> <button id="btn-declare-no">CANCEL</button></div>
+        </div>
+      </div>
+      <div id="concordat-body"></div></section>
     <section id="exchange" class="panel" hidden><h2>EXCHANGE</h2><div id="exchange-body"></div></section>
     <section id="hauler-panel" class="panel" hidden><h2>HAULER</h2><div id="hauler-body"></div></section>
     <div id="toast"></div>

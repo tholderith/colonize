@@ -1,6 +1,6 @@
 import { add, addCredits } from './economy';
 import { exchangeTile } from './mapgen';
-import { ECON, GOODS, TRADE, price } from './placement';
+import { ECON, GOODS, IND, TRADE, price } from './placement';
 import { newVisitor, traderSpawn, visitorsTick, type Ctx } from './trade';
 import type { Building, Concordat, GameEvent, GameState, TraderOffer, Visitor } from './types';
 
@@ -14,17 +14,17 @@ export function newConcordat(): Concordat {
 }
 
 /** Levy percentage: base plus a step per population threshold, plus the penalty surcharge, minus relief. */
-export function levyRate(pop: number, penalty: boolean, relief: boolean): number {
+export function levyRate(pop: number, penalty: boolean, relief: boolean, mult = 1): number {
   const steps = Math.floor(pop / T.levy.popPerStep);
   const pct = Math.min(T.levy.max, T.levy.base + T.levy.step * steps) + (penalty ? T.levy.penaltyPct : 0) - (relief ? T.levy.reliefPct : 0);
-  return Math.max(0, pct);
+  return Math.max(0, Math.round(pct * mult));
 }
 
 const totalPop = (s: GameState) => s.pop.laborers + s.pop.technicians;
 
-function log(s: GameState, kind: GameEvent['kind'], text: string): void {
+export function log(s: GameState, kind: GameEvent['kind'], text: string, x?: number, y?: number): void {
   const c = s.concordat;
-  c.log.push({ id: ++c.seq, tick: s.tick, kind, text });
+  c.log.push({ id: ++c.seq, tick: s.tick, kind, text, ...(x === undefined ? {} : { x, y }) });
   if (c.log.length > 30) c.log.shift();
 }
 
@@ -42,22 +42,28 @@ export function concordatTick(ctx: Ctx): void {
   const c = s.concordat;
   const t = s.tick;
 
-  // Levy: a share of the credits earned this period.
+  const declared = s.ind.declared;
+  const mult = IND.difficulty[s.difficulty].levyMult;
+
+  // Levy: a share of the credits earned this period. After independence the period only audits solvency.
   if (t - c.periodStart >= T.levy.periodTicks) {
-    const pct = levyRate(totalPop(s), c.penaltyPeriods > 0, c.relief);
-    const took = charge(s, Math.floor((c.earned * pct) / 100));
-    log(s, 'levy', `Levy ${pct}% of ${Math.floor(c.earned)} cr earned: ${Math.floor(took)} cr taken`);
+    if (!declared) {
+      const pct = levyRate(totalPop(s), c.penaltyPeriods > 0, c.relief, mult);
+      const took = charge(s, Math.floor((c.earned * pct) / 100));
+      log(s, 'levy', `Levy ${pct}% of ${Math.floor(c.earned)} cr earned: ${Math.floor(took)} cr taken`);
+    }
+    s.ind.negPeriods = s.credits < 0 ? s.ind.negPeriods + 1 : 0;
     c.earned = 0;
     c.periodStart = t;
     c.relief = false;
     if (c.penaltyPeriods > 0) c.penaltyPeriods--;
   }
-  c.levyPct = levyRate(totalPop(s), c.penaltyPeriods > 0, c.relief);
+  c.levyPct = declared ? 0 : levyRate(totalPop(s), c.penaltyPeriods > 0, c.relief, mult);
 
   // Demands.
-  if (!c.demand && t >= c.nextDemandAt) {
+  if (!declared && !c.demand && t >= c.nextDemandAt) {
     const good = T.demand.goods[ctx.rng.int(T.demand.goods.length)] as string;
-    const amount = Math.round(roll(ctx, T.demand.amount) / 5) * 5;
+    const amount = Math.max(5, Math.round((roll(ctx, T.demand.amount) * IND.difficulty[s.difficulty].demandMult) / 5) * 5);
     c.demand = {
       good, amount, delivered: 0, deadline: t + T.demand.deadlineTicks,
       reward: Math.round(amount * price(good) * T.demand.rewardMult), fine: Math.round(amount * price(good) * T.demand.fineMult),
@@ -71,11 +77,13 @@ export function concordatTick(ctx: Ctx): void {
       addCredits(s, d.reward);
       c.relief = true;
       c.demand = null;
+      s.ind.calmUntil = t + IND.sentiment.calmTicks;
       log(s, 'demand_met', `Demand met: +${d.reward} cr, levy -${T.levy.reliefPct}% next period`);
     } else if (t >= d.deadline) {
       const paid = charge(s, d.fine);
       c.penaltyPeriods = T.levy.penaltyPeriods;
       c.demand = null;
+      s.ind.grievance += IND.sentiment.missedDemand;
       log(s, 'demand_missed', `Demand missed: fined ${Math.floor(paid)} cr, levy +${T.levy.penaltyPct}% for ${T.levy.penaltyPeriods} periods`);
     }
   }
@@ -90,10 +98,10 @@ export function concordatTick(ctx: Ctx): void {
   if (t >= c.nextTraderAt) {
     if (ports.length && !s.visitors.some((v) => v.kind === 'trader')) {
       spawn('trader');
-      c.nextTraderAt = t + roll(ctx, T.trader.intervalTicks);
+      c.nextTraderAt = t + roll(ctx, declared ? IND.blockade.traderIntervalTicks : T.trader.intervalTicks);
     } else c.nextTraderAt = t + 600;
   }
-  if (t >= c.nextPatrolAt) {
+  if (!declared && t >= c.nextPatrolAt) {
     if (ports.length && !s.visitors.some((v) => v.kind === 'patrol')) {
       spawn('patrol');
       c.nextPatrolAt = t + roll(ctx, T.audit.intervalTicks);
@@ -111,6 +119,8 @@ function arrive(ctx: Ctx, v: Visitor, port: Building): void {
     if (ctx.rng.next() < chance) {
       const paid = charge(s, T.audit.fineBase + T.audit.finePerExposure * c.exposure);
       log(s, 'audit', `Audit at ${name}: contraband found, fined ${Math.floor(paid)} cr`);
+      s.ind.grievance += IND.sentiment.auditFine;
+      if (s.ind.sentiment >= IND.sentiment.suppressAt) s.ind.suppressFines++;
     } else log(s, 'audit', `Audit at ${name}: clean`);
     c.exposure = 0;
     return;
@@ -125,7 +135,8 @@ function arrive(ctx: Ctx, v: Visitor, port: Building): void {
     if (qty < 5) side = 'sells';
   }
   if (side === 'sells') qty = roll(ctx, T.trader.qty);
-  const mult = side === 'buys' ? 1 + T.trader.better : 1 - T.trader.better;
+  const better = s.ind.declared ? IND.blockade.traderBetter : T.trader.better;
+  const mult = side === 'buys' ? 1 + better : 1 - better;
   v.offer = { side, good, qty, price: Math.round(price(good) * mult * 100) / 100, done: false };
   log(s, 'trader', `Free trader at ${name}: ${side === 'buys' ? 'buying' : 'selling'} ${qty} ${good} at ${v.offer.price} cr each`);
 }

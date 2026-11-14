@@ -1,7 +1,7 @@
 import { addCredits, add } from './economy';
 import { exchangeTile, isWater, nearestWater } from './mapgen';
 import { advance, startLeg, type Navigator } from './nav';
-import { ECON, TRADE, buildingDef, price } from './placement';
+import { ECON, IND, TRADE, buildingDef, price } from './placement';
 import type { Rng } from './rng';
 import type { Building, GameMap, GameState, Hauler, Mover, Stock, Stop, Visitor } from './types';
 
@@ -35,7 +35,7 @@ export function dockTile(map: GameMap, b: Building): { x: number; y: number } | 
 }
 
 export function stopTile(ctx: Ctx, stop: Stop): { x: number; y: number } | null {
-  if (stop.kind === 'exchange') return exchangeTile(ctx.map);
+  if (stop.kind === 'exchange') return ctx.s.ind.declared ? null : exchangeTile(ctx.map); // closed by the blockade
   const b = ctx.s.buildings.find((o) => o.id === stop.building && o.type === 'port');
   return b ? dockTile(ctx.map, b) : null;
 }
@@ -48,16 +48,16 @@ const mover = (id: number, tile: { x: number; y: number }): Mover => ({
 });
 
 export function newHauler(id: number, tile: { x: number; y: number }, home: number): Hauler {
-  return { ...mover(id, tile), kind: 'hauler', home, route: [], stop: 0, phase: 'sail', wait: 0, cargo: {} };
+  return { ...mover(id, tile), kind: 'hauler', home, route: [], stop: 0, phase: 'sail', wait: 0, cargo: {}, limp: 0, immune: 0 };
 }
 export function newVisitor(id: number, kind: Visitor['kind'], tile: { x: number; y: number }, target: number): Visitor {
   return { ...mover(id, tile), kind, target, phase: 'in', wait: 0 };
 }
 
-/** Sail one tick towards a water tile. */
-function sail(ctx: Ctx, m: Mover, goal: { x: number; y: number }): 'moving' | 'arrived' | 'blocked' {
+/** Sail one tick towards a water tile. `sig` makes the path avoid battery zones; `speed` is a multiplier. */
+export function sail(ctx: Ctx, m: Mover, goal: { x: number; y: number }, speed = 1, sig = ''): 'moving' | 'arrived' | 'blocked' {
   if (!m.leg) {
-    const { key, path } = ctx.nav.path(Math.floor(m.x), Math.floor(m.y), goal.x, goal.y);
+    const { key, path } = ctx.nav.path(Math.floor(m.x), Math.floor(m.y), goal.x, goal.y, sig);
     if (!path) return 'blocked';
     startLeg(m, key, path);
   }
@@ -66,7 +66,7 @@ function sail(ctx: Ctx, m: Mover, goal: { x: number; y: number }): 'moving' | 'a
     m.leg = '';
     return 'blocked';
   }
-  if (advance(m, path, SPEED)) {
+  if (advance(m, path, SPEED * speed)) {
     m.leg = '';
     return 'arrived';
   }
@@ -99,6 +99,7 @@ function transfer(ctx: Ctx, h: Hauler, stop: Stop): void {
       if (isl) n = Math.min(n, Math.max(0, cap - (isl.stock[o.good] ?? 0)));
       if (n <= 0) continue;
       h.cargo[o.good] = have - n;
+      ctx.s.stats.cargoMoved += n;
       if (isl) add(isl, o.good, n);
       else sellAtExchange(s, o.good, n);
     }
@@ -119,6 +120,8 @@ function sellAtExchange(s: GameState, good: string, n: number): void {
 
 export function haulersTick(ctx: Ctx): void {
   for (const h of ctx.s.haulers) {
+    if (h.limp > 0) h.limp--;
+    if (h.immune > 0) h.immune--;
     if (!h.route.length) continue;
     if (h.stop >= h.route.length) h.stop = 0;
     if (h.phase === 'dock') {
@@ -131,7 +134,7 @@ export function haulersTick(ctx: Ctx): void {
     }
     const stop = h.route[h.stop] as Stop;
     const goal = stopTile(ctx, stop);
-    const r = goal ? sail(ctx, h, goal) : 'blocked';
+    const r = goal ? sail(ctx, h, goal, h.limp > 0 ? IND.blockade.limpSpeed : 1) : 'blocked';
     if (r === 'blocked') {
       h.stop = (h.stop + 1) % h.route.length; // port gone or unreachable: skip it
       h.leg = '';
