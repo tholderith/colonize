@@ -2,150 +2,150 @@
  "cart": {
   "size": [
    132,
-   102
+   97
   ],
   "anchor": [
    66,
-   88
+   86
   ],
   "flat": false
  },
  "chapel": {
   "size": [
-   500,
-   391
+   450,
+   389
   ],
   "anchor": [
-   250,
-   326
+   218,
+   324
   ],
   "flat": false
  },
  "colonist_0": {
   "size": [
    132,
-   88
+   130
   ],
   "anchor": [
    66,
-   75
+   112
   ],
   "flat": false
  },
  "colonist_1": {
   "size": [
    132,
-   88
+   130
   ],
   "anchor": [
    66,
-   75
+   112
   ],
   "flat": false
  },
  "farmhouse": {
   "size": [
-   300,
-   252
+   272,
+   174
   ],
   "anchor": [
    150,
-   187
+   123
   ],
   "flat": false
  },
  "house_0": {
   "size": [
-   283,
-   253
+   226,
+   204
   ],
   "anchor": [
-   142,
-   188
+   123,
+   139
   ],
   "flat": false
  },
  "house_1": {
   "size": [
-   283,
-   253
+   226,
+   204
   ],
   "anchor": [
-   142,
-   188
+   123,
+   139
   ],
   "flat": false
  },
  "house_2": {
   "size": [
-   283,
-   253
+   226,
+   204
   ],
   "anchor": [
-   142,
-   188
+   123,
+   139
   ],
   "flat": false
  },
  "house_3": {
   "size": [
-   283,
-   253
+   226,
+   204
   ],
   "anchor": [
-   142,
-   188
+   123,
+   139
   ],
   "flat": false
  },
  "lumberjack": {
   "size": [
-   299,
-   241
+   267,
+   162
   ],
   "anchor": [
-   149,
-   186
+   126,
+   113
   ],
   "flat": false
  },
  "pier": {
   "size": [
-   153,
-   108
+   132,
+   88
   ],
   "anchor": [
-   76,
-   96
+   66,
+   87
   ],
   "flat": true
  },
  "rock_0": {
   "size": [
-   218,
-   155
+   155,
+   104
   ],
   "anchor": [
-   135,
-   133
+   79,
+   85
   ],
   "flat": false
  },
  "rock_1": {
   "size": [
-   218,
-   155
+   155,
+   104
   ],
   "anchor": [
-   135,
-   133
+   79,
+   85
   ],
   "flat": false
  },
  "ship": {
   "size": [
    260,
-   188
+   185
   ],
   "anchor": [
    130,
@@ -155,78 +155,100 @@
  },
  "tree_0": {
   "size": [
-   275,
-   232
+   223,
+   230
   ],
   "anchor": [
-   125,
-   167
+   110,
+   165
   ],
   "flat": false
  },
  "tree_1": {
   "size": [
-   275,
-   232
+   223,
+   230
   ],
   "anchor": [
-   125,
-   167
+   110,
+   165
   ],
   "flat": false
  },
  "tree_2": {
   "size": [
-   275,
-   232
+   223,
+   230
   ],
   "anchor": [
-   125,
-   167
+   110,
+   165
   ],
   "flat": false
  },
  "tree_3": {
   "size": [
-   275,
-   232
+   223,
+   230
   ],
   "anchor": [
-   125,
-   167
+   110,
+   165
   ],
   "flat": false
  },
  "warehouse": {
   "size": [
    500,
-   377
+   310
   ],
   "anchor": [
    250,
-   312
+   245
   ],
   "flat": false
  },
  "wheat_field": {
   "size": [
    260,
-   158
+   151
   ],
   "anchor": [
    130,
-   154
+   150
   ],
   "flat": true
  },
  "windmill": {
   "size": [
-   348,
+   273,
    308
   ],
   "anchor": [
-   173,
+   98,
    243
+  ],
+  "flat": false
+ },
+ "colonist_2": {
+  "size": [
+   132,
+   130
+  ],
+  "anchor": [
+   66,
+   112
+  ],
+  "flat": false
+ },
+ "colonist_3": {
+  "size": [
+   132,
+   130
+  ],
+  "anchor": [
+   66,
+   112
   ],
   "flat": false
  }

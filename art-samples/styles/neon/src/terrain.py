@@ -44,10 +44,11 @@ def shade(h, X, Y, k=1.0):
 def hexc(h): return np.array([int(h[i:i + 2], 16) / 255 for i in (1, 3, 5)], 'float32')
 def mixc(a, b, t): t = t[..., None]; return a * (1 - t) + b * t
 
-NZ = {}
+NZ = {}; CUR = [0]
 def noise(name, seed, beta=2.0):
-    if name not in NZ: NZ[name] = pnoise(seed, beta)
-    return NZ[name]
+    key = (name, CUR[0])
+    if key not in NZ: NZ[key] = pnoise(seed + 131 * CUR[0], beta)
+    return NZ[key]
 
 def finish(rgb, X, Y, name):
     W, H = rgb.shape[:2]
@@ -76,31 +77,35 @@ def streaks(px, py, seed, ncol, scale=0.35):
 
 # ------------------------------------------------------------------ types
 def asphalt(k):
+    CUR[0] = k
     X, Y, px, py = grid()
     base = noise('r1', 11, 2.2); fine = noise('r2', 12, 0.9); big = noise('r3', 13, 3.0)
     h = bil(fine, X, Y) * 0.5 + bil(base, X, Y) * 0.3
-    col = np.broadcast_to(hexc('#1d2026'), X.shape + (3,)).copy()
+    col = np.broadcast_to(hexc('#2d323d'), X.shape + (3,)).copy()
     col = col * (0.85 + 0.12 * bil(big, X, Y)[..., None] + 0.05 * bil(fine, X * 2, Y * 2)[..., None])
     col *= (0.82 + 0.35 * shade(h, X, Y, 6)[..., None])
+    gr = ((np.abs(((X * 8) % 1.0) - 0.5) < 0.09) | (np.abs(((Y * 8) % 1.0) - 0.5) < 0.09)).astype('float32')
+    col *= (1 - 0.16 * gr)[..., None]
+    col += (hexc('#3a4a70') * 0.10 * (1 - smooth(0, 60, py - 8)))[..., None] if False else 0
     # steel plate seams every half tile + rivets (periodic, same for all variants)
     cu = np.abs(((X * 2) % 1.0) - 0.5); cv = np.abs(((Y * 2) % 1.0) - 0.5)
     seam = (np.minimum(0.5 - cu, 0.5 - cv) < 0.012).astype('float32')
     col = col * (1 - 0.35 * seam[..., None])
     rv = ((((X * 2) % 1.0 - 0.07) ** 2 + ((Y * 2) % 1.0 - 0.07) ** 2) < 0.0007).astype('float32')
-    col += rv[..., None] * 0.07
+    col += rv[..., None] * 0.10
     # lane studs: amber at tile centre + mid-edge (every tile, so any road direction reads)
     for (cx, cy) in ((0.5, 0.5), (0.0, 0.5), (1.0, 0.5), (0.5, 0.0), (0.5, 1.0)):
         d = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
-        col += (np.exp(-(d / 0.028) ** 2))[..., None] * hexc('#ffb030') * 0.9
+        col += (np.exp(-(d / 0.034) ** 2))[..., None] * hexc('#ffb030') * 1.1
         col += (np.exp(-(d / 0.07) ** 2))[..., None] * hexc('#ff8a10') * 0.10
     # painted dashes along both axes through centre (broken yellow), faint
     for ax in (0, 1):
         t = X if ax == 0 else Y; o = Y if ax == 0 else X
-        dash = (np.abs(o - 0.5) < 0.012) & (((t * 4) % 1.0) < 0.5) & (((t * 4) % 1.0) > 0.12) & (np.abs(t - 0.5) > 0.12)
-        col = np.where(dash[..., None], col * 0.4 + hexc('#8a7418') * 0.6, col)
+        dash = (np.abs(o - 0.5) < 0.02) & (((t * 4) % 1.0) < 0.5) & (((t * 4) % 1.0) > 0.12) & (np.abs(t - 0.5) > 0.12)
+        col = np.where(dash[..., None], col * 0.3 + hexc('#b08c1c') * 0.7, col)
     # puddles (interior only; variant specific) with neon reflection
     pn = pnoise(100 + k, 2.4, 128)
-    pud = smooth(0.8, 1.15, bil(pn, X, Y)) * interior(X, Y, 0.16) * (1 if k % 3 else 0.4)
+    pud = smooth(0.6, 1.0, bil(pn, X, Y)) * interior(X, Y, 0.14) * (1 if k % 3 else 0.5)
     refl = streaks(px, py, 50 + k, 5)
     pcol = hexc('#0c1018') + refl + hexc('#2a3050') * 0.12 * (1 - smooth(0, 60, py - 10))[..., None] + hexc('#40507a') * 0.06
     col = mixc(col, pcol, pud * 0.85)
@@ -111,16 +116,17 @@ def concrete(k):  # 'sand' -> slag/concrete shore
     n1 = noise('s1', 21, 2.0); n2 = noise('s2', 22, 0.8); n3 = noise('s3', 23, 3.0)
     h = bil(n2, X * 2, Y * 2) * 0.4 + bil(n1, X, Y) * 0.4
     col = np.broadcast_to(hexc('#4b4d50'), X.shape + (3,)).copy()
-    tone = 0.85 + 0.13 * bil(n3, X, Y) + 0.05 * bil(n2, X, Y)
+    wI = 0.3 + 0.7 * interior(X, Y, 0.3)
+    tone = 0.88 + 0.10 * bil(n3, X, Y) * wI + 0.05 * bil(n2, X, Y)
     col = col * tone[..., None] * (0.8 + 0.4 * shade(h, X, Y, 5)[..., None])
-    col = mixc(col, col * hexc('#c8a070') * 1.5, smooth(0.5, 1.4, bil(n1, X * 1.0 + 0.3, Y * 1.0)) * 0.25)    # rust bleed
+    col = mixc(col, col * hexc('#c8a070') * 1.5, smooth(0.5, 1.4, bil(n1, X * 1.0 + 0.3, Y * 1.0)) * 0.12 * wI)    # rust bleed
     # expansion joints on tile edges (deliberate slab grid)
     ex = np.minimum(X, 1 - X); ey = np.minimum(Y, 1 - Y); e = np.minimum(ex, ey)
-    col *= (1 - 0.55 * (e < 0.014))[..., None]; col += (0.05 * ((e >= 0.014) & (e < 0.03)))[..., None]
+    col *= (1 - 0.30 * (e < 0.009))[..., None]
     # variant-specific: oil stains, hazard-paint scuffs, cracks
     rng = np.random.default_rng(300 + k)
     st = smooth(0.9, 1.5, bil(pnoise(400 + k, 2.4, 128), X, Y)) * interior(X, Y, 0.2)
-    col = mixc(col, col * 0.35 + hexc('#0e1014') * 0.3, st * 0.8)
+    col = mixc(col, col * 0.7 + hexc('#0e1014') * 0.15, st * 0.4)
     if k % 4 == 1:
         ang = np.abs(((X + Y) * 7) % 1.0 - 0.5) < 0.25
         band = (np.abs(X - 0.5) < 0.30) & (np.abs(Y - 0.2) < 0.045) & ang
@@ -131,8 +137,9 @@ def moss(k):  # 'grass' -> scrubby dead ground / moss over concrete
     X, Y, px, py = grid()
     n1 = noise('g1', 31, 2.0); n2 = noise('g2', 32, 0.7); n3 = noise('g3', 33, 3.2); n4 = noise('g4', 34, 1.4)
     h = bil(n2, X * 2, Y * 2) * 0.5 + bil(n4, X, Y) * 0.4
-    conc = hexc('#2b2e2c'); mo = hexc('#2f4a26'); mo2 = hexc('#566a2c'); dead = hexc('#3a3224')
-    m = smooth(-0.4, 0.8, bil(n3, X, Y)); m2 = smooth(0.0, 1.3, bil(n1, X * 1.0, Y * 1.0 + 0.2))
+    conc = hexc('#33362f'); mo = hexc('#2f4a26'); mo2 = hexc('#566a2c'); dead = hexc('#3a3224')
+    wI = 0.25 + 0.75 * interior(X, Y, 0.3)
+    m = 0.5 + (smooth(-0.4, 0.8, bil(n3, X, Y)) - 0.5) * wI * 0.8; m2 = 0.5 + (smooth(0.0, 1.3, bil(n1, X * 1.0, Y * 1.0 + 0.2)) - 0.5) * wI
     col = mixc(np.broadcast_to(conc, X.shape + (3,)).copy(), mixc(np.broadcast_to(mo, X.shape + (3,)).copy(), np.broadcast_to(dead, X.shape + (3,)).copy(), m2 * 0.7), m)
     col = mixc(col, np.broadcast_to(mo2, X.shape + (3,)).copy(), smooth(0.7, 1.6, bil(n2, X * 1.0 + 0.5, Y)) * 0.35 * m)
     col *= (0.7 + 0.6 * shade(h, X, Y, 6)[..., None]) * (0.9 + 0.1 * bil(n2, X * 3, Y * 3)[..., None])
@@ -147,19 +154,21 @@ def moss(k):  # 'grass' -> scrubby dead ground / moss over concrete
     finish(col, X, Y, f'grass_{k}')
 
 def sea(kind, k):
+    CUR[0] = k + (40 if kind == 'deep' else 0)
     X, Y, px, py = grid()
     n1 = noise('w1', 41, 2.0); n2 = noise('w2', 42, 1.0); n3 = noise('w3', 43, 3.0); ph = noise('w4', 44, 2.6)
     deep = kind == 'deep'
     c0 = hexc('#07121d') if deep else hexc('#0f2a33'); c1 = hexc('#0c2536') if deep else hexc('#1d4a52')
-    t = smooth(-1.0, 1.4, bil(n3, X, Y)); col = mixc(np.broadcast_to(c0, X.shape + (3,)).copy(), np.broadcast_to(c1, X.shape + (3,)).copy(), t)
+    wI = 0.2 + 0.8 * interior(X, Y, 0.3)
+    t = (0.5 + (smooth(-1.0, 1.4, bil(n3, X * 2, Y * 2)) - 0.5) * 0.6 * wI); col = mixc(np.broadcast_to(c0, X.shape + (3,)).copy(), np.broadcast_to(c1, X.shape + (3,)).copy(), t)
     # ripples: stretched along screen-x diagonal => sin of periodic phase field
-    p = bil(n1, X, Y) * 3.0 + (X + Y) * 6.0 * np.pi * 0 + bil(n2, X * 2, Y * 2)
+    p = bil(n1, X * 2, Y * 2) * 2.0 + (X + Y) * 6.0 * np.pi * 0 + bil(n2, X * 2, Y * 2)
     rip = 0.5 + 0.5 * np.sin(p * 5.0)
-    col *= (0.85 + 0.3 * rip[..., None] ** 2)
+    col *= (0.88 + 0.22 * rip[..., None] ** 2)
     # oily iridescent sheen (periodic phase)
     phase = bil(ph, X, Y) * 0.35
     irid = 0.5 + 0.5 * np.cos(2 * np.pi * (phase[..., None] + np.array([0.0, 0.33, 0.67], 'float32')))
-    sh = smooth(0.2, 1.6, bil(n3, X * 1.0 + 0.4, Y * 1.0 + 0.1)) * (0.5 + 0.5 * rip)
+    sh = smooth(0.2, 1.6, bil(n3, X * 2 + 0.4, Y * 2 + 0.1)) * (0.5 + 0.5 * rip) * wI
     col += irid * sh[..., None] * (0.07 if deep else 0.06) * hexc('#ffffff')
     # specular glints of far neon, variant-specific interior
     rng = np.random.default_rng(900 + k + (50 if deep else 0))
@@ -167,7 +176,7 @@ def sea(kind, k):
     inter = interior(X, Y, 0.2)
     for _ in range(2 + k % 3):
         cx = rng.uniform(25, 105); cy = rng.uniform(14, 52); w = rng.uniform(5, 16); hh = rng.uniform(0.6, 1.3); c = cols[rng.integers(0, 3)]
-        gl = np.exp(-(((px - cx) / w) ** 2 + ((py - cy) / 0.9) ** 2)) * hh * 0.35
+        gl = np.exp(-(((px - cx) / w) ** 2 + ((py - cy) / 0.9) ** 2)) * hh * 0.22
         col += gl[..., None] * c * inter[..., None]
     if k == 3:   # glowing buoy (centre of tile)
         for (bx, by, c, r) in ((0.5, 0.5, hexc('#ff3a2a') if deep else hexc('#45ff86'), 1.0),):

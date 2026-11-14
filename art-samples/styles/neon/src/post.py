@@ -14,10 +14,10 @@ def add_bloom(im):
     a = np.asarray(im).astype('float32') / 255.0
     rgb, al = a[..., :3], a[..., 3:4]
     mx = rgb.max(-1, keepdims=True)
-    m = np.clip((mx - 0.55) / 0.35, 0, 1) * np.clip(al * 1.5, 0, 1)
+    m = np.clip((mx - 0.6) / 0.3, 0, 1) * np.clip(al * 1.5, 0, 1)
     # emitters: strong saturated or near-white; weight by saturation to keep warm grey highlights quieter
     src = rgb * m
-    g = blur(src, 4) * 0.9 + blur(src, 14) * 1.1 + blur(src, 36) * 1.2
+    g = blur(src, 4) * 0.8 + blur(src, 14) * 0.9 + blur(src, 36) * 0.9
     g *= GLOW
     pm = rgb * al
     out = 1 - (1 - np.clip(pm, 0, 1)) * (1 - np.clip(g, 0, 1))     # screen blend, premultiplied

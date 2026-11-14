@@ -10,7 +10,7 @@ def S(n, col=None, **k):
     col = C.get(col, col) if col else C[n]
     return surf(n if col is None else n + str(sorted(k.items())), col, **k)
 def M(name, **k): return surf('m_' + name + str(sorted(k.items())), C.get(name, name), **k)
-def G(name, s=6.0): return glow('g_' + name + str(s), NEON.get(name, name), s)
+def G(name, s=6.0): return glow('g_' + name + str(s), NEON.get(name, name), s * 0.42)
 
 def hazard_mat():
     if 'hazard' in MATS: return MATS['hazard']
@@ -36,7 +36,7 @@ def plants_mat(col='#3cff7a'):
     nt.links.new(v.outputs['Distance'], r.inputs['Fac'])
     mx = nt.nodes.new('ShaderNodeMixRGB'); mx.blend_type = 'MULTIPLY'; mx.inputs['Fac'].default_value = 1.0
     mx.inputs[1].default_value = srgb(col); nt.links.new(r.outputs[0], mx.inputs[2])
-    nt.links.new(mx.outputs[0], bs.inputs['Emission Color']); bs.inputs['Emission Strength'].default_value = 1.6
+    nt.links.new(mx.outputs[0], bs.inputs['Emission Color']); bs.inputs['Emission Strength'].default_value = 0.8
     nt.links.new(mx.outputs[0], bs.inputs['Base Color']); bs.inputs['Roughness'].default_value = 0.7
     MATS[key] = m; return m
 
@@ -170,7 +170,7 @@ def farmhouse():
     wall = M('steel', rust=0.35, soot=0.6); dk = M('steel_d', rust=0.1)
     b.box(wall, XY(0.42, 0.55), (0.8, 0.5, 0.2), 0.03)
     # gabled glass roof, ridge along u
-    glassm = surf('grow', '#7c3cc0', rough=0.2, metal=0.0, rust=0, soot=0, emit='#a850ff', es=1.5)
+    glassm = surf('grow', '#7c3cc0', rough=0.2, metal=0.0, rust=0, soot=0, emit='#a850ff', es=0.8)
     u0, u1, v0, v1, z0, zr = 0.0, 0.84, 0.28, 0.82, 0.23, 0.46
     vm = (v0 + v1) / 2
     b.face(glassm, [X(u0, v0, z0), X(u1, v0, z0), X(u1, vm, zr), X(u0, vm, zr)][::-1])
@@ -313,9 +313,16 @@ def chapel():
     # big sign panel on the left (y-) face, and blade sign on the right face
     wy = cv + 0.30 - (1.55 - 0.37) / (1.5 - 0.37) * 0.0
     b.box(M('black', rust=0, soot=0, rough=0.3, metal=0.0), (cu, -cv - 0.305 - 0.01), (0.54, 0.02, 0.2), 1.05) if False else None
-    sign(b, 'KALDERA', 'mag', cu, cv + 0.302, 1.12, 0.098, 'y-', s=9)
-    sign(b, 'RELAY', 'cyan', cu + 0.302, cv, 1.2, 0.09, 'x+', s=9)
-    for dz in (1.05, 1.34): b.box(G('mag', 6), (cu, -cv - 0.31), (0.56, 0.012, 0.012), dz)
+    blk = surf('signback', '#0a0710', rough=0.4, metal=0.0, rust=0, soot=0)
+    b.box(blk, (cu, -cv - 0.325), (0.58, 0.03, 0.22), 1.02)
+    b.box(blk, (cu + 0.325, -cv), (0.03, 0.5, 0.2), 1.1)
+    sign(b, 'KALDERA', 'mag', cu, cv + 0.345, 1.06, 0.125, 'y-', s=6)
+    sign(b, 'RELAY', 'cyan', cu + 0.345, cv, 1.13, 0.11, 'x+', s=6)
+    for dz in (1.0, 1.25): b.box(G('mag', 4), (cu, -cv - 0.345), (0.58, 0.012, 0.012), dz)
+    b.box(G('cyan', 4), (cu + 0.345, -cv), (0.012, 0.5, 0.012), 1.06)
+    for zc in (1.62, 1.8):
+        w_ = 0.30 - (zc - 1.5) * 0.25
+        b.box(G('cyan', 4), (cu, -cv - w_ - 0.004), (w_ * 2, 0.012, 0.014), zc); b.box(G('cyan', 4), (cu + w_ + 0.004, -cv), (0.012, w_ * 2, 0.014), zc)
     # spire
     b.cyl(M('steel_l', rust=0.2), X(cu, cv, 2.1), X(cu, cv, 3.1), 0.03, 0.012, n=8)
     for k, z in enumerate((2.3, 2.6, 2.85)): b.cyl(G('cyan', 6), X(cu, cv, z), X(cu, cv, z + 0.02), 0.075 - 0.015 * k, n=12)
@@ -324,8 +331,8 @@ def chapel():
     b.sphere(G('red', 14), X(cu, cv, 3.12), 0.03, seg=8, rings=4)
     point_light(X(cu, cv, 3.15), (1, 0.1, 0.1), 3, 0.03, False)
     # downlight pools from signage
-    point_light(X(cu - 0.05, cv + 0.5, 1.15), (1, 0.15, 0.6), 22, 0.1)
-    point_light(X(cu + 0.5, cv, 1.2), (0.1, 0.9, 1), 12, 0.1)
+    point_light(X(cu - 0.05, cv + 0.6, 1.1), (1, 0.15, 0.6), 7, 0.1)
+    point_light(X(cu + 0.6, cv, 1.2), (0.1, 0.9, 1), 4, 0.1)
     pool(cu, cv + 0.75, 0.9, NEON['mag'], 0.9, power=1.6); pool(cu + 0.8, cv + 0.1, 0.7, NEON['cyan'], 0.7, power=1.6)
     for (uu, vv) in ((0.2, 1.8), (1.8, 1.8)): lamp(b, uu, vv, 0.22, 'amber', 6, 0.5)
     b.cyl(M('steel_d'), X(0.2, 1.8, 0.03), X(0.2, 1.8, 0.22), 0.012, n=6); b.cyl(M('steel_d'), X(1.8, 1.8, 0.03), X(1.8, 1.8, 0.22), 0.012, n=6)
@@ -383,7 +390,7 @@ def pier():
     for (u, v, c) in ((0.08, 0.2, 'amber'), (0.92, 0.2, 'cyan'), (0.92, 0.8, 'cyan'), (0.08, 0.8, 'amber')):
         b.box(M('steel_d'), XY(u, v), (0.04, 0.04, 0.1), 0.09); b.box(G(c, 9), XY(u, v), (0.05, 0.05, 0.03), 0.19)
     point_light(X(0.9, 0.5, 0.26), (0.1, 0.9, 1), 3, 0.05, False); point_light(X(0.1, 0.5, 0.26), (1, 0.6, 0.2), 3, 0.05, False)
-    pool(0.5, 0.5, 0.75, NEON['amber'], 0.6, z=0.095, power=1.4)
+    pool(0.5, 0.5, 0.75, NEON['amber'], 0.2, z=0.095, power=1.4)
     return b.commit()
 
 # =============================================================== SHIP -> hover cargo hauler (2x2), long axis along v
@@ -411,8 +418,8 @@ def ship():
             for h in range(nn): cont(b, uu, vv, 0.33 + 0.18 * h, 'y', rnd.choice(cols), L=0.46, Wd=0.26, H=0.175, wins=False)
     # superstructure at stern
     sv = 1.62
-    b.box(M('cream', rust=0.4, soot=0.6), XY(cu, sv), (0.56, 0.3, 0.36), 0.32)
-    b.box(M('cream', rust=0.4, soot=0.6), XY(cu, sv), (0.46, 0.22, 0.14), 0.68)
+    b.box(M('steel_l', rust=0.5, soot=0.7), XY(cu, sv), (0.56, 0.3, 0.36), 0.32)
+    b.box(M('steel_l', rust=0.5, soot=0.7), XY(cu, sv), (0.46, 0.22, 0.14), 0.68)
     for k in range(4): b.box(G('amber', 4), (cu - 0.18 + 0.12 * k, -(sv + 0.151)), (0.075, 0.012, 0.05), 0.45)
     for k in range(3): b.box(G('amber', 4), (cu + 0.281, -(sv - 0.08 + 0.08 * k)), (0.012, 0.05, 0.05), 0.45)
     b.box(G('cyan', 5), (cu, -(sv + 0.111)), (0.4, 0.012, 0.06), 0.72)
@@ -426,7 +433,7 @@ def ship():
     b.sphere(G('red', 14), X(cu - 0.34, 1.7, 0.4), 0.028, seg=8, rings=4); b.sphere(G('green', 14), X(cu + 0.34, 1.7, 0.4), 0.028, seg=8, rings=4)
     b.sphere(G('white', 14), X(cu, 0.2, 0.42), 0.025, seg=8, rings=4); b.sphere(G('white', 14), X(cu + 0.1, sv, 1.12), 0.025, seg=8, rings=4)
     point_light(X(cu + 0.36, 1.7, 0.4), (0.2, 1.0, 0.3), 2.0, 0.03, False); point_light(X(cu - 0.36, 1.7, 0.4), (1.0, 0.1, 0.1), 2.0, 0.03, False)
-    point_light(X(cu, sv + 0.3, 0.7), (1.0, 0.6, 0.2), 6, 0.05); point_light(X(cu, 1.2, 0.5), (0.1, 0.9, 1.0), 4, 0.05, False)
+    point_light(X(cu, sv + 0.3, 0.7), (1.0, 0.6, 0.2), 2.0, 0.05); point_light(X(cu, 1.2, 0.5), (0.1, 0.9, 1.0), 4, 0.05, False)
     pool(cu, 1.2, 1.25, NEON['cyan'], 0.55, z=0.002, power=1.8)
     return b.commit()
 
@@ -483,15 +490,16 @@ def tree(v):
             b.cyl(bark, pts[k], pts[k + 1], w * (1 - k / (n + 1)), w * (1 - (k + 1) / (n + 1)), n=6)
         return pts
     if v == 0:
-        tp = twisted((0.5, -0.5, 0.0), 0.5, 0.05)
-        fol = surf('mutfol', '#12342e', rough=0.8, metal=0, rust=0, soot=0.3, emit='#18e0a0', es=0.5)
-        for k in range(3):
-            ang = rnd.uniform(0, 6.28); br = twisted((tp[3].x, tp[3].y, tp[3].z), 0.22, 0.022, 3, 0.04, (math.cos(ang) * 0.2, math.sin(ang) * 0.2))
-            b.sphere(fol, br[-1], 0.1, seg=8, rings=4, jitter=0.15, rng=rnd)
-            b.sphere(G('green', 6), br[-1] + Vector((0.07, -0.04, 0.03)), 0.018, seg=6, rings=3)
-        b.sphere(fol, tp[-1], 0.13, seg=8, rings=4, jitter=0.15, rng=rnd); b.sphere(G('cyan', 6), tp[-1] + Vector((0.09, -0.08, 0.02)), 0.02, seg=6, rings=3)
-        point_light(tuple(tp[-1] + Vector((0.1, -0.1, 0.0))), (0.2, 1.0, 0.7), 1.2, 0.03)
-        pool(0.55, 0.55, 0.35, NEON['green'], 0.4, power=1.8)
+        tp = twisted((0.5, -0.5, 0.0), 0.45, 0.05, 5, 0.06)
+        fol = surf('mutfol', '#1a3328', rough=0.85, metal=0, rust=0, soot=0.3, emit='#14c890', es=0.08)
+        for k in range(5):
+            ang = rnd.uniform(0, 6.28); st = tp[rnd.choice((2, 3, 4))]
+            br = twisted((st.x, st.y, st.z), 0.18, 0.016, 3, 0.03, (math.cos(ang) * 0.2, math.sin(ang) * 0.2))
+            for j in range(2):
+                b.sphere(fol, br[-1] + Vector((rnd.uniform(-0.04, 0.04), rnd.uniform(-0.04, 0.04), rnd.uniform(-0.02, 0.04))), rnd.uniform(0.04, 0.06), seg=6, rings=3, scale=(1.2, 1.2, 0.6), jitter=0.3, rng=rnd)
+            if k < 3: b.sphere(G('green', 8), br[-1] + Vector((0.04, -0.05, 0.0)), 0.014, seg=6, rings=3)
+        point_light(tuple(tp[-1] + Vector((0.1, -0.1, 0.0))), (0.2, 1.0, 0.7), 0.5, 0.03)
+        pool(0.55, 0.55, 0.3, NEON['green'], 0.22, power=1.8)
     elif v == 1:
         h = 1.35
         pts = [(-0.14, -0.14), (0.14, -0.14), (0.14, 0.14), (-0.14, 0.14)]
@@ -510,13 +518,15 @@ def tree(v):
         b.sphere(G('red', 14), (0.5, -0.5, h + 0.04), 0.03, seg=8, rings=4); point_light((0.5, -0.5, h + 0.06), (1, 0.1, 0.1), 2, 0.03, False)
         pool(0.5, 0.5, 0.3, NEON['red'], 0.3, power=2.0)
     elif v == 2:
-        tp = twisted((0.5, -0.5, 0.0), 0.35, 0.065, 4, 0.08, (0.12, -0.08))
-        pod = surf('pod', '#5a2a08', rough=0.4, metal=0, rust=0, soot=0.2, emit='#ff7a18', es=2.2)
-        pod2 = surf('pod2', '#40105a', rough=0.4, metal=0, rust=0, soot=0.2, emit='#c040ff', es=2.0)
-        for k, (du, dv, dz, r_, pm) in enumerate(((0.12, 0.08, 0.1, 0.1, pod), (-0.1, 0.05, 0.02, 0.07, pod2), (0.05, -0.12, 0.05, 0.08, pod), (-0.03, 0.14, -0.1, 0.06, pod2))):
-            b.sphere(pm, (tp[-1].x + du, tp[-1].y - dv, tp[-1].z + dz), r_, seg=8, rings=5)
-        point_light(tuple(tp[-1] + Vector((0.12, 0.1, 0.1))), (1.0, 0.45, 0.1), 2.2, 0.05)
-        pool(0.62, 0.62, 0.4, NEON['amber'], 0.5, power=1.8)
+        tp = twisted((0.5, -0.5, 0.0), 0.35, 0.06, 4, 0.08, (0.12, -0.08))
+        pod = surf('pod', '#3a1a06', rough=0.4, metal=0, rust=0, soot=0.2, emit='#ff7a18', es=0.35)
+        pod2 = surf('pod2', '#2a0c3a', rough=0.4, metal=0, rust=0, soot=0.2, emit='#c040ff', es=0.35)
+        for k in range(4):
+            ang = rnd.uniform(0, 6.28); st = tp[rnd.choice((2, 3, 4))]
+            br = twisted((st.x, st.y, st.z), 0.12, 0.014, 2, 0.03, (math.cos(ang) * 0.18, math.sin(ang) * 0.18))
+            b.sphere(pod if k % 2 == 0 else pod2, br[-1] + Vector((0, 0, -0.05)), 0.05 + 0.02 * rnd.random(), seg=8, rings=5, scale=(1, 1, 1.25))
+        point_light(tuple(tp[-1] + Vector((0.12, 0.1, 0.1))), (1.0, 0.45, 0.1), 0.8, 0.05)
+        pool(0.62, 0.62, 0.35, NEON['amber'], 0.3, power=1.8)
     else:
         h = 1.5
         b.box(M('steel_d', rust=0.4), (0.5, -0.5), (0.18, 0.14, 0.14), 0.0)
@@ -564,6 +574,6 @@ JOBS['warehouse'] = (warehouse, (), 2, 2, dict(H=1100, samples=72))
 JOBS['pier'] = (pier, (), 1, 1, dict(flat=True, catcher=False))
 JOBS['ship'] = (ship, (), 2, 2, dict(H=1100, catcher=False))
 JOBS['cart'] = (cart, (), 1, 1, dict(catcher=False))
-for v in range(4): JOBS[f'colonist_{v}'] = (colonist, (v,), 1, 1, dict(W=300, H=360, samples=48))
-for v in range(4): JOBS[f'tree_{v}'] = (tree, (v,), 1, 1, dict(H=900))
+for v in range(4): JOBS[f'colonist_{v}'] = (colonist, (v,), 1, 1, dict(W=300, H=360, samples=48, K=1.45))
+for v in range(4): JOBS[f'tree_{v}'] = (tree, (v,), 1, 1, dict(H=900, K=1.5 if v in (0, 2) else 1.0))
 for v in range(2): JOBS[f'rock_{v}'] = (rock, (v,), 1, 1, dict(samples=48))

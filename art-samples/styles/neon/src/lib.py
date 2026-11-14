@@ -35,7 +35,7 @@ def setup_render(samples, w, h):
     sc.view_settings.view_transform = 'AgX'
     try: sc.view_settings.look = 'AgX - Medium High Contrast'
     except Exception: pass
-    sc.view_settings.exposure = float(os.environ.get("NEXP", "0.4"))
+    sc.view_settings.exposure = float(os.environ.get("NEXP", "0.55"))
     make_world(); make_lights()
 
 def make_world():
@@ -53,7 +53,7 @@ def make_world():
     e = cr.elements.new(0.50); e.color = srgb((0.50, 0.22, 0.36))   # magenta dusk horizon
     e = cr.elements.new(0.60); e.color = srgb((0.22, 0.20, 0.38))
     e = cr.elements.new(0.78); e.color = srgb((0.07, 0.11, 0.26))
-    nt.links.new(ramp.outputs[0], bg.inputs['Color']); bg.inputs['Strength'].default_value = 0.55
+    nt.links.new(ramp.outputs[0], bg.inputs['Color']); bg.inputs['Strength'].default_value = 0.95
     nt.links.new(bg.outputs[0], out.inputs[0])
 
 def sun(name, toward, elev, energy, color, shadow=True, angle=6):
@@ -64,7 +64,7 @@ def sun(name, toward, elev, energy, color, shadow=True, angle=6):
     o.rotation_euler = d.to_track_quat('Z', 'Y').to_euler()
 
 def make_lights():
-    sun('moon', (-0.35, -0.9, 0), 42, 1.5, (0.55, 0.72, 1.0))                 # cool key from upper-left (lights left faces)
+    sun('moon', (-0.35, -0.9, 0), 52, 2.1, (0.55, 0.72, 1.0))                 # cool key from upper-left (lights left faces)
     sun('sodium', (0.9, -0.35, 0), 22, 0.85, (1.0, 0.58, 0.25), shadow=False)  # warm fill on right faces
     sun('rim', (-0.6, 0.8, 0), 25, 0.5, (0.9, 0.3, 0.7), shadow=False)         # magenta back-rim for silhouettes
 
@@ -108,7 +108,7 @@ def surf(name, col, rough=0.55, metal=0.4, rust=0.35, soot=0.5, emit=None, es=0.
         # soot noise (fine) darkens
         n2 = nt.nodes.new('ShaderNodeTexNoise'); n2.inputs['Scale'].default_value = 14.0; n2.inputs['Detail'].default_value = 4
         nt.links.new(tc.outputs['Object'], n2.inputs['Vector'])
-        m2 = nt.nodes.new('ShaderNodeMath'); m2.operation = 'MULTIPLY'; m2.inputs[1].default_value = soot * 0.9
+        m2 = nt.nodes.new('ShaderNodeMath'); m2.operation = 'MULTIPLY'; m2.inputs[1].default_value = soot * 0.65
         nt.links.new(n2.outputs['Fac'], m2.inputs[0])
         mx2 = nt.nodes.new('ShaderNodeMixRGB'); mx2.blend_type = 'MULTIPLY'
         nt.links.new(m2.outputs[0], mx2.inputs['Fac']); nt.links.new(mx.outputs[0], mx2.inputs[1])
@@ -269,6 +269,10 @@ def sprite(name, build, fw=1, fh=1, W=None, H=None, samples=64, flat=False, catc
     reset(); setup_render(samples, W, H); make_camera(S, W, H, off)
     if catcher: add_catcher(ctr[0] + 0.8, ctr[1] - 0.3, 9 if big else 6)
     random.seed(seed); build()
+    if K != 1.0:
+        for o in list(bpy.data.objects):
+            if o.type == 'MESH' and o.name != 'catcher':
+                o.matrix_world = Matrix.Translation((ctr[0], ctr[1], 0)) @ Matrix.Scale(K, 4) @ Matrix.Translation((-ctr[0], -ctr[1], 0)) @ o.matrix_world
     os.makedirs(os.path.join(WORK, "raw"), exist_ok=True)
     sc = bpy.context.scene; sc.cycles.seed = seed; sc.render.filepath = os.path.join(WORK, "raw", name + ".png")
     bpy.ops.render.render(write_still=True)

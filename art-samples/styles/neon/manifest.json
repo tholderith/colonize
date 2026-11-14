@@ -87,8 +87,8 @@
     "tree_3.png"
    ],
    "anchor": [
-    125,
-    167
+    110,
+    165
    ]
   },
   "rock": {
@@ -97,8 +97,8 @@
     "rock_1.png"
    ],
    "anchor": [
-    135,
-    133
+    79,
+    85
    ]
   },
   "house": {
@@ -109,18 +109,20 @@
     "house_3.png"
    ],
    "anchor": [
-    142,
-    188
+    123,
+    139
    ]
   },
   "colonist": {
    "files": [
     "colonist_0.png",
-    "colonist_1.png"
+    "colonist_1.png",
+    "colonist_2.png",
+    "colonist_3.png"
    ],
    "anchor": [
     66,
-    75
+    112
    ]
   },
   "farmhouse": {
@@ -129,7 +131,7 @@
    ],
    "anchor": [
     150,
-    187
+    123
    ]
   },
   "windmill": {
@@ -137,7 +139,7 @@
     "windmill.png"
    ],
    "anchor": [
-    173,
+    98,
     243
    ]
   },
@@ -146,8 +148,8 @@
     "lumberjack.png"
    ],
    "anchor": [
-    149,
-    186
+    126,
+    113
    ]
   },
   "chapel": {
@@ -155,8 +157,8 @@
     "chapel.png"
    ],
    "anchor": [
-    250,
-    326
+    218,
+    324
    ]
   },
   "warehouse": {
@@ -165,7 +167,7 @@
    ],
    "anchor": [
     250,
-    312
+    245
    ]
   },
   "ship": {
@@ -183,7 +185,7 @@
    ],
    "anchor": [
     66,
-    88
+    86
    ]
   },
   "wheat_field": {
@@ -192,7 +194,7 @@
    ],
    "anchor": [
     130,
-    154
+    150
    ],
    "flat": true
   },
@@ -201,11 +203,45 @@
     "pier.png"
    ],
    "anchor": [
-    76,
-    96
+    66,
+    87
    ],
    "flat": true
   }
  },
- "overlays": []
+ "overlays": [
+  {
+   "file": "ui_overlay.png",
+   "pos": [
+    0,
+    0
+   ],
+   "anchor": [
+    0,
+    0
+   ]
+  },
+  {
+   "file": "ui_topbar.png",
+   "pos": [
+    0,
+    0
+   ],
+   "anchor": [
+    0,
+    0
+   ]
+  },
+  {
+   "file": "ui_panel.png",
+   "pos": [
+    24,
+    1056
+   ],
+   "anchor": [
+    0,
+    300
+   ]
+  }
+ ]
 }
