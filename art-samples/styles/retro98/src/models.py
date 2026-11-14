@@ -318,8 +318,8 @@ def build_windmill(ctr):
         g.beam(mfr, tuple(p0), tuple(p1), .03)
         perp = nrm.cross(dirv).normalized() if False else ax.cross(dirv).normalized()
         q = [p0 + perp * .02, p1 + perp * .02, p1 + perp * .17, p0 + perp * .17]
-        g.face(mat('#efe6cc', 'flat', .9, .05), [tuple(v) for v in q])
-        g.face(mat('#efe6cc', 'flat', .9, .05), [tuple(v) for v in q][::-1])
+        g.face(mat('#efe6cc', 'flat', .9, .05, emit=.3), [tuple(v) for v in q])
+        g.face(mat('#efe6cc', 'flat', .9, .05, emit=.3), [tuple(v) for v in q][::-1])
         for tt in (.3, .55, .8): 
             pm = p0 + (p1 - p0) * tt; g.beam(mfr, tuple(pm + perp * .02), tuple(pm + perp * .17), .018)
         g.beam(mfr, tuple(p0 + perp * .17), tuple(p1 + perp * .17), .018)
@@ -368,7 +368,7 @@ def build_ship(ctr):
                 for j in range(nz):
                     def P(i_, j_): 
                         u = i_ / nx; v = j_ / nz; return (x + .1 * math.sin(u * math.pi) * math.sin(v * math.pi * .9 + .15) + .02, cy - sx / 2 + sx * u, z + hh - hh * v)
-                    mm = mat('#d6322a', 'flat', .85, .05) if band and j == 2 else mat('#f0e6c8', 'noise', .9, .05, col2='#d0c4a0', scale=.4)
+                    mm = mat('#d6322a', 'flat', .85, .05, emit=.25) if band and j == 2 else mat('#f4ead0', 'flat', .9, .05, emit=.45)
                     g.face(mm, [P(i, j), P(i + 1, j), P(i + 1, j + 1), P(i, j + 1)]); g.face(mm, [P(i, j), P(i + 1, j), P(i + 1, j + 1), P(i, j + 1)][::-1])
         g.face(mat('#d8a830', 'flat'), [(x, cy, h), (x, cy, h - .09), (x - .22, cy + .02, h - .045)])
     mast(cx - .02, 1.45, [(.45, .42, .5, True), (1.0, .32, .38, False)])

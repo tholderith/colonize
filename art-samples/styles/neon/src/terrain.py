@@ -53,14 +53,13 @@ def finish(rgb, X, Y, name):
     W, H = rgb.shape[:2]
     msk = (np.abs(X - 0.5) + np.abs(Y - 0.5) <= 0.5 + 0.045)   # slight overscan
     al = msk.astype('float32')
-    arr = np.concatenate([np.clip(rgb, 0, 1), al[..., None]], -1)
+    arr = np.concatenate([np.clip(rgb, 0, 1), al[..., None]], -1).astype('float32')
     # premultiplied downsample
     pm = arr.copy(); pm[..., :3] *= pm[..., 3:4]
     ch = [np.asarray(Image.fromarray(pm[..., c].copy(), 'F').resize((TW, TH), Image.LANCZOS)) for c in range(4)]
     pm = np.stack(ch, -1).clip(0, 1); a = pm[..., 3:4]
     col = np.where(a > 1e-4, pm[..., :3] / np.maximum(a, 1e-4), 0)
-    a = (a > 0.01) * np.minimum(1.0, a * 1.0 + (a > 0.01))      # hard-edge alpha (opaque inside overscan)
-    a = np.where(msk_dw(a), 1.0, 0.0) if False else np.clip(a, 0, 1)
+    col = np.clip(col, 0, 1); a = np.clip(a * 1.6, 0, 1)
     Image.fromarray((np.concatenate([col, a], -1) * 255 + 0.5).astype('uint8'), 'RGBA').save(os.path.join(OUT, name + '.png'))
 
 def streaks(px, py, seed, ncol, scale=0.35):

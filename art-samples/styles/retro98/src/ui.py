@@ -88,11 +88,11 @@ def topbar():
     text(d, (78, 15), 'Port Halcyon', fb, Gd(6), C('night', 0), 'mm'); rivet(d, 7, 5); rivet(d, 142, 5); rivet(d, 7, 21); rivet(d, 142, 21)
     x = 166
     for k, (ic, v) in enumerate(RES):
-        w = 84 if k else 88
+        w = 68 if k else 72
         bevel(d, (x, 5, x + w, 26), S(4), S(10), S(0), inset=True); d.rectangle((x + 2, 7, x + w - 2, 24), fill=C('night', .12))
         d.line((x + 2, 7, x + w - 2, 7), fill=C('night', 0))
         bevel(d, (x + 3, 8, x + 18, 23), S(6), S(9), S(2), inset=False); icon(img, ic, x + 5, 10)
-        text(d, (x + w - 5, 15), v, fb, S(11), C('night', 0), 'rm'); x += w + 6
+        text(d, (x + w - 5, 15), v, fb, S(11), C('night', 0), 'rm'); x += w + 5
     # date + pause
     bevel(d, (x + 6, 4, x + 152, 26), S(3), S(9), S(0)); d.rectangle((x + 9, 7, x + 149, 23), fill=C('night', .1))
     text(d, (x + 80, 15), 'Spring, A.D. 1612', fs, S(10), C('night', 0), 'mm')
@@ -117,20 +117,20 @@ def panel():
     img.paste(Image.new('RGB', (1, 1)), (0, 0)); grain(img, (11, 11, W - 12, 26), 'wood', 1, 5, 11)
     text(d, (W // 2, 19), 'Harbour Warehouse', fb, Gd(7), C('night', 0), 'mm')
     d.line((10, 30, W - 11, 30), fill=S(1)); d.line((10, 31, W - 11, 31), fill=S(10))
-    text(d, (14, 36), 'Stock held in store:', fi, S(0))
+    text(d, (14, 34), 'Stock held in store:', fi, S(0))
     rows = [('wood', 'Timber', 342, .68), ('brick', 'Bricks', 118, .24), ('tools', 'Tools', 24, .08), ('food', 'Provisions', 530, 1.0), ('cloth', 'Cloth', 76, .3)]
-    y = 48
+    y = 46
     for ic, nm, v, fr in rows:
-        d.rectangle((12, y, W - 13, y + 14), fill=S(3)); d.line((12, y + 14, W - 13, y + 14), fill=S(10)); d.line((W - 13, y, W - 13, y + 14), fill=S(10))
+        d.rectangle((12, y, W - 13, y + 14), fill=C('night', .22)); d.line((12, y + 14, W - 13, y + 14), fill=S(10)); d.line((W - 13, y, W - 13, y + 14), fill=S(10)); d.line((12, y, W - 13, y), fill=C('night', 0))
         bevel(d, (14, y + 1, 27, y + 13), C('night', .1), S(8), S(0), 1, True); icon(img, ic, 15, y + 1) if False else None
         sub = Image.new('RGB', (12, 12)); icon(sub, ic, 0, 0); img.paste(sub, (15, y + 1))
-        text(d, (32, y + 7), nm, fs, S(0), None, 'lm')
+        text(d, (32, y + 7), nm, fs, S(10), None, 'lm')
         bx0, bx1 = 92, 134; d.rectangle((bx0, y + 4, bx1, y + 10), fill=C('night', .1), outline=S(0))
         wfill = int((bx1 - bx0 - 2) * fr); 
         if wfill > 0:
             d.rectangle((bx0 + 1, y + 5, bx0 + 1 + wfill, y + 9), fill=C('grass', .55 if fr < 1 else .3) if fr < .9 else C('orange', .6)); d.line((bx0 + 1, y + 5, bx0 + 1 + wfill, y + 5), fill=C('grass', .85) if fr < .9 else C('orange', 1))
-        text(d, (W - 16, y + 7), str(v), fb, S(0), None, 'rm'); y += 17
+        text(d, (W - 16, y + 7), str(v), fb, Gd(6), None, 'rm'); y += 16
     d.line((10, y + 1, W - 11, y + 1), fill=S(1)); d.line((10, y + 2, W - 11, y + 2), fill=S(10))
-    text(d, (14, y + 5), 'Capacity', fi, S(0)); text(d, (W - 14, y + 5), '1090 / 1500', fs, S(0), None, 'ra')
+    text(d, (14, y + 6), 'Capacity', fi, S(0)); text(d, (W - 14, y + 6), '1090 / 1500', fs, S(0), None, 'ra')
     img.resize((W * 2, H * 2), Image.NEAREST).convert('RGBA').save(f'{OUT}/ui_panel.png')
 if __name__ == '__main__': topbar(); panel()

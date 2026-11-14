@@ -91,7 +91,7 @@ def shallow(k):
     t = 0.38 + (n1 - .5) * .4 + ca ** 3 * .24
     c = ramp('lagoon', t); c = shade(c, lightgrad(n1, 1.5), .10)
     cm, ridge, env = crest(950 + k, 0.90, 0.2, 2, U, V); c[cm & (env > .55)] = ramp('foam', .3)
-    sd = pn(990 + k, 4, 1.0) > .66; c[sd & ~cm] = ramp('sand', .35 + .2 * n2[sd & ~cm]) * .55 + ramp('lagoon', .5) * .45  # sandy patches
+    sd = pn(990 + k, 4, 1.0) > .70; c[sd & ~cm] = ramp('sand', .55 + .2 * n2[sd & ~cm]) * .3 + ramp('lagoon', .75) * .7  # sandy patches
     return c
 
 SPEC = {'grass': (grass, 4), 'sand': (sand, 3), 'road': (road, 2), 'deep': (deep, 4), 'shallow': (shallow, 4)}

@@ -1,0 +1,211 @@
+{
+ "name": "Neon Foundry",
+ "background": "#04060b",
+ "filter": "linear",
+ "sprites": {
+  "deep_water": {
+   "files": [
+    "deep_0.png",
+    "deep_1.png",
+    "deep_2.png",
+    "deep_3.png",
+    "deep_4.png",
+    "deep_5.png"
+   ],
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "shallow_water": {
+   "files": [
+    "shallow_0.png",
+    "shallow_1.png",
+    "shallow_2.png",
+    "shallow_3.png",
+    "shallow_4.png",
+    "shallow_5.png"
+   ],
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "sand": {
+   "files": [
+    "sand_0.png",
+    "sand_1.png",
+    "sand_2.png",
+    "sand_3.png",
+    "sand_4.png",
+    "sand_5.png",
+    "sand_6.png",
+    "sand_7.png"
+   ],
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "grass": {
+   "files": [
+    "grass_0.png",
+    "grass_1.png",
+    "grass_2.png",
+    "grass_3.png",
+    "grass_4.png",
+    "grass_5.png",
+    "grass_6.png",
+    "grass_7.png"
+   ],
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "road": {
+   "files": [
+    "road_0.png",
+    "road_1.png",
+    "road_2.png",
+    "road_3.png",
+    "road_4.png",
+    "road_5.png",
+    "road_6.png",
+    "road_7.png"
+   ],
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "tree": {
+   "files": [
+    "tree_0.png",
+    "tree_1.png",
+    "tree_2.png",
+    "tree_3.png"
+   ],
+   "anchor": [
+    125,
+    167
+   ]
+  },
+  "rock": {
+   "files": [
+    "rock_0.png",
+    "rock_1.png"
+   ],
+   "anchor": [
+    135,
+    133
+   ]
+  },
+  "house": {
+   "files": [
+    "house_0.png",
+    "house_1.png",
+    "house_2.png",
+    "house_3.png"
+   ],
+   "anchor": [
+    142,
+    188
+   ]
+  },
+  "colonist": {
+   "files": [
+    "colonist_0.png",
+    "colonist_1.png"
+   ],
+   "anchor": [
+    66,
+    75
+   ]
+  },
+  "farmhouse": {
+   "files": [
+    "farmhouse.png"
+   ],
+   "anchor": [
+    150,
+    187
+   ]
+  },
+  "windmill": {
+   "files": [
+    "windmill.png"
+   ],
+   "anchor": [
+    173,
+    243
+   ]
+  },
+  "lumberjack": {
+   "files": [
+    "lumberjack.png"
+   ],
+   "anchor": [
+    149,
+    186
+   ]
+  },
+  "chapel": {
+   "files": [
+    "chapel.png"
+   ],
+   "anchor": [
+    250,
+    326
+   ]
+  },
+  "warehouse": {
+   "files": [
+    "warehouse.png"
+   ],
+   "anchor": [
+    250,
+    312
+   ]
+  },
+  "ship": {
+   "files": [
+    "ship.png"
+   ],
+   "anchor": [
+    130,
+    179
+   ]
+  },
+  "cart": {
+   "files": [
+    "cart.png"
+   ],
+   "anchor": [
+    66,
+    88
+   ]
+  },
+  "wheat_field": {
+   "files": [
+    "wheat_field.png"
+   ],
+   "anchor": [
+    130,
+    154
+   ],
+   "flat": true
+  },
+  "pier": {
+   "files": [
+    "pier.png"
+   ],
+   "anchor": [
+    76,
+    96
+   ],
+   "flat": true
+  }
+ },
+ "overlays": []
+}

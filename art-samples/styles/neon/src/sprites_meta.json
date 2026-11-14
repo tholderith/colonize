@@ -1,0 +1,233 @@
+{
+ "cart": {
+  "size": [
+   132,
+   102
+  ],
+  "anchor": [
+   66,
+   88
+  ],
+  "flat": false
+ },
+ "chapel": {
+  "size": [
+   500,
+   391
+  ],
+  "anchor": [
+   250,
+   326
+  ],
+  "flat": false
+ },
+ "colonist_0": {
+  "size": [
+   132,
+   88
+  ],
+  "anchor": [
+   66,
+   75
+  ],
+  "flat": false
+ },
+ "colonist_1": {
+  "size": [
+   132,
+   88
+  ],
+  "anchor": [
+   66,
+   75
+  ],
+  "flat": false
+ },
+ "farmhouse": {
+  "size": [
+   300,
+   252
+  ],
+  "anchor": [
+   150,
+   187
+  ],
+  "flat": false
+ },
+ "house_0": {
+  "size": [
+   283,
+   253
+  ],
+  "anchor": [
+   142,
+   188
+  ],
+  "flat": false
+ },
+ "house_1": {
+  "size": [
+   283,
+   253
+  ],
+  "anchor": [
+   142,
+   188
+  ],
+  "flat": false
+ },
+ "house_2": {
+  "size": [
+   283,
+   253
+  ],
+  "anchor": [
+   142,
+   188
+  ],
+  "flat": false
+ },
+ "house_3": {
+  "size": [
+   283,
+   253
+  ],
+  "anchor": [
+   142,
+   188
+  ],
+  "flat": false
+ },
+ "lumberjack": {
+  "size": [
+   299,
+   241
+  ],
+  "anchor": [
+   149,
+   186
+  ],
+  "flat": false
+ },
+ "pier": {
+  "size": [
+   153,
+   108
+  ],
+  "anchor": [
+   76,
+   96
+  ],
+  "flat": true
+ },
+ "rock_0": {
+  "size": [
+   218,
+   155
+  ],
+  "anchor": [
+   135,
+   133
+  ],
+  "flat": false
+ },
+ "rock_1": {
+  "size": [
+   218,
+   155
+  ],
+  "anchor": [
+   135,
+   133
+  ],
+  "flat": false
+ },
+ "ship": {
+  "size": [
+   260,
+   188
+  ],
+  "anchor": [
+   130,
+   179
+  ],
+  "flat": false
+ },
+ "tree_0": {
+  "size": [
+   275,
+   232
+  ],
+  "anchor": [
+   125,
+   167
+  ],
+  "flat": false
+ },
+ "tree_1": {
+  "size": [
+   275,
+   232
+  ],
+  "anchor": [
+   125,
+   167
+  ],
+  "flat": false
+ },
+ "tree_2": {
+  "size": [
+   275,
+   232
+  ],
+  "anchor": [
+   125,
+   167
+  ],
+  "flat": false
+ },
+ "tree_3": {
+  "size": [
+   275,
+   232
+  ],
+  "anchor": [
+   125,
+   167
+  ],
+  "flat": false
+ },
+ "warehouse": {
+  "size": [
+   500,
+   377
+  ],
+  "anchor": [
+   250,
+   312
+  ],
+  "flat": false
+ },
+ "wheat_field": {
+  "size": [
+   260,
+   158
+  ],
+  "anchor": [
+   130,
+   154
+  ],
+  "flat": true
+ },
+ "windmill": {
+  "size": [
+   348,
+   308
+  ],
+  "anchor": [
+   173,
+   243
+  ],
+  "flat": false
+ }
+}

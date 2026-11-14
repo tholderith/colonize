@@ -7,8 +7,8 @@ WORK = os.environ.get("NWORK", "/tmp/neon_work"); SS = 2
 GLOW = float(os.environ.get("NGLOW", "1.0"))
 
 def blur(arr, r):
-    chans = [np.asarray(Image.fromarray(arr[..., c].astype('float32'), 'F').filter(ImageFilter.GaussianBlur(r))) for c in range(arr.shape[2])]
-    return np.stack(chans, -1)
+    from scipy.ndimage import gaussian_filter
+    return np.stack([gaussian_filter(arr[..., c].astype('float32'), r, mode='constant') for c in range(arr.shape[2])], -1)
 
 def add_bloom(im):
     a = np.asarray(im).astype('float32') / 255.0
@@ -29,7 +29,7 @@ def add_bloom(im):
 def premul_resize(arr, size):
     rgb = arr[..., :3] * arr[..., 3:4]
     p = np.concatenate([rgb, arr[..., 3:4]], -1)
-    ch = [np.asarray(Image.fromarray(p[..., c].copy(), 'F').resize(size, Image.LANCZOS)) for c in range(4)]
+    ch = [np.asarray(Image.fromarray(p[..., c].astype('float32').copy(), 'F').resize(size, Image.LANCZOS)) for c in range(4)]
     p = np.stack(ch, -1).clip(0, 1); al = p[..., 3:4]
     col = np.where(al > 1e-4, p[..., :3] / np.maximum(al, 1e-4), 0).clip(0, 1)
     return Image.fromarray((np.concatenate([col, al], -1) * 255 + 0.5).astype('uint8'), 'RGBA')
@@ -49,7 +49,7 @@ def run(only):
         arr = add_bloom(im); W, H = im.size; cx, cy = W // 2, H // 2 + m['off']
         a8 = (arr[..., 3] > 0.02)
         ys, xs = np.nonzero(a8)
-        l, t, r, b = xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
+        l, t, r, b = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
         fw, fh = m['fw'], m['fh']
         l = min(l, cx - 64 * SS * fh - 4); r = max(r, cx + 64 * SS * fw + 4); b = max(b, cy + 2); t = min(t, cy - 32 * SS * (fw + fh) - 2)
         boxes[m['name']] = (l - cx, t - cy, r - cx, b - cy); data[m['name']] = (arr, (cx, cy), m)
