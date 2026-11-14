@@ -2,7 +2,7 @@
 periodic base field (identical edges) and add variant-specific detail only in the tile interior, so tiles seam perfectly."""
 import numpy as np, os, sys
 from PIL import Image
-HERE = os.path.dirname(os.path.abspath(__file__)); OUT = os.path.dirname(HERE)
+HERE = os.path.dirname(os.path.abspath(__file__)); OUT = os.path.join(os.path.dirname(HERE), "public", "assets")
 SSF = 2; TW, TH = 132, 68; AX, AY = 66, 66
 N = 256   # periodic lattice resolution
 
@@ -24,13 +24,6 @@ def bil(a, u, v):
     x0 %= n; y0 %= n; x1 = (x0 + 1) % n; y1 = (y0 + 1) % n
     return (a[y0, x0] * (1 - fx) * (1 - fy) + a[y0, x1] * fx * (1 - fy) + a[y1, x0] * (1 - fx) * fy + a[y1, x1] * fx * fy)
 
-def grid():
-    W, H = TW * SSF, TH * SSF
-    px, py = np.meshgrid((np.arange(W) + 0.5) / SSF, (np.arange(H) + 0.5) / SSF)
-    X = (((px - AX) / 64.0) + ((py - (AY - 64)) / 32.0)) / 2.0
-    Y = (((py - (AY - 64)) / 32.0) - ((px - AX) / 64.0)) / 2.0
-    return X, Y, px, py
-
 def smooth(e0, e1, x): t = np.clip((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t)
 def interior(X, Y, m=0.14):
     ex = np.minimum(X, 1 - X); ey = np.minimum(Y, 1 - Y)
@@ -50,19 +43,29 @@ def noise(name, seed, beta=2.0):
     if key not in NZ: NZ[key] = pnoise(seed + 131 * CUR[0], beta)
     return NZ[key]
 
-def finish(rgb, X, Y, name):
-    W, H = rgb.shape[:2]
-    msk = (np.maximum(np.abs(X - 0.5), np.abs(Y - 0.5)) <= 0.5 + 0.04)   # slight overscan
-    al = msk.astype('float32')
-    arr = np.concatenate([np.clip(rgb, 0, 1), al[..., None]], -1).astype('float32')
-    # premultiplied downsample
-    pm = arr.copy(); pm[..., :3] *= pm[..., 3:4]
-    ch = [np.asarray(Image.fromarray(pm[..., c].copy(), 'F').resize((TW, TH), Image.LANCZOS)) for c in range(4)]
-    pm = np.stack(ch, -1).clip(0, 1); a = pm[..., 3:4]
-    col = np.where(a > 1e-4, pm[..., :3] / np.maximum(a, 1e-4), 0)
-    col = np.clip(col, 0, 1); a = np.clip(a * 1.6, 0, 1)
-    Image.fromarray((np.concatenate([col, a], -1) * 255 + 0.5).astype('uint8'), 'RGBA').save(os.path.join(OUT, name + '.png'))
 
+WALL = 14   # seawall height in px: water tiles are drawn WALL px lower than the land plane; the wall face fills the gap.
+def grid(extra=0):
+    W, H = TW * SSF, (TH + extra) * SSF
+    px, py = np.meshgrid((np.arange(W) + 0.5) / SSF, (np.arange(H) + 0.5) / SSF)
+    X = (((px - AX) / 64.0) + ((py - (AY - 64)) / 32.0)) / 2.0
+    Y = (((py - (AY - 64)) / 32.0) - ((px - AX) / 64.0)) / 2.0
+    return X, Y, px, py
+
+def save(rgb, al, name, sub='tiles'):
+    arr = np.concatenate([np.clip(rgb, 0, 1), al[..., None]], -1).astype('float32')
+    pm = arr.copy(); pm[..., :3] *= pm[..., 3:4]; H = pm.shape[0] // SSF
+    ch = [np.asarray(Image.fromarray(np.ascontiguousarray(pm[..., c]), 'F').resize((TW, H), Image.LANCZOS)) for c in range(4)]
+    pm = np.stack(ch, -1).clip(0, 1); a = pm[..., 3:4]
+    col = np.clip(np.where(a > 1e-4, pm[..., :3] / np.maximum(a, 1e-4), 0), 0, 1); a = np.clip(a * 1.6, 0, 1)
+    os.makedirs(os.path.join(OUT, sub), exist_ok=True)
+    Image.fromarray((np.concatenate([col, a], -1) * 255 + 0.5).astype('uint8'), 'RGBA').save(os.path.join(OUT, sub, name + '.png'))
+    return H
+
+def diamond_mask(X, Y, ov=(0.04, 0.04, 0.04, 0.04)):
+    """ov = overscan per edge (N,E,S,W) in tile units; X grows E, Y grows S."""
+    n, e, s, w = ov
+    return ((X >= -w) & (X <= 1 + e) & (Y >= -n) & (Y <= 1 + s)).astype('float32')
 def streaks(px, py, seed, ncol, scale=0.35):
     """vertical (screen) neon reflection streaks: coloured, used inside puddles."""
     rng = np.random.default_rng(seed)
@@ -75,120 +78,105 @@ def streaks(px, py, seed, ncol, scale=0.35):
         out += prof[..., None] * c * rng.uniform(0.4, 1.0)
     return out * scale
 
-# ------------------------------------------------------------------ types
-def asphalt(k):
-    CUR[0] = k
-    X, Y, px, py = grid()
-    base = noise('r1', 11, 2.2); fine = noise('r2', 12, 0.9); big = noise('r3', 13, 3.0)
-    h = bil(fine, X, Y) * 0.5 + bil(base, X, Y) * 0.3
-    col = np.broadcast_to(hexc('#2d323d'), X.shape + (3,)).copy()
-    col = col * (0.85 + 0.12 * bil(big, X, Y)[..., None] + 0.05 * bil(fine, X * 2, Y * 2)[..., None])
-    col *= (0.82 + 0.35 * shade(h, X, Y, 6)[..., None])
-    gr = ((np.abs(((X * 8) % 1.0) - 0.5) < 0.09) | (np.abs(((Y * 8) % 1.0) - 0.5) < 0.09)).astype('float32')
-    col *= (1 - 0.16 * gr)[..., None]
-    col += (hexc('#3a4a70') * 0.10 * (1 - smooth(0, 60, py - 8)))[..., None] if False else 0
-    # steel plate seams every half tile + rivets (periodic, same for all variants)
-    cu = np.abs(((X * 2) % 1.0) - 0.5); cv = np.abs(((Y * 2) % 1.0) - 0.5)
-    seam = (np.minimum(0.5 - cu, 0.5 - cv) < 0.012).astype('float32')
-    col = col * (1 - 0.35 * seam[..., None])
-    rv = ((((X * 2) % 1.0 - 0.07) ** 2 + ((Y * 2) % 1.0 - 0.07) ** 2) < 0.0007).astype('float32')
-    col += rv[..., None] * 0.10
-    # lane studs: amber at tile centre + mid-edge (every tile, so any road direction reads)
-    for (cx, cy) in ((0.5, 0.5), (0.0, 0.5), (1.0, 0.5), (0.5, 0.0), (0.5, 1.0)):
-        d = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
-        col += (np.exp(-(d / 0.034) ** 2))[..., None] * hexc('#ffb030') * 1.1
-        col += (np.exp(-(d / 0.07) ** 2))[..., None] * hexc('#ff8a10') * 0.10
-    # painted dashes along both axes through centre (broken yellow), faint
-    for ax in (0, 1):
-        t = X if ax == 0 else Y; o = Y if ax == 0 else X
-        dash = (np.abs(o - 0.5) < 0.02) & (((t * 4) % 1.0) < 0.5) & (((t * 4) % 1.0) > 0.12) & (np.abs(t - 0.5) > 0.12)
-        col = np.where(dash[..., None], col * 0.3 + hexc('#b08c1c') * 0.7, col)
-    # puddles (interior only; variant specific) with neon reflection
-    pn = pnoise(100 + k, 2.4, 128)
-    pud = smooth(0.6, 1.0, bil(pn, X, Y)) * interior(X, Y, 0.14) * (1 if k % 3 else 0.5)
-    refl = streaks(px, py, 50 + k, 5)
-    pcol = hexc('#0c1018') + refl + hexc('#2a3050') * 0.12 * (1 - smooth(0, 60, py - 10))[..., None] + hexc('#40507a') * 0.06
-    col = mixc(col, pcol, pud * 0.85)
-    finish(col, X, Y, f'road_{k}')
 
-def concrete(k):  # 'sand' -> slag/concrete shore
-    X, Y, px, py = grid()
-    n1 = noise('s1', 21, 2.0); n2 = noise('s2', 22, 0.8); n3 = noise('s3', 23, 3.0)
-    h = bil(n2, X * 2, Y * 2) * 0.4 + bil(n1, X, Y) * 0.4
-    col = np.broadcast_to(hexc('#4b4d50'), X.shape + (3,)).copy()
-    wI = 0.3 + 0.7 * interior(X, Y, 0.3)
-    tone = 0.88 + 0.10 * bil(n3, X, Y) * wI + 0.05 * bil(n2, X, Y)
-    col = col * tone[..., None] * (0.8 + 0.4 * shade(h, X, Y, 5)[..., None])
-    col = mixc(col, col * hexc('#c8a070') * 1.5, smooth(0.5, 1.4, bil(n1, X * 1.0 + 0.3, Y * 1.0)) * 0.12 * wI)    # rust bleed
-    # expansion joints on tile edges (deliberate slab grid)
-    ex = np.minimum(X, 1 - X); ey = np.minimum(Y, 1 - Y); e = np.minimum(ex, ey)
-    col *= (1 - 0.30 * (e < 0.009))[..., None]
-    # variant-specific: oil stains, hazard-paint scuffs, cracks
-    rng = np.random.default_rng(300 + k)
-    st = smooth(0.9, 1.5, bil(pnoise(400 + k, 2.4, 128), X, Y)) * interior(X, Y, 0.2)
-    col = mixc(col, col * 0.7 + hexc('#0e1014') * 0.15, st * 0.4)
-    if k % 4 == 1:
-        ang = np.abs(((X + Y) * 7) % 1.0 - 0.5) < 0.25
-        band = (np.abs(X - 0.5) < 0.30) & (np.abs(Y - 0.2) < 0.045) & ang
-        col = np.where(band[..., None], hexc('#a98516') * 0.55, col)
-    finish(col, X, Y, f'sand_{k}')
-
-def moss(k):  # 'grass' -> scrubby dead ground / moss over concrete
-    X, Y, px, py = grid()
+def land_rgb(X, Y, px, py):
     n1 = noise('g1', 31, 2.0); n2 = noise('g2', 32, 0.7); n3 = noise('g3', 33, 3.2); n4 = noise('g4', 34, 1.4)
     h = bil(n2, X * 2, Y * 2) * 0.5 + bil(n4, X, Y) * 0.4
-    conc = hexc('#33362f'); mo = hexc('#2f4a26'); mo2 = hexc('#566a2c'); dead = hexc('#3a3224')
-    wI = 0.25 + 0.75 * interior(X, Y, 0.3)
-    m = 0.5 + (smooth(-0.4, 0.8, bil(n3, X, Y)) - 0.5) * wI * 0.8; m2 = 0.5 + (smooth(0.0, 1.3, bil(n1, X * 1.0, Y * 1.0 + 0.2)) - 0.5) * wI
-    col = mixc(np.broadcast_to(conc, X.shape + (3,)).copy(), mixc(np.broadcast_to(mo, X.shape + (3,)).copy(), np.broadcast_to(dead, X.shape + (3,)).copy(), m2 * 0.7), m)
-    col = mixc(col, np.broadcast_to(mo2, X.shape + (3,)).copy(), smooth(0.7, 1.6, bil(n2, X * 1.0 + 0.5, Y)) * 0.35 * m)
-    col *= (0.7 + 0.6 * shade(h, X, Y, 6)[..., None]) * (0.9 + 0.1 * bil(n2, X * 3, Y * 3)[..., None])
-    # dim bioluminescent speckle (variant specific interior)
-    rng = np.random.default_rng(500 + k)
-    for _ in range(6 if k % 2 else 3):
+    conc = hexc('#3a3d38'); mo = hexc('#37592b'); mo2 = hexc('#6a8434'); dead = hexc('#453b29')
+    sh = X.shape + (3,); B = lambda c: np.broadcast_to(c, sh).copy()
+    m = 0.5 + (smooth(-0.4, 0.8, bil(n3, X, Y)) - 0.5) * 0.8; m2 = 0.5 + (smooth(0.0, 1.3, bil(n1, X, Y + 0.2)) - 0.5)
+    col = mixc(B(conc), mixc(B(mo), B(dead), m2 * 0.7), m)
+    col = mixc(col, B(mo2), smooth(0.7, 1.6, bil(n2, X + 0.5, Y)) * 0.35 * m)
+    col *= (0.75 + 0.6 * shade(h, X, Y, 6)[..., None]) * (0.9 + 0.1 * bil(n2, X * 3, Y * 3)[..., None])
+    rng = np.random.default_rng(500)
+    for _ in range(4):   # dim bioluminescent speckle
         cx, cy = rng.uniform(0.2, 0.8, 2); d = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
         col += np.exp(-(d / 0.012) ** 2)[..., None] * hexc('#3cffb0') * 0.45 + np.exp(-(d / 0.06) ** 2)[..., None] * hexc('#20a080') * 0.05
-    # puddle patches
-    pud = smooth(1.1, 1.5, bil(pnoise(600 + k, 2.4, 128), X, Y)) * interior(X, Y, 0.18) * (k % 2)
-    col = mixc(col, hexc('#0b1118') + streaks(px, py, 700 + k, 3, 0.25) + hexc('#303a58') * 0.06, pud * 0.8)
-    finish(col, X, Y, f'grass_{k}')
+    return col
 
-def sea(kind, k):
-    CUR[0] = k + (40 if kind == 'deep' else 0)
+def land():
+    X, Y, px, py = grid(); save(land_rgb(X, Y, px, py), diamond_mask(X, Y), 'land'); return 'land'
+
+def road():
+    """M0 revision: lighter cool steel plating + bright amber studs/dashes + dark tile-edge bevel => reads clearly on dark moss."""
     X, Y, px, py = grid()
+    big = noise('r3', 13, 3.0); fine = noise('r2', 12, 0.9); base = noise('r1', 11, 2.2)
+    h = bil(fine, X, Y) * 0.5 + bil(base, X, Y) * 0.3
+    col = np.broadcast_to(hexc('#6b7485'), X.shape + (3,)).copy()
+    col = col * (0.88 + 0.12 * bil(big, X, Y)[..., None] + 0.04 * bil(fine, X * 2, Y * 2)[..., None])
+    col *= (0.85 + 0.3 * shade(h, X, Y, 6)[..., None])
+    cu = np.abs(((X * 2) % 1.0) - 0.5); cv = np.abs(((Y * 2) % 1.0) - 0.5)
+    seam = (np.minimum(0.5 - cu, 0.5 - cv) < 0.012).astype('float32'); col = col * (1 - 0.4 * seam[..., None])
+    rv = ((((X * 2) % 1.0 - 0.07) ** 2 + ((Y * 2) % 1.0 - 0.07) ** 2) < 0.0007).astype('float32'); col += rv[..., None] * 0.12
+    e = np.minimum(np.minimum(X, 1 - X), np.minimum(Y, 1 - Y)); col *= (1 - 0.45 * smooth(0.05, 0.0, e))[..., None]   # dark edge bevel
+    for ax in (0, 1):    # broken yellow dashes along both axes
+        t = X if ax == 0 else Y; o = Y if ax == 0 else X
+        dash = (np.abs(o - 0.5) < 0.022) & (((t * 4) % 1.0) < 0.55) & (((t * 4) % 1.0) > 0.1) & (np.abs(t - 0.5) > 0.12)
+        col = np.where(dash[..., None], hexc('#f0c030'), col)
+    for (cx, cy) in ((0.5, 0.5), (0.0, 0.5), (1.0, 0.5), (0.5, 0.0), (0.5, 1.0)):
+        d = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
+        col += np.exp(-(d / 0.04) ** 2)[..., None] * hexc('#ffc040') * 1.2 + np.exp(-(d / 0.08) ** 2)[..., None] * hexc('#ff8a10') * 0.12
+    save(col, diamond_mask(X, Y), 'road'); return 'road'
+
+def water(kind):
+    deep = kind == 'deep'; CUR[0] = 40 if deep else 0
+    X, Y, px, py = grid(WALL)
+    # water is drawn WALL px lower than the land plane: shift the lattice so the diamond sits at rows [WALL, WALL+64)
+    X, Y, px, py = grid(0); pad = WALL * SSF
     n1 = noise('w1', 41, 2.0); n2 = noise('w2', 42, 1.0); n3 = noise('w3', 43, 3.0); ph = noise('w4', 44, 2.6)
-    deep = kind == 'deep'
-    c0 = hexc('#07121d') if deep else hexc('#0f2a33'); c1 = hexc('#0c2536') if deep else hexc('#1d4a52')
-    wI = 0.2 + 0.8 * interior(X, Y, 0.3)
-    t = (0.5 + (smooth(-1.0, 1.4, bil(n3, X * 2, Y * 2)) - 0.5) * 0.6 * wI); col = mixc(np.broadcast_to(c0, X.shape + (3,)).copy(), np.broadcast_to(c1, X.shape + (3,)).copy(), t)
-    # ripples: stretched along screen-x diagonal => sin of periodic phase field
-    p = bil(n1, X * 2, Y * 2) * 2.0 + (X + Y) * 6.0 * np.pi * 0 + bil(n2, X * 2, Y * 2)
-    rip = 0.5 + 0.5 * np.sin(p * 5.0)
+    c0 = hexc('#07121d') if deep else hexc('#12323c'); c1 = hexc('#0c2536') if deep else hexc('#235a64')
+    sh = X.shape + (3,)
+    t = 0.5 + (smooth(-1.0, 1.4, bil(n3, X * 2, Y * 2)) - 0.5) * 0.6
+    col = mixc(np.broadcast_to(c0, sh).copy(), np.broadcast_to(c1, sh).copy(), t)
+    p = bil(n1, X * 2, Y * 2) * 2.0 + bil(n2, X * 2, Y * 2); rip = 0.5 + 0.5 * np.sin(p * 5.0)
     col *= (0.88 + 0.22 * rip[..., None] ** 2)
-    # oily iridescent sheen (periodic phase)
-    phase = bil(ph, X, Y) * 0.35
-    irid = 0.5 + 0.5 * np.cos(2 * np.pi * (phase[..., None] + np.array([0.0, 0.33, 0.67], 'float32')))
-    sh = smooth(0.2, 1.6, bil(n3, X * 2 + 0.4, Y * 2 + 0.1)) * (0.5 + 0.5 * rip) * wI
-    col += irid * sh[..., None] * (0.07 if deep else 0.06) * hexc('#ffffff')
-    # specular glints of far neon, variant-specific interior
-    rng = np.random.default_rng(900 + k + (50 if deep else 0))
-    cols = [hexc('#22eaff'), hexc('#ff2ea6'), hexc('#ffa622')]
-    inter = interior(X, Y, 0.2)
-    for _ in range(2 + k % 3):
-        cx = rng.uniform(25, 105); cy = rng.uniform(14, 52); w = rng.uniform(5, 16); hh = rng.uniform(0.6, 1.3); c = cols[rng.integers(0, 3)]
-        gl = np.exp(-(((px - cx) / w) ** 2 + ((py - cy) / 0.9) ** 2)) * hh * 0.22
-        col += gl[..., None] * c * inter[..., None]
-    if k == 3:   # glowing buoy (centre of tile)
-        for (bx, by, c, r) in ((0.5, 0.5, hexc('#ff3a2a') if deep else hexc('#45ff86'), 1.0),):
-            d = np.sqrt((X - bx) ** 2 + (Y - by) ** 2)
-            col += np.exp(-(d / 0.055) ** 2)[..., None] * c * 0.35 + np.exp(-(d / 0.016) ** 2)[..., None] * c * 1.6
-            col *= (1 - 0.5 * np.exp(-((d - 0.06) / 0.03) ** 2)[..., None] * 0)
-    if not deep:   # concrete shoal ripples / foam lines faintly
-        col += (smooth(0.6, 1.3, bil(n2, X, Y * 1.0)) * 0.04)[..., None] * hexc('#5ac0b0')
-    finish(col, X, Y, ('deep_' if deep else 'shallow_') + str(k))
+    irid = 0.5 + 0.5 * np.cos(2 * np.pi * (bil(ph, X, Y)[..., None] * 0.35 + np.array([0.0, 0.33, 0.67], 'float32')))
+    col += irid * (smooth(0.2, 1.6, bil(n3, X * 2 + 0.4, Y * 2 + 0.1)) * (0.5 + 0.5 * rip))[..., None] * 0.06
+    rng = np.random.default_rng(900 + deep); cols = [hexc('#22eaff'), hexc('#ff2ea6'), hexc('#ffa622')]; inter = interior(X, Y, 0.2)
+    for _ in range(3):
+        cx = rng.uniform(25, 105); cy = rng.uniform(14, 52); w = rng.uniform(5, 16)
+        col += (np.exp(-(((px - cx) / w) ** 2 + ((py - cy) / 0.9) ** 2)) * 0.25)[..., None] * cols[rng.integers(0, 3)] * inter[..., None]
+    full = np.zeros((X.shape[0] + pad, X.shape[1], 3), 'float32'); al = np.zeros(full.shape[:2], 'float32')
+    full[pad:] = col; al[pad:] = diamond_mask(X, Y, (0.03,) * 4)
+    save(full, al, 'deep_water' if deep else 'shallow_water')
+
+def wall_tex(t, d, face):
+    """concrete seawall: t = along-edge coordinate in tile units (periodic, period 1), d = depth px 0..WALL."""
+    nz = pnoise(77 + face, 1.6, 256)
+    n = bil(nz, t * 1.0, np.full_like(t, 0.25)) * 0.0
+    nn = pnoise(80 + face, 2.0, 256); a = bil(nn, t % 1.0, d / 40.0 % 1.0)
+    base = hexc('#6a6c70') if face == 0 else hexc('#5a6068')
+    col = base * (0.85 + 0.1 * a[..., None])
+    col = col * np.array([1.12, 0.98, 0.84], 'float32') if face == 0 else col * np.array([0.84, 0.97, 1.15], 'float32')   # sodium on E face, moon on S face
+    joint = (np.abs(((t * 4) % 1.0) - 0.0) < 0.012) | (np.abs(((t * 4) % 1.0) - 1.0) < 0.012)
+    col = np.where(joint[..., None], col * 0.6, col)
+    col *= (0.65 + 0.35 * smooth(0, WALL, d))[..., None] ** -1 * 0 + (1.0 - 0.45 * smooth(WALL * 0.45, WALL, d))[..., None]  # darken toward waterline
+    kerb = smooth(5.0, 0.0, d)                      # lit kerb: cyan light spilling down from the lip
+    col += kerb[..., None] * hexc('#22eaff') * 0.55
+    col = np.where((d > WALL - 1.6)[..., None], col * 0.5 + hexc('#38a0b0') * 0.35, col)   # wet foam line at the water
+    return col
+
+def shore(mask):
+    """mask bits: N=1 E=2 S=4 W=8 (1 = that neighbour is water)."""
+    X, Y, px, py = grid(WALL)
+    base = land_rgb(X, Y, px, py)
+    ov = tuple(0.0 if mask & b else 0.04 for b in (1, 2, 4, 8))
+    top = diamond_mask(X, Y, ov); col = base.copy(); al = top.copy()
+    kw = 0.05    # lit kerb strip on the top face along every water-facing edge
+    for bit, dist in ((1, Y), (2, 1 - X), (4, 1 - Y), (8, X)):
+        if mask & bit:
+            lip = smooth(kw, 0.0, dist); core = smooth(0.016, 0.0, dist)
+            col = col * (1 - 0.35 * lip[..., None]) + core[..., None] * hexc('#9af4ff') * 0.9 + lip[..., None] * hexc('#22eaff') * 0.18
+    cx, cy = AX, AY - 32
+    if mask & 2:   # E wall face: below the E->S edge
+        Ye = 1 - (px - cx) / 64.0; d = py - (cy + 32 * Ye); m = (px >= cx) & (px <= cx + 64) & (d >= 0) & (d < WALL)
+        wc = wall_tex(np.clip(Ye, 0, 1), np.clip(d, 0, WALL), 0); col = np.where(m[..., None], wc, col); al = np.maximum(al, m.astype('float32'))
+    if mask & 4:   # S wall face: below the S->W edge
+        Xs = 1 - (cx - px) / 64.0; d = py - (cy + 32 * Xs); m = (px >= cx - 64) & (px <= cx) & (d >= 0) & (d < WALL)
+        wc = wall_tex(np.clip(Xs, 0, 1), np.clip(d, 0, WALL), 1); col = np.where(m[..., None], wc, col); al = np.maximum(al, m.astype('float32'))
+    save(col, al, 'shore_%d' % mask)
 
 if __name__ == '__main__':
-    NV = 8
-    for k in range(NV): asphalt(k); concrete(k); moss(k)
-    for k in range(6): sea('deep', k); sea('shallow', k)
+    land(); road(); water('deep'); water('shallow')
+    for k in range(16): shore(k)
     print('terrain done')
