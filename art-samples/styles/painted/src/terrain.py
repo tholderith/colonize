@@ -31,12 +31,12 @@ def alpha_mask(u, v):
 
 def base(kind, u, v):
     """shared (variant-independent) large-scale colour -> seamless."""
-    n = pnoise(u, v, 3, 11) * 1.0 + pnoise(u, v, 6, 12) * .6 + pnoise(u, v, 12, 13) * .35
+    n = pnoise(u, v, 3, 11) * .25 + pnoise(u, v, 6, 12) * .45 + pnoise(u, v, 12, 13) * .6 + pnoise(u, v, 20, 18) * .35
     return n
 
 PAL = {
     'deep': ('#1f5f7a', '#17506b', '#2a7390'),
-    'shallow': ('#4fb3b4', '#3aa0aa', '#7ad0c2'),
+    'shallow': ('#52aeb0', '#3f9ba6', '#74c8bd'),
     'sand': ('#e4cd96', '#d4b87e', '#f0dfae'),
     'grass': ('#6e9a46', '#5a8a3c', '#8bb352'),
     'road': ('#b08a5c', '#9a774c', '#c7a574'),
@@ -55,7 +55,7 @@ def make(kind, variant):
         # horizontal-ish painted wave bands (iso-aligned), periodic
         w = np.sin((u + v) * 2 * math.pi * 3 + pnoise(u, v, 4, 15) * 6) * .5 + .5
         k = 18 if kind == 'deep' else 14
-        col = col + (w[..., None] - .5) * k * np.array([.6, 1, 1])
+        col = col + (w[..., None] - .5) * k * .6 * np.array([.6, 1, 1])
     if kind == 'sand':
         rip = np.sin((u - v) * 2 * math.pi * 4 + pnoise(u, v, 5, 16) * 5)
         col = col + rip[..., None] * 4

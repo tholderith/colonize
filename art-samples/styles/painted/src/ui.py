@@ -195,8 +195,8 @@ def panel(W=360, Hh=300):
         col = (106, 154, 64, 255) if fr > .25 else (200, 100, 60, 255)
         d.rounded_rectangle([x0 + 3, y + 15, x0 + 3 + (x1 - x0 - 6) * fr, y + 35], radius=5, fill=col)
         d.text((pw - 12 * k, y + 6), str(v), font=font(34), fill=(60, 36, 14, 255), anchor='ra')
-        d.line([(12 * k, y + 70), (pw - 12 * k, y + 70)], fill=(150, 116, 70, 110), width=1)
-        y += 84
+        d.line([(12 * k, y + 62), (pw - 12 * k, y + 62)], fill=(150, 116, 70, 110), width=1)
+        y += 72
     wood.paste(pap, (m, m))
     wd = ImageDraw.Draw(wood)
     # inner dark inset line + frame bevel
