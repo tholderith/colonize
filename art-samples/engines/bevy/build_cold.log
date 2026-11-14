@@ -481,3 +481,12 @@
    Compiling wgpu-naga-bridge v30.0.2
    Compiling lexical v7.0.5
    Compiling annotate-snippets v0.12.18
+   Compiling wgsl-types v0.6.0
+   Compiling ordered-float v5.5.1
+   Compiling serde_spanned v1.1.3
+   Compiling renderdoc-sys v1.1.0
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling toml_writer v1.2.0+spec-1.1.0
+   Compiling anstyle-query v1.1.5
+   Compiling colorchoice v1.0.5
+   Compiling profiling v1.0.18
