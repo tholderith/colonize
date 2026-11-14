@@ -4,8 +4,8 @@
    "cart.png"
   ],
   "anchor": [
-   26,
-   60
+   34,
+   68
   ],
   "flat": false
  },
@@ -27,8 +27,8 @@
    "colonist_3.png"
   ],
   "anchor": [
-   8,
-   70
+   12,
+   82
   ],
   "flat": false
  },
@@ -50,8 +50,8 @@
    "house_3.png"
   ],
   "anchor": [
-   44,
-   104
+   50,
+   116
   ],
   "flat": false
  },
