@@ -57,7 +57,8 @@ void main(void){
   vTextureCoord = aPosition * (uOutputFrame.zw * uInputSize.zw);
 }`;
 
-const WATER_FRAG = `in vec2 vTextureCoord;
+const WATER_FRAG = `precision highp float;
+in vec2 vTextureCoord;
 out vec4 finalColor;
 uniform sampler2D uTexture;
 uniform vec4 uInputSize;
@@ -74,10 +75,10 @@ void main(void){
   vec2 d = vec2(sin(w.y*0.05 + t*0.8) + sin((w.x+w.y)*0.031 - t*0.55),
                 cos(w.x*0.043 - t*0.65) + sin((w.x-w.y)*0.037 + t*0.45)) * 1.5 * uZoom;
   vec4 c = texture(uTexture, vTextureCoord + d * uInputSize.zw);
-  float s1 = smoothstep(0.78, 1.0, sin(w.x*0.012 + w.y*0.02 + t*0.25 + sin(w.y*0.03 + t*0.3)*2.0));
-  float s2 = smoothstep(0.82, 1.0, sin(w.x*0.02 - w.y*0.015 - t*0.18 + sin(w.x*0.025)*2.5));
+  float s1 = smoothstep(0.55, 1.0, sin(w.x*0.004 + w.y*0.007 + t*0.15 + sin(w.y*0.006 + t*0.2)*1.2));
+  float s2 = smoothstep(0.6, 1.0, sin(w.x*0.006 - w.y*0.005 - t*0.1 + sin(w.x*0.007)*1.5));
   vec3 sheen = vec3(0.10, 0.50, 0.60) * s1 + vec3(0.60, 0.16, 0.50) * s2;
-  c.rgb += sheen * uSheen * c.a;
+  c.rgb += (sheen * 0.3 + vec3(0.0, 0.05, 0.05) * 1.2) * uSheen * c.a;
   finalColor = c;
 }`;
 

@@ -1,4 +1,4 @@
-import { AnimatedSprite, Application, BlurFilter, ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, TilingSprite } from 'pixi.js';
+import { AnimatedSprite, type Texture, Application, BlurFilter, ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, TilingSprite } from 'pixi.js';
 import look from '../data/look.json';
 import { buildingDef, placementError, stockAtTile } from '../sim/placement';
 import type { Building, BuildingDef, GameMap, GameState, TileClass } from '../sim/types';
@@ -206,7 +206,7 @@ export class Renderer {
         const p = gridToWorld(x, y);
         x0 = Math.min(x0, p.x - TILE_W / 2);
         x1 = Math.max(x1, p.x + TILE_W / 2);
-        y0 = Math.min(y0, p.y - 80);
+        y0 = Math.min(y0, p.y - 190); // headroom for the HUD
         y1 = Math.max(y1, p.y + TILE_H);
       }
     }
@@ -247,8 +247,11 @@ export class Renderer {
 
   /** Art key for a tile: water as-is, land variants inland, else a seawall autotile (N=1 E=2 S=4 W=8). */
   private tileKey(x: number, y: number, cls: TileClass): string {
-    if (cls === 'deep') return 'deep_water';
-    if (cls === 'shallow') return 'shallow_water';
+    if (cls === 'deep' || cls === 'shallow') {
+      const base = cls === 'deep' ? 'deep_water' : 'shallow_water';
+      const v = `${base}_${(x * 7 + y * 13) % 3}`;
+      return this.art.tiles.has(v) ? v : base;
+    }
     const mask =
       (this.isWater(x, y - 1) ? 1 : 0) | (this.isWater(x + 1, y) ? 2 : 0) | (this.isWater(x, y + 1) ? 4 : 0) | (this.isWater(x - 1, y) ? 8 : 0);
     return mask === 0 ? `land_${(x * 7 + y * 13) % 3}` : `shore_${mask}`;
@@ -323,10 +326,10 @@ export class Renderer {
   }
 
   /** Both halves of a glow: sharp additive in glowLayer, a copy in the blurred bloom layer. */
-  private makeGlow(s: Sprite2, x: number, y: number): GlowPair {
+  private makeGlow(s: Sprite2, x: number, y: number, custom?: () => Sprite): GlowPair {
     const mk = (layer: Container) => {
       const c = new Container();
-      c.addChild(this.makeSprite(s, x, y, true));
+      c.addChild(custom ? custom() : this.makeSprite(s, x, y, true));
       layer.addChild(c);
       return c;
     };
@@ -543,14 +546,22 @@ export class Renderer {
       const c = gridToWorld(b.x + fw, b.y + fh); // south corner of footprint
       const anim = this.art.anims.get(key);
       if (anim) {
-        const as = new AnimatedSprite(anim.frames);
-        as.pivot.set(art.base.anchor[0], art.base.anchor[1]);
-        as.position.set(c.x, c.y);
-        as.animationSpeed = anim.fps / 60;
-        as.gotoAndPlay(b.id % anim.frames.length);
-        node.addChild(as);
-      } else node.addChild(this.makeSprite(art.base, c.x, c.y));
-      if (art.glow) glow = this.makeGlow(art.glow, c.x, c.y);
+        const start = b.id % anim.frames.length;
+        const play = (frames: Texture[]) => {
+          const as = new AnimatedSprite(frames);
+          as.pivot.set(anim.anchor[0], anim.anchor[1]);
+          as.animationSpeed = anim.fps / 60;
+          as.gotoAndPlay(start);
+          return as;
+        };
+        node.addChild(Object.assign(play(anim.frames), { x: c.x, y: c.y }));
+        if (anim.glowFrames.length) {
+          glow = this.makeGlow(art.glow ?? art.base, c.x, c.y, () => Object.assign(play(anim.glowFrames), { blendMode: 'add' as const, x: c.x, y: c.y }));
+        } else if (art.glow) glow = this.makeGlow(art.glow, c.x, c.y);
+      } else {
+        node.addChild(this.makeSprite(art.base, c.x, c.y));
+        if (art.glow) glow = this.makeGlow(art.glow, c.x, c.y);
+      }
     } else {
       const g = new Graphics();
       drawBox(g, b.x, b.y, fw, fh, def.height, hex(def.color));

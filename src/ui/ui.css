@@ -39,7 +39,7 @@ button.active { background: rgba(251, 191, 36, 0.18); border-color: var(--amber)
 #info { bottom: 12px; left: 12px; min-width: 260px; }
 #info b { color: var(--cyan); }
 #hud { top: 54px; left: 12px; display: flex; flex-wrap: wrap; gap: 6px; max-width: 880px; padding: 6px 8px; font-size: 11px; }
-#hud .card { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 6px; align-items: center; min-width: 92px; padding: 3px 8px 3px 6px; --c: var(--amber); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); background: color-mix(in srgb, var(--c) 7%, transparent); clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); }
+#hud .card { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 6px; align-items: center; min-width: 78px; padding: 2px 6px 2px 5px; --c: var(--amber); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); background: color-mix(in srgb, var(--c) 7%, transparent); clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); }
 #hud .card .ic { grid-row: 1 / 3; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-style: normal; color: var(--c); }
 #hud .card .ic img { width: 24px; height: 24px; image-rendering: auto; filter: drop-shadow(0 0 4px var(--c)); }
 #hud .card .tag { font-size: 9px; letter-spacing: 0.05em; opacity: 0.8; }

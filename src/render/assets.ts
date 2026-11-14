@@ -10,7 +10,7 @@ interface Manifest {
   buildings?: Record<string, Entry>;
   units?: Record<string, Entry>;
   /** Optional looping animations that replace a building's base sprite, e.g. wind_turbine rotor. */
-  anims?: Record<string, { frames: (string | { file: string })[]; fps: number }>;
+  anims?: Record<string, { frames: string[]; glowFrames?: string[]; anchor?: [number, number]; fps: number }>;
 }
 
 export interface Sprite2 {
@@ -28,7 +28,7 @@ export interface Art {
   buildings: Map<string, BuildingArt>;
   /** Ships: hauler_<dir>, trader_<dir>, patrol_<dir>. */
   units: Map<string, BuildingArt>;
-  anims: Map<string, { frames: Texture[]; fps: number }>;
+  anims: Map<string, { frames: Texture[]; glowFrames: Texture[]; anchor: [number, number]; fps: number }>;
 }
 
 export async function loadArt(): Promise<Art> {
@@ -55,9 +55,10 @@ export async function loadArt(): Promise<Art> {
   };
   await Promise.all([
     ...Object.entries(manifest.anims ?? {}).map(async ([key, a]) => {
-      const bAnchor = manifest.buildings?.[key]?.anchor ?? [0, 0];
-      const frames = (await Promise.all(a.frames.map((f) => load(typeof f === 'string' ? f : f.file, bAnchor)))).flatMap((x) => (x ? [x.tex] : []));
-      if (frames.length > 1) art.anims.set(key, { frames, fps: a.fps || 8 });
+      const anchor = a.anchor ?? manifest.buildings?.[key]?.anchor ?? [0, 0];
+      const tex = async (list: string[]) => (await Promise.all(list.map((f) => load(f, anchor)))).flatMap((x) => (x ? [x.tex] : []));
+      const [frames, glowFrames] = await Promise.all([tex(a.frames), tex(a.glowFrames ?? [])]);
+      if (frames.length > 1) art.anims.set(key, { frames, glowFrames: glowFrames.length === frames.length ? glowFrames : [], anchor, fps: a.fps || 8 });
     }),
     ...Object.entries(manifest.tiles ?? {}).map(async ([key, e]) => {
       const s = await load(e.file, e.anchor);
