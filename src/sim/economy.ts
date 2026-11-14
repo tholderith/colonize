@@ -1,25 +1,65 @@
 import { ECON, GOODS, buildingDef } from './placement';
-import type { Building, BuildingDef, GameState, Status } from './types';
+import type { Building, BuildingDef, GameState, IslandState, Status, Stock } from './types';
 
 const TICKS_PER_MIN = 600;
 const FLOW_SAMPLES = 60; // one per second
 
 const centre = (b: Building, def: BuildingDef) => ({ x: b.x + def.footprint[0] / 2, y: b.y + def.footprint[1] / 2 });
 
-export function emptyStock(): Record<string, number> {
-  return Object.fromEntries(GOODS.map((g) => [g.id, 0]));
+export function emptyStock(): Stock {
+  return Object.fromEntries(GOODS.filter((g) => g.id !== 'credits').map((g) => [g.id, 0]));
 }
 
-function add(s: GameState, good: string, amt: number): void {
-  s.stock[good] = (s.stock[good] ?? 0) + amt;
-  s.acc[good] = (s.acc[good] ?? 0) + amt;
+export function newIsland(id: number, name: string, stock: Stock): IslandState {
+  return { id, name, stock: { ...emptyStock(), ...stock }, rates: emptyStock(), power: { supply: 0, demand: 0 }, flow: [], acc: {} };
 }
 
-const has = (s: GameState, inputs: Record<string, number>) => Object.entries(inputs).every(([g, n]) => (s.stock[g] ?? 0) >= n);
+/** Change an island's stock (tracked in its rolling rates). */
+export function add(isl: IslandState, good: string, amt: number): void {
+  isl.stock[good] = (isl.stock[good] ?? 0) + amt;
+  isl.acc[good] = (isl.acc[good] ?? 0) + amt;
+}
 
-/** Advance the economy by one tick. */
+/** Change global credits (tracked in the credit rate). `earned` also counts towards the Concordat levy. */
+export function addCredits(s: GameState, amt: number, earned = false): void {
+  s.credits += amt;
+  s.creditAcc += amt;
+  if (earned) s.concordat.earned += amt;
+}
+
+const has = (isl: IslandState, inputs: Record<string, number>) => Object.entries(inputs).every(([g, n]) => (isl.stock[g] ?? 0) >= n);
+
+/** Advance the economy by one tick: every island is its own economy. */
 export function economyTick(s: GameState): void {
-  const list = s.buildings.map((b) => ({ b, def: buildingDef(b.type) as BuildingDef }));
+  let lab = 0, tech = 0, labJobs = 0, techJobs = 0;
+  for (const isl of s.islands) {
+    const p = islandTick(s, isl);
+    lab += p.lab;
+    tech += p.tech;
+    labJobs += p.labJobs;
+    techJobs += p.techJobs;
+  }
+  s.pop = { laborers: lab, technicians: tech, laborerJobs: labJobs, technicianJobs: techJobs };
+
+  // Rolling per-minute rates from per-second samples.
+  if (s.tick % 10 === 9) {
+    for (const isl of s.islands) {
+      isl.flow.push(isl.acc);
+      if (isl.flow.length > FLOW_SAMPLES) isl.flow.shift();
+      isl.acc = {};
+      const rates: Record<string, number> = {};
+      for (const g of GOODS) rates[g.id] = (isl.flow.reduce((t, f) => t + (f[g.id] ?? 0), 0) * 60) / isl.flow.length;
+      isl.rates = rates;
+    }
+    s.creditFlow.push(s.creditAcc);
+    if (s.creditFlow.length > FLOW_SAMPLES) s.creditFlow.shift();
+    s.creditAcc = 0;
+    s.creditRate = (s.creditFlow.reduce((t, f) => t + f, 0) * 60) / s.creditFlow.length;
+  }
+}
+
+function islandTick(s: GameState, isl: IslandState): { lab: number; tech: number; labJobs: number; techJobs: number } {
+  const list = s.buildings.filter((b) => b.island === isl.id).map((b) => ({ b, def: buildingDef(b.type) as BuildingDef }));
   const depots = list.filter((o) => o.def.id === 'depot');
   const turbines = list.filter((o) => o.def.supply);
   const within = (o: { b: Building; def: BuildingDef }, src: typeof depots) => {
@@ -30,7 +70,7 @@ export function economyTick(s: GameState): void {
     });
   };
 
-  // Coverage and power (colony-wide pool, coverage required).
+  // Coverage and power (island-wide pool, coverage required).
   let supply = 0;
   for (const t of turbines) supply += t.def.supply ?? 0;
   let demand = 0;
@@ -41,7 +81,7 @@ export function economyTick(s: GameState): void {
     o.b.covered = within(o, depots);
     if (c && o.def.draw) demand += o.def.draw;
   }
-  s.power = { supply, demand };
+  isl.power = { supply, demand };
   const powerOk = supply >= demand;
   for (const o of list) o.b.powered = (turbCovered.get(o.b.id) ?? false) && powerOk;
 
@@ -57,7 +97,6 @@ export function economyTick(s: GameState): void {
       else labJobs += def.jobs;
     }
   }
-  s.pop = { laborers: lab, technicians: tech, laborerJobs: labJobs, technicianJobs: techJobs };
   // Each type fills its own jobs first; spare workers of either type fill the other's open jobs
   // (otherwise goods, which need technicians, could never bootstrap, and upgrades would starve laborer jobs).
   const labOwn = Math.min(lab, labJobs);
@@ -75,8 +114,8 @@ export function economyTick(s: GameState): void {
         status = 'no depot';
       } else {
         if (!b.running) {
-          if (has(s, def.inputs ?? {})) {
-            for (const [g, n] of Object.entries(def.inputs ?? {})) add(s, g, -n);
+          if (has(isl, def.inputs ?? {})) {
+            for (const [g, n] of Object.entries(def.inputs ?? {})) add(isl, g, -n);
             b.running = true;
             b.progress = 0;
           } else status = 'no input';
@@ -85,8 +124,8 @@ export function economyTick(s: GameState): void {
           b.progress += (b.powered ? 1 : ECON.unpoweredSpeed) * b.staffed;
           if (b.progress >= def.cycle) {
             const out = Object.entries(def.outputs ?? {});
-            if (out.every(([g, n]) => (s.stock[g] ?? 0) + n <= cap)) {
-              for (const [g, n] of out) add(s, g, n);
+            if (out.every(([g, n]) => (isl.stock[g] ?? 0) + n <= cap)) {
+              for (const [g, n] of out) add(isl, g, n);
               b.running = false;
               b.progress = 0;
             } else {
@@ -98,48 +137,42 @@ export function economyTick(s: GameState): void {
       }
       b.status = status ?? (b.staffed < 1 ? 'no workers' : !b.powered ? 'unpowered' : 'working');
     } else if (def.house) {
-      tickHouse(s, b);
+      tickHouse(s, isl, b);
     }
   }
-
-  // Rolling per-minute rates from per-second samples.
-  if (s.tick % 10 === 9) {
-    s.flow.push(s.acc);
-    if (s.flow.length > FLOW_SAMPLES) s.flow.shift();
-    s.acc = {};
-    const rates: Record<string, number> = {};
-    for (const g of GOODS) rates[g.id] = (s.flow.reduce((t, f) => t + (f[g.id] ?? 0), 0) * 60) / s.flow.length;
-    s.rates = rates;
-  }
+  return { lab, tech, labJobs, techJobs };
 }
 
-function tickHouse(s: GameState, b: Building): void {
+function tickHouse(s: GameState, isl: IslandState, b: Building): void {
   const t = ECON.tiers[b.tier - 1]!;
   const n = Math.max(b.residents, 1);
   const need: Record<string, boolean> = { depot: b.covered, power: b.powered };
   const amounts: Record<string, number> = {};
   for (const [g, rate] of Object.entries(t.needsPerResidentPerMin)) {
     amounts[g] = (n * rate) / TICKS_PER_MIN;
-    need[g] = (s.stock[g] ?? 0) >= (amounts[g] as number);
+    need[g] = (isl.stock[g] ?? 0) >= (amounts[g] as number);
   }
   b.needs = need;
   const met = Object.values(need).every(Boolean);
   if (met) {
-    if (b.residents > 0) for (const [g, a] of Object.entries(amounts)) add(s, g, -(a * b.residents) / n);
+    if (b.residents > 0) for (const [g, a] of Object.entries(amounts)) add(isl, g, -(a * b.residents) / n);
     b.unmet = 0;
     if (b.residents < t.capacity && ++b.grow >= ECON.growTicks) {
       b.residents++;
       b.grow = 0;
     }
     b.tax = (b.residents * t.taxPerResidentPerMin);
-    add(s, 'credits', b.tax / TICKS_PER_MIN);
-    // Tier 1 -> 2 once goods have been available for long enough.
-    if (b.tier === 1 && b.residents > 0 && (s.stock.goods ?? 0) >= 1) {
-      if (++b.upTimer >= ECON.upgradeTicks) {
-        b.tier = 2;
-        b.upTimer = 0;
-        b.grow = 0;
-      }
+    addCredits(s, b.tax / TICKS_PER_MIN, true);
+    // Tier 1 -> 2 needs a sustained goods supply: a stocked buffer for a long time, and the upgrade itself uses goods up.
+    if (b.tier === 1 && b.residents > 0) {
+      if ((isl.stock.goods ?? 0) >= ECON.upgradeMinGoods) {
+        if (++b.upTimer >= ECON.upgradeTicks) {
+          b.tier = 2;
+          b.upTimer = 0;
+          b.grow = 0;
+          add(isl, 'goods', -ECON.upgradeGoods);
+        }
+      } else b.upTimer = Math.max(0, b.upTimer - 2);
     } else b.upTimer = 0;
     b.status = 'working';
   } else {

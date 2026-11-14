@@ -1,6 +1,8 @@
 [
   { "id": "depot", "name": "Depot", "group": "Core", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#63b3ed", "height": 30,
     "cost": { "credits": 200, "alloy": 15 }, "radius": 10 },
+  { "id": "port", "name": "Port", "group": "Core", "footprint": [2, 2], "terrain": ["land", "shore"], "color": "#4299e1", "height": 26,
+    "cost": { "credits": 250, "alloy": 20 }, "needsWater": true, "needsDepot": true },
   { "id": "wind_turbine", "name": "Wind Turbine", "group": "Core", "footprint": [1, 1], "terrain": ["land", "shore"], "color": "#e2e8f0", "height": 90,
     "cost": { "credits": 60, "alloy": 4 }, "radius": 6, "supply": 10 },
   { "id": "road", "name": "Road", "group": "Core", "footprint": [1, 1], "terrain": ["land", "shore"], "color": "#4a5568", "height": 2,

@@ -1,10 +1,10 @@
 [
-  { "id": "credits", "name": "Credits", "short": "CR" },
-  { "id": "biomass", "name": "Biomass", "short": "BIO" },
-  { "id": "rations", "name": "Rations", "short": "RAT" },
-  { "id": "scrap", "name": "Scrap", "short": "SCR" },
-  { "id": "alloy", "name": "Alloy", "short": "ALY" },
-  { "id": "algae", "name": "Algae", "short": "ALG" },
-  { "id": "polymer", "name": "Polymer", "short": "POL" },
-  { "id": "goods", "name": "Goods", "short": "GDS" }
+  {"id": "credits", "name": "Credits", "short": "CR"},
+  {"id": "biomass", "name": "Biomass", "short": "BIO", "price": 4},
+  {"id": "rations", "name": "Rations", "short": "RAT", "price": 10},
+  {"id": "scrap", "name": "Scrap", "short": "SCR", "price": 5},
+  {"id": "alloy", "name": "Alloy", "short": "ALY", "price": 14},
+  {"id": "algae", "name": "Algae", "short": "ALG", "price": 6},
+  {"id": "polymer", "name": "Polymer", "short": "POL", "price": 16},
+  {"id": "goods", "name": "Goods", "short": "GDS", "price": 30}
 ]

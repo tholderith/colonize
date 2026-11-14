@@ -1,14 +1,39 @@
 {
-  "startStock": { "credits": 2000, "alloy": 40, "rations": 30 },
+  "startStock": {
+    "credits": 2000,
+    "alloy": 60,
+    "rations": 30
+  },
   "storageCap": 100,
   "unpoweredSpeed": 0.5,
   "turbineSupply": 10,
   "growTicks": 100,
   "decayTicks": 300,
-  "upgradeTicks": 300,
+  "upgradeTicks": 900,
   "downgradeTicks": 600,
   "tiers": [
-    { "worker": "laborer", "capacity": 4, "needsPerResidentPerMin": { "rations": 0.4 }, "taxPerResidentPerMin": 2.5 },
-    { "worker": "technician", "capacity": 6, "needsPerResidentPerMin": { "rations": 0.4, "goods": 0.2 }, "taxPerResidentPerMin": 5 }
-  ]
+    {
+      "worker": "laborer",
+      "capacity": 4,
+      "needsPerResidentPerMin": {
+        "rations": 0.4
+      },
+      "taxPerResidentPerMin": 2.5
+    },
+    {
+      "worker": "technician",
+      "capacity": 6,
+      "needsPerResidentPerMin": {
+        "rations": 0.4,
+        "goods": 0.2
+      },
+      "taxPerResidentPerMin": 5
+    }
+  ],
+  "islandStartStock": {
+    "alloy": 60,
+    "rations": 20
+  },
+  "upgradeMinGoods": 12,
+  "upgradeGoods": 6
 }

@@ -1,5 +1,5 @@
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
-import { buildingDef, placementError } from '../sim/placement';
+import { buildingDef, placementError, stockAtTile } from '../sim/placement';
 import type { Building, BuildingDef, GameMap, GameState, TileClass } from '../sim/types';
 import { TILE_CLASSES } from '../sim/types';
 import { loadArt, type Art, type Sprite2 } from './assets';
@@ -36,6 +36,16 @@ function drawBox(g: Graphics, x: number, y: number, w: number, h: number, height
   g.poly([up(T).x, up(T).y, up(R).x, up(R).y, up(B).x, up(B).y, up(L).x, up(L).y]).fill({ color: shade(color, 1.1), alpha });
 }
 
+interface Ship {
+  node: Container;
+  kind: 'hauler' | 'trader' | 'patrol';
+  dir: string;
+  ring?: Graphics;
+  fx: number; fy: number; tx: number; ty: number;
+  cx?: number; cy?: number;
+  t0: number; dur: number;
+}
+
 export interface RendererEvents {
   /** Click (not drag) on a tile. */
   onTileClick(x: number, y: number): void;
@@ -49,7 +59,11 @@ export class Renderer {
   private objects = new Container();
   private ghost = new Container();
   private camera!: Camera;
-  private art: Art = { tiles: new Map(), buildings: new Map() };
+  private art: Art = { tiles: new Map(), buildings: new Map(), units: new Map() };
+  private ships = new Map<number, Ship>();
+  private selectedShip: number | null = null;
+  private lastSnap = 0;
+  private snapMs = 100;
   private roads = new Container();
   private built = new Map<number, { node: Container; key: string }>();
   private painting = false;
@@ -80,7 +94,10 @@ export class Renderer {
     this.camera = new Camera(this.world, this.app.canvas);
     const b = this.landBounds();
     this.camera.fit(b, this.app.screen.width, this.app.screen.height);
-    this.app.ticker.add((t) => this.camera.update(t.deltaMS));
+    this.app.ticker.add((t) => {
+      this.camera.update(t.deltaMS);
+      this.moveShips();
+    });
 
     const canvas = this.app.canvas;
     const tileAtEvent = (e: PointerEvent) => {
@@ -204,7 +221,11 @@ export class Renderer {
   }
 
   setState(state: GameState): void {
+    const now = performance.now();
+    if (this.lastSnap) this.snapMs = Math.min(400, Math.max(30, now - this.lastSnap));
+    this.lastSnap = now;
     this.state = state;
+    this.syncShips(state);
     const live = new Set<number>();
     const isRoad = new Set<number>();
     for (const b of state.buildings) if (b.type === 'road') isRoad.add(b.x + b.y * this.map.w);
@@ -224,6 +245,102 @@ export class Renderer {
     }
     this.redrawSelection();
     this.redrawGhost();
+  }
+
+  /** Grid tile at the centre of the screen. */
+  centreTile(): { x: number; y: number } {
+    return this.screenToTile(this.app.screen.width / 2, this.app.screen.height / 2);
+  }
+
+  setSelectedShip(id: number | null): void {
+    this.selectedShip = id;
+  }
+
+  /** Create/remove ship nodes and retarget each tween from where it is drawn now to its new tick position. */
+  private syncShips(state: GameState): void {
+    const live = new Set<number>();
+    for (const m of [...state.haulers, ...state.visitors]) {
+      live.add(m.id);
+      let sh = this.ships.get(m.id);
+      if (!sh) {
+        sh = { node: new Container(), kind: m.kind, dir: 'se', fx: m.x, fy: m.y, tx: m.x, ty: m.y, t0: performance.now(), dur: this.snapMs };
+        this.objects.addChild(sh.node);
+        this.ships.set(m.id, sh);
+        this.setShipDir(sh, 'se');
+      }
+      sh.fx = sh.cx ?? m.x;
+      sh.fy = sh.cy ?? m.y;
+      sh.tx = m.x;
+      sh.ty = m.y;
+      sh.t0 = performance.now();
+      sh.dur = this.snapMs;
+    }
+    for (const [id, sh] of this.ships) {
+      if (!live.has(id)) {
+        sh.node.destroy({ children: true });
+        this.ships.delete(id);
+      }
+    }
+  }
+
+  private setShipDir(sh: Ship, dir: string): void {
+    for (const c of sh.node.removeChildren()) c.destroy({ children: true });
+    sh.dir = dir;
+    const art = this.art.units.get(`${sh.kind}_${dir}`);
+    if (art) {
+      sh.node.addChild(this.makeSprite(art.base, 0, 0));
+      if (art.glow) sh.node.addChild(this.makeSprite(art.glow, 0, 0, true));
+    } else {
+      const g = new Graphics();
+      const color = sh.kind === 'hauler' ? 0xfbbf24 : sh.kind === 'trader' ? 0x4ade80 : 0xf87171;
+      drawBox(g, -0.4, -0.4, 0.8, 0.8, sh.kind === 'hauler' ? 22 : 16, color);
+      sh.node.addChild(g);
+    }
+    sh.ring = new Graphics();
+    sh.ring.poly([0, -22, 40, 0, 0, 22, -40, 0]).stroke({ color: 0x22d3ee, width: 3 });
+    sh.ring.visible = false;
+    sh.node.addChild(sh.ring);
+  }
+
+  /** Per frame: ease each ship along its last-tick movement; face the direction of travel. */
+  private moveShips(): void {
+    const now = performance.now();
+    for (const sh of this.ships.values()) {
+      const a = this.state?.paused ? 1 : Math.min(1, (now - sh.t0) / sh.dur);
+      const x = sh.fx + (sh.tx - sh.fx) * a;
+      const y = sh.fy + (sh.ty - sh.fy) * a;
+      sh.cx = x;
+      sh.cy = y;
+      const dx = sh.tx - sh.fx, dy = sh.ty - sh.fy;
+      if (Math.hypot(dx, dy) > 1e-4) {
+        const sx = dx - dy, sy = dx + dy; // screen-space direction
+        const dir = sx > 0 ? (sy < 0 ? 'ne' : 'se') : sy > 0 ? 'sw' : 'nw';
+        if (dir !== sh.dir) this.setShipDir(sh, dir);
+      }
+      const p = gridToWorld(x, y);
+      sh.node.position.set(p.x, p.y);
+      sh.node.zIndex = x + y - 0.75;
+    }
+    for (const [id, sh] of this.ships) if (sh.ring) sh.ring.visible = id === this.selectedShip;
+  }
+
+  /** Hauler near tile (x, y), if any. */
+  haulerAt(x: number, y: number): number | null {
+    let best: number | null = null;
+    let bd = 1.4;
+    for (const h of this.state?.haulers ?? []) {
+      const sh = this.ships.get(h.id);
+      const d = Math.hypot((sh?.cx ?? h.x) - (x + 0.5), (sh?.cy ?? h.y) - (y + 0.5));
+      if (d < bd) { bd = d; best = h.id; }
+    }
+    return best;
+  }
+
+  /** Screen position (canvas-relative) of a ship; used by tests. */
+  shipToScreen(id: number): { x: number; y: number } | null {
+    const sh = this.ships.get(id);
+    if (!sh) return null;
+    return { x: sh.node.x * this.world.scale.x + this.world.x, y: sh.node.y * this.world.scale.y + this.world.y };
   }
 
   /** Sprite key: roads by neighbour mask, upgraded houses by tier. */
@@ -291,7 +408,7 @@ export class Renderer {
     const def = this.ghostDef;
     if (!def || !this.state || this.hover.x < 0) return;
     const { x, y } = this.hover;
-    const ok = placementError(this.map, this.state.buildings, def, x, y, this.state.stock) === null;
+    const ok = placementError(this.map, this.state.buildings, def, x, y, stockAtTile(this.map, this.state, x, y)) === null;
     const color = ok ? 0x4ade80 : 0xf87171;
     const [w, h] = def.footprint;
     const gfx = new Graphics();

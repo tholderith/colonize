@@ -8,6 +8,7 @@ interface Entry {
 interface Manifest {
   tiles?: Record<string, Entry>;
   buildings?: Record<string, Entry>;
+  units?: Record<string, Entry>;
 }
 
 export interface Sprite2 {
@@ -23,10 +24,12 @@ export interface BuildingArt {
 export interface Art {
   tiles: Map<string, Sprite2>;
   buildings: Map<string, BuildingArt>;
+  /** Ships: hauler_<dir>, trader_<dir>, patrol_<dir>. */
+  units: Map<string, BuildingArt>;
 }
 
 export async function loadArt(): Promise<Art> {
-  const art: Art = { tiles: new Map(), buildings: new Map() };
+  const art: Art = { tiles: new Map(), buildings: new Map(), units: new Map() };
   let manifest: Manifest;
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}assets/manifest.json`);
@@ -52,12 +55,14 @@ export async function loadArt(): Promise<Art> {
       const s = await load(e.file, e.anchor);
       if (s) art.tiles.set(key, s);
     }),
-    ...Object.entries(manifest.buildings ?? {}).map(async ([key, e]) => {
-      const base = await load(e.file, e.anchor);
-      if (!base) return;
-      const glow = e.glow ? await load(e.glow, e.anchor) : undefined;
-      art.buildings.set(key, { base, glow });
-    }),
+    ...(['buildings', 'units'] as const).flatMap((section) =>
+      Object.entries(manifest[section] ?? {}).map(async ([key, e]) => {
+        const base = await load(e.file, e.anchor);
+        if (!base) return;
+        const glow = e.glow ? await load(e.glow, e.anchor) : undefined;
+        art[section].set(key, { base, glow });
+      }),
+    ),
   ]);
   return art;
 }

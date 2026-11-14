@@ -34,5 +34,20 @@ button.active { background: rgba(251, 191, 36, 0.18); border-color: var(--amber)
 .bar { display: inline-block; width: 90px; height: 8px; border: 1px solid var(--line); vertical-align: middle; }
 .bar > i { display: block; height: 100%; background: var(--amber); }
 .warn { color: #f87171; }
-#toast { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); color: #f87171; background: var(--bg); border: 1px solid #f87171; padding: 4px 10px; pointer-events: none; }
-#toast[hidden] { display: none; }
+#toast { pointer-events: none; position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; padding: 0; z-index: 5; }
+#toast div { color: var(--cyan); background: var(--bg); border: 1px solid var(--cyan); padding: 4px 10px; }
+#toast div.bad { color: #f87171; border-color: #f87171; }
+#concordat { top: 90px; right: 222px; width: 310px; font-size: 12px; }
+#concordat b, #exchange b, #hauler-panel b { color: var(--cyan); font-weight: normal; }
+#concordat[hidden], #exchange[hidden], #hauler-panel[hidden] { display: none; }
+#concordat .log { margin-top: 6px; font-size: 11px; }
+#exchange { top: 90px; left: 50%; transform: translateX(-50%); width: 420px; }
+#exchange table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+#exchange td { padding: 2px 4px; }
+#exchange tr.hot td { background: rgba(251, 191, 36, 0.14); }
+#exchange input[type=number], #hauler-panel input[type=number] { width: 48px; }
+#hauler-panel { bottom: 12px; left: 280px; width: 380px; max-height: 55vh; overflow-y: auto; }
+#hauler-panel .stop { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 4px; }
+#hauler-panel .order { margin: 2px 0 2px 14px; }
+#hauler-panel .row { margin-top: 8px; }
+input, select { font: inherit; color: var(--amber); background: rgba(5, 10, 20, 0.8); border: 1px solid var(--line); padding: 1px 4px; }

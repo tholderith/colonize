@@ -26,7 +26,8 @@ const run = (sim: Sim, ticks: number) => {
 };
 const fresh = (ids: string[], stock: Record<string, number> = {}) => {
   const sim = new Sim(1337);
-  Object.assign(sim.state.stock, { credits: 5000, alloy: 500, goods: 0 }, stock);
+  sim.state.credits = 5000;
+  Object.assign(sim.state.islands[0]!.stock, { alloy: 500, goods: 0 }, stock);
   const b = build(sim, ids);
   return { sim, b };
 };
@@ -37,7 +38,7 @@ describe('economy', () => {
     b[2]!.residents = 4;
     run(sim, 1000);
     expect(b[1]!.status).toBe('working');
-    expect(sim.state.stock.biomass).toBe(24); // completions at ticks 149, 299, ... 899
+    expect(sim.state.islands[0]!.stock.biomass).toBe(24); // completions at ticks 149, 299, ... 899
   });
 
   it('a hydroponics -> ration plant chain makes rations', () => {
@@ -46,7 +47,7 @@ describe('economy', () => {
     b[4]!.residents = 4;
     run(sim, 1200);
     const consumed = (8 * 0.4 * 1200) / 600;
-    const made = sim.state.stock.rations! - 50 + consumed;
+    const made = sim.state.islands[0]!.stock.rations! - 50 + consumed;
     expect(made).toBeGreaterThanOrEqual(10);
     expect(made / 5).toBeCloseTo(Math.round(made / 5), 6);
   });
@@ -59,24 +60,24 @@ describe('economy', () => {
     run(powered.sim, 900);
     run(dark.sim, 900);
     expect(dark.b[0]!.status).toBe('unpowered');
-    expect(powered.sim.state.stock.biomass).toBe(24);
-    expect(dark.sim.state.stock.biomass).toBe(12);
+    expect(powered.sim.state.islands[0]!.stock.biomass).toBe(24);
+    expect(dark.sim.state.islands[0]!.stock.biomass).toBe(12);
   });
 
   it('a house without workers reports no workers and does not produce', () => {
     const { sim, b } = fresh(['wind_turbine', 'hydroponics']);
     run(sim, 500);
     expect(b[1]!.status).toBe('no workers');
-    expect(sim.state.stock.biomass).toBe(0);
+    expect(sim.state.islands[0]!.stock.biomass).toBe(0);
   });
 
   it('a house upgrades with goods available, and downgrades without needs', () => {
-    const { sim, b } = fresh(['wind_turbine', 'pod_house'], { rations: 1000, goods: 10 });
+    const { sim, b } = fresh(['wind_turbine', 'pod_house'], { rations: 1000, goods: 60 });
     const house = b[1]!;
     house.residents = 2;
-    run(sim, 400);
+    run(sim, 1000);
     expect(house.tier).toBe(2);
-    sim.state.stock.goods = 0; // tier 2 now needs goods
+    sim.state.islands[0]!.stock.goods = 0; // tier 2 now needs goods
     run(sim, 700);
     expect(house.tier).toBe(1);
     expect(house.residents).toBeLessThanOrEqual(4);

@@ -1,6 +1,10 @@
-import { economyTick, emptyStock } from './economy';
-import { generateMap, islands } from './mapgen';
-import { ECON, buildingAt, buildingDef, newBuilding, placementError } from './placement';
+import { concordatTick, newConcordat, tradeWithTrader } from './concordat';
+import { economyTick, newIsland } from './economy';
+import { generateMap, islandAt, islandNames, islands } from './mapgen';
+import { Navigator } from './nav';
+import { ECON, TRADE, buildingAt, buildingDef, newBuilding, placementError, stockAtTile } from './placement';
+import { createRng } from './rng';
+import { dockTile, haulersTick, newHauler, type Ctx } from './trade';
 import type { Command, GameMap, GameState } from './types';
 
 export const TICK_HZ = 10;
@@ -9,14 +13,17 @@ export class Sim {
   readonly map: GameMap;
   state: GameState;
   private queue: Command[] = [];
+  private ctx: Ctx;
 
   constructor(seed: number) {
     this.map = generateMap(seed);
+    const { credits, ...homeStock } = ECON.startStock;
     this.state = {
-      seed, tick: 0, speed: 1, paused: false, nextId: 1, buildings: [],
-      stock: { ...emptyStock(), ...ECON.startStock }, rates: emptyStock(), flow: [], acc: {},
-      power: { supply: 0, demand: 0 }, pop: { laborers: 0, technicians: 0, laborerJobs: 0, technicianJobs: 0 },
+      seed, tick: 0, speed: 1, paused: false, nextId: 1, buildings: [], credits: credits ?? 0, creditRate: 0, creditAcc: 0, creditFlow: [],
+      islands: islandNames(seed).map((name, i) => newIsland(i, name, i === 0 ? homeStock : ECON.islandStartStock)),
+      pop: { laborers: 0, technicians: 0, laborerJobs: 0, technicianJobs: 0 }, haulers: [], visitors: [], concordat: newConcordat(),
     };
+    this.ctx = { s: this.state, map: this.map, nav: new Navigator(this.map), rng: createRng(seed ^ 0xc04dac7) };
     this.placeStartDepot();
   }
 
@@ -38,7 +45,19 @@ export class Sim {
         bestD = d;
       }
     }
-    if (best) this.state.buildings.push(newBuilding(this.state.nextId++, def, best[0], best[1]));
+    if (best) this.state.buildings.push(newBuilding(this.state.nextId++, def, best[0], best[1], 0));
+  }
+
+  /** Spend a cost: credits globally, everything else from the island's stock. */
+  private pay(cost: Record<string, number>, island: number): void {
+    const s = this.state;
+    for (const [g, n] of Object.entries(cost)) {
+      if (g === 'credits') s.credits -= n;
+      else {
+        const stock = s.islands[island]?.stock;
+        if (stock) stock[g] = (stock[g] ?? 0) - n;
+      }
+    }
   }
 
   enqueue(cmd: Command): void {
@@ -58,12 +77,44 @@ export class Sim {
           break;
         case 'placeBuilding': {
           const def = buildingDef(cmd.building);
-          if (def && placementError(this.map, s.buildings, def, cmd.x, cmd.y, s.stock) === null) {
-            for (const [g, n] of Object.entries(def.cost)) s.stock[g] = (s.stock[g] ?? 0) - n;
-            s.buildings.push(newBuilding(s.nextId++, def, cmd.x, cmd.y));
+          if (def && placementError(this.map, s.buildings, def, cmd.x, cmd.y, stockAtTile(this.map, s, cmd.x, cmd.y)) === null) {
+            const isl = islandAt(this.map, cmd.x, cmd.y);
+            this.pay(def.cost, isl);
+            s.buildings.push(newBuilding(s.nextId++, def, cmd.x, cmd.y, isl));
           }
           break;
         }
+        case 'buildHauler': {
+          const port = s.buildings.find((b) => b.id === cmd.port && b.type === 'port');
+          const dock = port && dockTile(this.map, port);
+          if (!port || !dock) break;
+          const stock: Record<string, number> = { ...s.islands[port.island]?.stock, credits: s.credits };
+          if (Object.entries(TRADE.hauler.cost).some(([g, n]) => (stock[g] ?? 0) < n)) break;
+          this.pay(TRADE.hauler.cost, port.island);
+          const h = newHauler(s.nextId++, dock, port.island);
+          h.route = [{ kind: 'port', building: port.id, orders: [] }];
+          s.haulers.push(h);
+          break;
+        }
+        case 'scrapHauler':
+          s.haulers = s.haulers.filter((h) => h.id !== cmd.hauler);
+          break;
+        case 'setRoute': {
+          const h = s.haulers.find((o) => o.id === cmd.hauler);
+          if (!h) break;
+          h.route = cmd.route.slice(0, 8).map((st) => ({
+            kind: st.kind === 'exchange' ? 'exchange' : 'port',
+            building: st.kind === 'port' ? st.building : undefined,
+            orders: st.orders.slice(0, 8).map((o) => ({ good: o.good, mode: o.mode === 'load' ? 'load' : 'unload', amount: Math.max(1, Math.floor(o.amount) || 1) })),
+          }));
+          h.stop = 0;
+          h.phase = 'sail';
+          h.leg = '';
+          break;
+        }
+        case 'tradeWithTrader':
+          tradeWithTrader(this.ctx);
+          break;
         case 'demolish': {
           const b = buildingAt(s.buildings, cmd.x, cmd.y);
           if (b) s.buildings = s.buildings.filter((o) => o !== b);
@@ -78,6 +129,8 @@ export class Sim {
     this.flush();
     if (!this.state.paused) {
       economyTick(this.state);
+      haulersTick(this.ctx);
+      concordatTick(this.ctx);
       this.state.tick++;
     }
   }

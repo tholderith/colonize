@@ -1,5 +1,6 @@
-import { BUILDINGS, ECON, GOODS, affordError, buildingDef } from '../sim/placement';
-import type { Building, BuildingDef, GameState, Stock } from '../sim/types';
+import { BUILDINGS, ECON, GOODS, TRADE, affordError, buildingDef } from '../sim/placement';
+import type { Building, BuildingDef, GameState, Order, Stock, Stop } from '../sim/types';
+import { TradeUi } from './trade-ui';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -7,6 +8,11 @@ export interface UiEvents {
   onSpeed(speed: 0 | 1 | 2 | 3): void;
   onSelectTool(def: BuildingDef | null): void;
   onDemolish(b: Building): void;
+  onBuildHauler(port: Building): void;
+  onSetRoute(hauler: number, route: Stop[]): void;
+  onScrapHauler(hauler: number): void;
+  onTrade(): void;
+  onExchangeOrder(good: string, mode: Order['mode'], amount: number): void;
 }
 
 const costText = (cost: Stock) =>
@@ -22,9 +28,16 @@ const flowText = (f: Stock | undefined) =>
 export class Ui {
   private tool: BuildingDef | null = null;
   private buttons = new Map<string, HTMLButtonElement>();
-  private toastTimer = 0;
+  readonly trade: TradeUi;
 
   constructor(private events: UiEvents) {
+    this.trade = new TradeUi({
+      onSetRoute: events.onSetRoute,
+      onScrap: events.onScrapHauler,
+      onTrade: events.onTrade,
+      onExchangeOrder: events.onExchangeOrder,
+      toast: (m, k) => this.toast(m, k),
+    });
     document.querySelectorAll<HTMLButtonElement>('#topbar [data-speed]').forEach((btn) => {
       btn.addEventListener('click', () => events.onSpeed(Number(btn.dataset.speed) as 0 | 1 | 2 | 3));
     });
@@ -64,12 +77,15 @@ export class Ui {
     this.events.onSelectTool(def);
   }
 
-  toast(msg: string): void {
+  /** Default kind is a red warning; events pass 'info'. */
+  toast(msg: string, kind: 'info' | 'bad' = 'bad'): void {
     const t = $('toast');
-    t.textContent = msg;
-    t.hidden = false;
-    clearTimeout(this.toastTimer);
-    this.toastTimer = window.setTimeout(() => (t.hidden = true), 1800);
+    const d = document.createElement('div');
+    d.textContent = msg;
+    d.className = kind;
+    t.appendChild(d);
+    while (t.children.length > 4) t.firstChild?.remove();
+    window.setTimeout(() => d.remove(), kind === 'bad' ? 2200 : 4500);
   }
 
   /** Cost / radius / error line shown while placing. */
@@ -81,7 +97,8 @@ export class Ui {
     el.innerHTML = `<b>${def.name}</b> &middot; cost ${costText(def.cost)}${extra}${error ? `<br><span class="warn">${error}</span>` : ''}`;
   }
 
-  setState(s: GameState): void {
+  /** `island` is the island whose stock the HUD shows (selection, else camera centre). */
+  setState(s: GameState, island: number): void {
     const secs = s.tick / 10;
     $('clock').textContent = `${String(Math.floor(secs / 60)).padStart(2, '0')}:${(secs % 60).toFixed(1).padStart(4, '0')}`;
     $('tick').textContent = String(s.tick);
@@ -89,22 +106,25 @@ export class Ui {
       const v = Number(btn.dataset.speed);
       btn.classList.toggle('active', v === 0 ? s.paused : !s.paused && v === s.speed);
     });
-    const rate = (g: string) => {
-      const r = s.rates[g] ?? 0;
-      return `<span class="${r > 0.05 ? 'pos' : r < -0.05 ? 'neg' : 'dim'}">${r >= 0 ? '+' : ''}${r.toFixed(0)}/m</span>`;
-    };
-    const cap = ECON.storageCap * s.buildings.filter((b) => b.type === 'depot').length;
-    const goods = GOODS.map((g) => `<span class="g" data-good="${g.id}">${g.name} <b>${Math.floor(s.stock[g.id] ?? 0)}</b> ${rate(g.id)}</span>`).join('');
+    const isl = s.islands[island] ?? (s.islands[0] as NonNullable<GameState['islands'][number]>);
+    const rate = (r: number) => `<span class="${r > 0.05 ? 'pos' : r < -0.05 ? 'neg' : 'dim'}">${r >= 0 ? '+' : ''}${r.toFixed(0)}/m</span>`;
+    const cap = ECON.storageCap * s.buildings.filter((b) => b.type === 'depot' && b.island === isl.id).length;
+    const goods = GOODS.map((g) => {
+      const credits = g.id === 'credits';
+      return `<span class="g" data-good="${g.id}">${g.name} <b>${Math.floor(credits ? s.credits : (isl.stock[g.id] ?? 0))}</b> ${rate(credits ? s.creditRate : (isl.rates[g.id] ?? 0))}</span>`;
+    }).join('');
     const p = s.pop;
-    const pw = s.power;
+    const pw = isl.power;
     $('hud').innerHTML =
+      `<span class="g" data-hud="island">Island <b>${isl.name}</b></span>` +
       goods +
       `<span class="g" data-hud="pop">Laborers <b>${p.laborers}</b> Technicians <b>${p.technicians}</b></span>` +
       `<span class="g ${pw.demand > pw.supply ? 'neg' : ''}" data-hud="power">Power <b>${pw.demand}/${pw.supply}</b></span>` +
       `<span class="g dim">storage cap ${cap}</span>`;
+    this.trade.update(s);
     for (const [id, btn] of this.buttons) {
       const def = buildingDef(id);
-      btn.classList.toggle('poor', !!def && affordError(s.stock, def) !== null);
+      btn.classList.toggle('poor', !!def && affordError({ ...isl.stock, credits: s.credits }, def) !== null);
     }
   }
 
@@ -124,6 +144,17 @@ export class Ui {
     btn.textContent = 'DEMOLISH';
     btn.addEventListener('click', () => this.events.onDemolish(b));
     body.appendChild(btn);
+    if (def.id === 'port') {
+      const hb = document.createElement('button');
+      hb.id = 'btn-build-hauler';
+      hb.textContent = `BUILD HAULER (${costText(TRADE.hauler.cost)})`;
+      hb.addEventListener('click', () => this.events.onBuildHauler(b));
+      const tb = document.createElement('button');
+      tb.id = 'btn-trade';
+      tb.hidden = true;
+      tb.addEventListener('click', () => this.events.onTrade());
+      body.append(hb, tb);
+    }
     if (state) this.updateInfo(b, state);
   }
 
@@ -144,10 +175,21 @@ export class Ui {
       lines.push(`Cycle <span class="bar"><i style="width:${pct}%"></i></span> ${pct.toFixed(0)}%`);
       lines.push(`Workers ${Math.round(b.staffed * (def.jobs ?? 0))}/${def.jobs} ${def.worker}s`);
       lines.push(`In: ${flowText(def.inputs) || '-'} &rarr; Out: ${flowText(def.outputs)}`);
+    } else if (def.id === 'port') {
+      const mine = s.haulers.filter((h) => h.home === b.island).length;
+      lines.push(`Haulers from ${s.islands[b.island]?.name}: <b>${mine}</b>`);
+      const tr = s.visitors.find((v) => v.kind === 'trader' && v.phase === 'dock' && v.target === b.id && v.offer && !v.offer.done);
+      const tb = document.getElementById('btn-trade') as HTMLButtonElement | null;
+      if (tb) tb.hidden = !tr?.offer;
+      if (tr?.offer && tb) {
+        const o = tr.offer;
+        tb.textContent = `FREE TRADER ${o.side === 'buys' ? 'BUYS' : 'SELLS'} ${o.qty} ${o.good} @ ${o.price}`;
+        lines.push('<span class="pos">Free trader docked</span>');
+      }
     } else if (def.id === 'depot') {
       lines.push(`Radius ${def.radius} &middot; cap ${ECON.storageCap}/good`);
     } else if (def.supply) {
-      lines.push(`Supplies ${def.supply} power &middot; radius ${def.radius} &middot; colony ${s.power.demand}/${s.power.supply}`);
+      lines.push(`Supplies ${def.supply} power &middot; radius ${def.radius} &middot; island ${s.islands[b.island]?.power.demand}/${s.islands[b.island]?.power.supply}`);
     } else {
       lines.push(`<span class="dim">${def.footprint[0]}x${def.footprint[1]} &middot; ${def.terrain.join(', ')}</span>`);
     }

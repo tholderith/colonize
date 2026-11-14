@@ -14,13 +14,18 @@
       <button data-speed="1">1x</button>
       <button data-speed="2">2x</button>
       <button data-speed="3">3x</button>
+      <button id="btn-concordat" class="active">CONCORDAT</button>
+      <button id="btn-exchange">EXCHANGE</button>
       <span class="clock">T+<span id="clock">00:00.0</span> <span class="dim">tick <span id="tick">0</span></span></span>
     </header>
     <section id="hud" class="panel"></section>
     <div id="place-info" class="panel" hidden></div>
     <nav id="build-menu" class="panel"><h2>BUILD</h2></nav>
     <section id="info" class="panel"><h2>INFO</h2><div id="info-body" class="dim">Nothing selected</div></section>
-    <div id="toast" hidden></div>
+    <section id="concordat" class="panel"><h2>CONCORDAT</h2><div id="concordat-body"></div></section>
+    <section id="exchange" class="panel" hidden><h2>EXCHANGE</h2><div id="exchange-body"></div></section>
+    <section id="hauler-panel" class="panel" hidden><h2>HAULER</h2><div id="hauler-body"></div></section>
+    <div id="toast"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
