@@ -1,0 +1,22 @@
+:root {
+  --amber: #fbbf24;
+  --cyan: #22d3ee;
+  --bg: rgba(8, 14, 26, 0.82);
+  --line: rgba(251, 191, 36, 0.35);
+}
+html, body { margin: 0; height: 100%; overflow: hidden; background: #050a14; color: var(--amber); font: 13px/1.4 ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
+#map { position: fixed; inset: 0; }
+#map canvas { display: block; }
+.panel { position: fixed; background: var(--bg); border: 1px solid var(--line); box-shadow: 0 0 12px rgba(34, 211, 238, 0.12); backdrop-filter: blur(4px); padding: 8px 10px; }
+.panel h2 { margin: 0 0 6px; font-size: 11px; letter-spacing: 0.2em; color: var(--cyan); }
+.dim { color: #8a8266; }
+#topbar { top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 6px; border-width: 0 0 1px; }
+.brand { color: var(--cyan); letter-spacing: 0.3em; margin-right: 16px; font-weight: bold; }
+.clock { margin-left: auto; color: var(--cyan); }
+button { font: inherit; color: var(--amber); background: transparent; border: 1px solid var(--line); padding: 3px 10px; cursor: pointer; }
+button:hover { border-color: var(--amber); }
+button.active { background: rgba(251, 191, 36, 0.18); border-color: var(--amber); color: #fff3c4; }
+#build-menu { top: 48px; right: 12px; display: flex; flex-direction: column; gap: 4px; min-width: 190px; }
+#build-menu button { text-align: left; display: flex; justify-content: space-between; gap: 12px; }
+#info { bottom: 12px; left: 12px; min-width: 240px; }
+#info b { color: var(--cyan); }

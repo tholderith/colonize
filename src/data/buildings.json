@@ -1,0 +1,8 @@
+[
+  { "id": "pod_house", "name": "Pod House", "footprint": [2, 2], "terrain": ["land"], "color": "#4fd1c5", "height": 36 },
+  { "id": "hydroponics_shed", "name": "Hydroponics Shed", "footprint": [2, 2], "terrain": ["land"], "color": "#68d391", "height": 28 },
+  { "id": "scrap_yard", "name": "Scrap Yard", "footprint": [3, 2], "terrain": ["land", "shore"], "color": "#a0866a", "height": 18 },
+  { "id": "smelter", "name": "Smelter", "footprint": [2, 2], "terrain": ["land"], "color": "#f6ad55", "height": 56 },
+  { "id": "wind_turbine", "name": "Wind Turbine", "footprint": [1, 1], "terrain": ["land", "shore"], "color": "#e2e8f0", "height": 90 },
+  { "id": "depot", "name": "Depot", "footprint": [3, 3], "terrain": ["land", "shore"], "color": "#63b3ed", "height": 30 }
+]

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Foundry</title>
+    <link rel="stylesheet" href="/src/ui/ui.css" />
+  </head>
+  <body>
+    <div id="map"></div>
+    <header id="topbar" class="panel">
+      <span class="brand">FOUNDRY</span>
+      <button data-speed="0" id="btn-pause">PAUSE</button>
+      <button data-speed="1">1x</button>
+      <button data-speed="2">2x</button>
+      <button data-speed="3">3x</button>
+      <span class="clock">T+<span id="clock">00:00.0</span> <span class="dim">tick <span id="tick">0</span></span></span>
+    </header>
+    <nav id="build-menu" class="panel"><h2>BUILD</h2></nav>
+    <section id="info" class="panel"><h2>INFO</h2><div id="info-body" class="dim">Nothing selected</div></section>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
