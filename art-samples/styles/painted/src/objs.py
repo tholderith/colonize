@@ -86,7 +86,7 @@ def window(c, p, face, t0, t1, z0, z1, fixed, shutters=None, arch=False):
     c.lines([(lerp(pts[0], pts[3], .25), lerp(pts[1], pts[2], .25))], hexc('#d9f0f0'), width=1.0, alpha=.45)
     c.lines([(pts[0], pts[1]), (pts[1], pts[2]), (pts[2], pts[3]), (pts[3], pts[0])], mul(TIMBER, .8), width=1.3, alpha=.95)
     c.lines([(lerp(pts[0], pts[1], .5), lerp(pts[3], pts[2], .5))], mul(TIMBER, .8), width=1.0, alpha=.9)
-    if shutters:
+    if shutters is not None:
         w = t1 - t0
         for s in (-1, 1):
             if face == 'L':

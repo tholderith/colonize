@@ -174,29 +174,29 @@ def panel(W=360, Hh=300):
     d.rectangle([0, 0, pw, 56 * k // 2 * 2 // 2 + 6], fill=(0, 0, 0, 0))
     d.rounded_rectangle([10 * k, 8 * k, pw - 10 * k, 38 * k], radius=6 * k, fill=(150, 62, 44, 255), outline=(90, 34, 22, 255), width=2)
     d.line([(14 * k, 10 * k), (pw - 14 * k, 10 * k)], fill=(206, 110, 84, 255), width=2)
-    shadowtext(pap, (pw // 2, 23 * k), 'Harbour Warehouse', font(17 * k // 1 if False else 34), (250, 232, 190, 255), off=2, anchor='mm')
-    d.text((12 * k, 44 * k), 'Stock', font=font(24, serif=False), fill=(100, 66, 34, 255))
-    d.text((pw - 12 * k, 44 * k), '143 / 300', font=font(24), fill=(70, 42, 18, 255), anchor='ra')
+    shadowtext(pap, (pw // 2, 23 * k), 'Harbour Warehouse', font(34), (250, 232, 190, 255), off=2, anchor='mm')
+    d.text((12 * k, 44 * k), 'Stock', font=font(30, serif=False), fill=(100, 66, 34, 255))
+    d.text((pw - 12 * k, 44 * k), '143 / 300', font=font(32), fill=(70, 42, 18, 255), anchor='ra')
     # capacity bar
-    bx0, by0, bx1, by1 = 12 * k, 62 * k, pw - 12 * k, 72 * k
+    bx0, by0, bx1, by1 = 12 * k, 64 * k, pw - 12 * k, 78 * k
     d.rounded_rectangle([bx0, by0, bx1, by1], radius=5 * k, fill=(120, 84, 46, 255), outline=(70, 44, 20, 255), width=2)
     d.rounded_rectangle([bx0 + 2, by0 + 2, bx0 + (bx1 - bx0) * .48, by1 - 2], radius=4 * k, fill=(106, 154, 64, 255))
     d.line([(bx0 + 8, by0 + 5), (bx0 + (bx1 - bx0) * .48 - 6, by0 + 5)], fill=(160, 204, 100, 255), width=3)
     # stock rows
     rows = [('Timber', 86, .55, ic_wood), ('Bricks', 42, .3, ic_brick), ('Tools', 17, .12, ic_tools), ('Food', 312, .9, ic_food), ('Cloth', 28, .2, ic_cloth)]
-    y = 86 * k
+    y = 160
     for i, (nm, v, fr, fn) in enumerate(rows):
-        ic = fn(34 * k // 2 * 2 // 2 * 1 if False else 36)
-        pap.alpha_composite(ic, (12 * k, y - 3))
-        d.text((54 * k, y + 2), nm, font=font(23, serif=False), fill=(70, 44, 20, 255))
+        ic = fn(52)
+        pap.alpha_composite(ic, (20, y - 4))
+        d.text((72 * k // 1 + 8, y + 6), nm, font=font(32, serif=False), fill=(70, 44, 20, 255))
         # bar
-        x0, x1 = 118 * k, 262 * k
-        d.rounded_rectangle([x0, y + 8, x1, y + 26], radius=6, fill=(206, 184, 140, 255), outline=(110, 78, 40, 255), width=2)
+        x0, x1 = 300, 450
+        d.rounded_rectangle([x0, y + 12, x1, y + 38], radius=6, fill=(206, 184, 140, 255), outline=(110, 78, 40, 255), width=2)
         col = (106, 154, 64, 255) if fr > .25 else (200, 100, 60, 255)
-        d.rounded_rectangle([x0 + 2, y + 10, x0 + 2 + (x1 - x0 - 4) * fr, y + 24], radius=5, fill=col)
-        d.text((pw - 12 * k, y + 2), str(v), font=font(24), fill=(60, 36, 14, 255), anchor='ra')
-        d.line([(12 * k, y + 40), (pw - 12 * k, y + 40)], fill=(150, 116, 70, 110), width=1)
-        y += 44 * k // 1 if False else 44 * 2 // 2 + 0 if False else 44 * k // 2 * 2 // 2 * 1 + 0
+        d.rounded_rectangle([x0 + 3, y + 15, x0 + 3 + (x1 - x0 - 6) * fr, y + 35], radius=5, fill=col)
+        d.text((pw - 12 * k, y + 6), str(v), font=font(34), fill=(60, 36, 14, 255), anchor='ra')
+        d.line([(12 * k, y + 70), (pw - 12 * k, y + 70)], fill=(150, 116, 70, 110), width=1)
+        y += 84
     wood.paste(pap, (m, m))
     wd = ImageDraw.Draw(wood)
     # inner dark inset line + frame bevel
