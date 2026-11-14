@@ -1,0 +1,208 @@
+{
+ "name": "Low-Poly",
+ "background": "#4f86c6",
+ "filter": "linear",
+ "sprites": {
+  "deep_water": {
+   "files": [
+    "deep_water_0.png",
+    "deep_water_1.png",
+    "deep_water_2.png"
+   ],
+   "anchor": [
+    64,
+    75
+   ]
+  },
+  "shallow_water": {
+   "files": [
+    "shallow_water_0.png",
+    "shallow_water_1.png",
+    "shallow_water_2.png"
+   ],
+   "anchor": [
+    64,
+    75
+   ]
+  },
+  "sand": {
+   "files": [
+    "sand_0.png",
+    "sand_1.png"
+   ],
+   "anchor": [
+    64,
+    75
+   ]
+  },
+  "grass": {
+   "files": [
+    "grass_0.png",
+    "grass_1.png",
+    "grass_2.png",
+    "grass_3.png"
+   ],
+   "anchor": [
+    64,
+    75
+   ]
+  },
+  "road": {
+   "files": [
+    "road_0.png",
+    "road_1.png"
+   ],
+   "anchor": [
+    64,
+    75
+   ]
+  },
+  "tree": {
+   "files": [
+    "tree_0.png",
+    "tree_1.png",
+    "tree_2.png"
+   ],
+   "anchor": [
+    30,
+    141
+   ]
+  },
+  "rock": {
+   "files": [
+    "rock.png"
+   ],
+   "anchor": [
+    36,
+    71
+   ]
+  },
+  "house": {
+   "files": [
+    "house_0.png",
+    "house_1.png",
+    "house_2.png"
+   ],
+   "anchor": [
+    47,
+    111
+   ]
+  },
+  "farmhouse": {
+   "files": [
+    "farmhouse.png"
+   ],
+   "anchor": [
+    53,
+    116
+   ]
+  },
+  "windmill": {
+   "files": [
+    "windmill.png"
+   ],
+   "anchor": [
+    78,
+    165
+   ]
+  },
+  "lumberjack": {
+   "files": [
+    "lumberjack.png"
+   ],
+   "anchor": [
+    40,
+    99
+   ]
+  },
+  "chapel": {
+   "files": [
+    "chapel.png"
+   ],
+   "anchor": [
+    92,
+    241
+   ]
+  },
+  "warehouse": {
+   "files": [
+    "warehouse.png"
+   ],
+   "anchor": [
+    78,
+    169
+   ]
+  },
+  "wheat_field": {
+   "files": [
+    "wheat_field.png"
+   ],
+   "anchor": [
+    123,
+    130
+   ],
+   "flat": true
+  },
+  "pier": {
+   "files": [
+    "pier.png"
+   ],
+   "anchor": [
+    54,
+    63
+   ],
+   "flat": true
+  },
+  "ship": {
+   "files": [
+    "ship.png"
+   ],
+   "anchor": [
+    75,
+    222
+   ]
+  },
+  "cart": {
+   "files": [
+    "cart.png"
+   ],
+   "anchor": [
+    18,
+    69
+   ]
+  },
+  "colonist": {
+   "files": [
+    "colonist.png"
+   ],
+   "anchor": [
+    8,
+    77
+   ]
+  }
+ },
+ "overlays": [
+  {
+   "file": "ui_topbar.png",
+   "pos": [
+    0,
+    0
+   ],
+   "anchor": [
+    0,
+    0
+   ]
+  },
+  {
+   "file": "ui_panel.png",
+   "pos": [
+    24,
+    1056
+   ],
+   "anchor": [
+    0,
+    300
+   ]
+  }
+ ]
+}

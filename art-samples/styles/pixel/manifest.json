@@ -1,0 +1,213 @@
+{
+ "name": "Pixel Art",
+ "background": "#173659",
+ "filter": "nearest",
+ "sprites": {
+  "deep_water": {
+   "files": [
+    "deep_water_0.png",
+    "deep_water_1.png",
+    "deep_water_2.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "shallow_water": {
+   "files": [
+    "shallow_water_0.png",
+    "shallow_water_1.png",
+    "shallow_water_2.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "sand": {
+   "files": [
+    "sand_0.png",
+    "sand_1.png",
+    "sand_2.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "grass": {
+   "files": [
+    "grass_0.png",
+    "grass_1.png",
+    "grass_2.png",
+    "grass_3.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "road": {
+   "files": [
+    "road_0.png",
+    "road_1.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "tree": {
+   "files": [
+    "tree_0.png",
+    "tree_1.png",
+    "tree_2.png"
+   ],
+   "anchor": [
+    64,
+    144
+   ]
+  },
+  "rock": {
+   "files": [
+    "rock_0.png"
+   ],
+   "anchor": [
+    64,
+    96
+   ]
+  },
+  "house": {
+   "files": [
+    "house_0.png",
+    "house_1.png",
+    "house_2.png",
+    "house_3.png"
+   ],
+   "anchor": [
+    64,
+    144
+   ]
+  },
+  "farmhouse": {
+   "files": [
+    "farmhouse_0.png"
+   ],
+   "anchor": [
+    64,
+    156
+   ]
+  },
+  "windmill": {
+   "files": [
+    "windmill_0.png"
+   ],
+   "anchor": [
+    64,
+    232
+   ]
+  },
+  "lumberjack": {
+   "files": [
+    "lumberjack_0.png"
+   ],
+   "anchor": [
+    64,
+    144
+   ]
+  },
+  "chapel": {
+   "files": [
+    "chapel_0.png"
+   ],
+   "anchor": [
+    128,
+    280
+   ]
+  },
+  "warehouse": {
+   "files": [
+    "warehouse_0.png"
+   ],
+   "anchor": [
+    128,
+    276
+   ]
+  },
+  "ship": {
+   "files": [
+    "ship_0.png"
+   ],
+   "anchor": [
+    128,
+    248
+   ]
+  },
+  "cart": {
+   "files": [
+    "cart_0.png"
+   ],
+   "anchor": [
+    64,
+    112
+   ]
+  },
+  "colonist": {
+   "files": [
+    "colonist_0.png",
+    "colonist_1.png",
+    "colonist_2.png",
+    "colonist_3.png"
+   ],
+   "anchor": [
+    64,
+    112
+   ]
+  },
+  "wheat_field": {
+   "files": [
+    "wheat_field_0.png"
+   ],
+   "anchor": [
+    128,
+    128
+   ],
+   "flat": true
+  },
+  "pier": {
+   "files": [
+    "pier_0.png"
+   ],
+   "anchor": [
+    64,
+    112
+   ],
+   "flat": true
+  }
+ },
+ "overlays": [
+  {
+   "file": "ui_topbar.png",
+   "pos": [
+    0,
+    0
+   ],
+   "anchor": [
+    0,
+    0
+   ]
+  },
+  {
+   "file": "ui_panel.png",
+   "pos": [
+    24,
+    1056
+   ],
+   "anchor": [
+    0,
+    300
+   ]
+  }
+ ]
+}
