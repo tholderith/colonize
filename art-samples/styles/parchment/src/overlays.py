@@ -50,9 +50,9 @@ def chart_ink(layout, out):
     paint(band(0.0, 1.1), INK, .92)
     paint(band(-3.0, .5) & (gaussian_filter(rng.randn(*land.shape), 1.5) > .3), INK2, .5)
     im = Image.fromarray(np.clip(rgba, 0, 255).astype("uint8"), "RGBA")
-    # compass rose in the top-right water, hand drawn
-    a = A(1920, 1080, (0, 0), 77); a.im = im.resize((1920 * S, 1080 * S), Image.BILINEAR)
-    cx, cy, R = 1740, 255, 70
+    # compass rose in the top-right water, hand drawn on a small supersampled canvas
+    a = A(220, 220, (0, 0), 77)
+    cx, cy, R = 110, 118, 70
     for k in range(32):
         t = k / 32 * 6.283; rr = R * (1.0 if k % 8 == 0 else .62 if k % 4 == 0 else .38)
         a.line([(cx, cy), (cx + math.sin(t) * rr, cy - math.cos(t) * rr)], .7, INK, .3, alpha=170)
@@ -62,13 +62,12 @@ def chart_ink(layout, out):
         l = (cx + math.sin(t - .35) * R * .22, cy - math.cos(t - .35) * R * .22); rr_ = (cx + math.sin(t + .35) * R * .22, cy - math.cos(t + .35) * R * .22)
         a.poly([tip, l, (cx, cy)], (226, 206, 150) if k % 2 else INK, True, .9, grain=0)
         a.poly([tip, rr_, (cx, cy)], INK if k % 2 else (226, 206, 150), True, .9, grain=0)
-    a.ellipse((cx, cy), R * .98, R * .98, (0, 0, 0, 0)[:3], False)
-    pts = [(cx + math.cos(t / 60 * 6.283) * R * .98, cy + math.sin(t / 60 * 6.283) * R * .98) for t in range(61)]
-    a.line(pts, 1.1, INK, .3); 
-    pts = [(cx + math.cos(t / 60 * 6.283) * R * .88, cy + math.sin(t / 60 * 6.283) * R * .88) for t in range(61)]
-    a.line(pts, .6, INK, .3, alpha=150)
+    for rad, w_, al in ((.98, 1.1, 255), (.88, .6, 150)):
+        pts = [(cx + math.cos(t / 60 * 6.283) * R * rad, cy + math.sin(t / 60 * 6.283) * R * rad) for t in range(61)]
+        a.line(pts, w_, INK, .3, alpha=al)
     a.text((cx, cy - R * 1.15 - 12), "N", (18, True), INK, "mm")
-    im = a.im.resize((1920, 1080), Image.LANCZOS)
+    comp = a.im.resize((220, 220), Image.LANCZOS)
+    im.alpha_composite(comp, (1630, 140))
     im.save(out)
 
 def paper(out):

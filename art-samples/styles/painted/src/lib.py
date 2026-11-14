@@ -125,10 +125,11 @@ class Canvas:
         self.comp(m, full)
 
     def outline(self, color=(52, 34, 26), alpha=.55, px=1.0):
-        a = Image.fromarray((self.a * 255).astype(np.uint8))
+        ao = np.clip((self.a - .5) * 2, 0, 1)
+        a = Image.fromarray((ao * 255).astype(np.uint8))
         k = int(px * S) * 2 + 1
         dil = np.asarray(a.filter(ImageFilter.MaxFilter(k)), np.float32) / 255
-        ring = np.clip(dil - self.a, 0, 1) * alpha
+        ring = np.clip(dil - ao, 0, 1) * alpha
         # draw outline underneath existing content
         oa = self.a + ring * (1 - self.a)
         den = np.maximum(oa, 1e-6)[..., None]

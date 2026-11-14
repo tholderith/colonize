@@ -218,10 +218,10 @@ def ship(seed=0):
     fx, fy = p.P(hull(.52), B0, zdeck(.52) + 6 + 178)
     c.lines([((fx, fy), (fx, fy - 9))], hexc('#5a3a1e'), width=1.4)
     c.poly([(fx, fy - 9), (fx + 15, fy - 6), (fx + 12, fy - 3), (fx + 16, fy), (fx, fy - 2)], hexc('#c2453a'), tex=.08)
+    c.outline(color=(36, 24, 16), alpha=.55, px=.8)
     # foam / wake at waterline
     foam = [p.P(hull(t), B0 + w(t) * .78 + .035, 1) for t in ts]
     c.lines([(foam[i], foam[i + 1]) for i in range(len(foam) - 1)], hexc('#f4fbf6'), width=2.2, alpha=.85)
     foam2 = [p.P(hull(t), B0 + w(t) * 1.08 + .08 + .02 * math.sin(t * 22), 0) for t in ts]
     c.lines([(foam2[i], foam2[i + 1]) for i in range(len(foam2) - 1) if i % 3 != 2], hexc('#d5f0ee'), width=1.4, alpha=.55)
-    c.outline(color=(36, 24, 16), alpha=.55, px=.8)
     return c.to_image(), p.anchor
