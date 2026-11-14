@@ -67,6 +67,7 @@ def crate(w, x, y, s=0.04, z0=0.0, rot=0.0):
     w.box(MT.planks((0.40, 0.31, 0.20), False, 0.02, 'crate'), x, y, (s, s, s * 0.85), z0, rot)
 
 def yard(w, rx, ry, color=(0.38, 0.30, 0.21), z=0.0015, name='yard', cx=0, cy=0, inner=0.5):
+    return None   # ground darkening/dirt is baked into the continuous underlay
     me = bpy.data.meshes.new(name); bm = bmesh.new()
     vs = [bm.verts.new((w.cx + cx + sx * rx, w.cy + cy + sy * ry, z)) for sx, sy in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
     bm.faces.new(vs); bm.to_mesh(me); bm.free()
@@ -74,3 +75,47 @@ def yard(w, rx, ry, color=(0.38, 0.30, 0.21), z=0.0015, name='yard', cx=0, cy=0,
     o = bpy.data.objects.new(name, me); bpy.context.collection.objects.link(o)
     o.visible_shadow = False
     return o
+
+# ------------------------------------------------------------------ small life props (cinematic additions)
+def flower_box(w, face, wall, along, zc, wh=0.10, ww=0.095, seed=0, shades=((0.82, 0.22, 0.16), (0.95, 0.80, 0.25), (0.92, 0.88, 0.85))):
+    rng = random.Random(seed)
+    wood = MT.painted('fbox', (0.30, 0.22, 0.15))
+    z0 = zc - wh / 2 - 0.038
+    fb(w, wood, face, wall, along, z0, ww + 0.02, 0.026, 0.034, 0.002)
+    n, t = FACES[face]
+    leaf = MT.solid('fleaf', (0.18, 0.36, 0.12), 0.8)
+    for k in range(7):
+        a = along + (k - 3) * (ww / 7.0) * 1.2
+        px = (wall + n[0] * 0.030) if n[0] else a
+        py = (wall + n[1] * 0.030) if n[1] else a
+        w.sphere(leaf, (px, py, z0 + 0.034), 0.016, seg=6, rings=4, scale=(1, 1, 0.8), rng=rng)
+        c = shades[(k + seed) % len(shades)]
+        w.sphere(MT.solid('fl%s' % (c,), c, 0.6), (px + n[0] * 0.004, py + n[1] * 0.004, z0 + 0.048 + rng.uniform(0, 0.008)), 0.009, seg=5, rings=3)
+
+def laundry(w, x0, y0, x1, y1, z=0.20, seed=0):
+    rng = random.Random(seed)
+    post = MT.timber((0.25, 0.19, 0.13))
+    for (x, y) in ((x0, y0), (x1, y1)): w.cyl(post, (x, y, 0.0), (x, y, z + 0.02), 0.007, 0.006, 6)
+    w.cyl(MT.rope(), (x0, y0, z + 0.015), (x1, y1, z + 0.015), 0.0025, 0.0025, 4)
+    cols = [(0.92, 0.90, 0.84), (0.30, 0.42, 0.62), (0.78, 0.30, 0.22), (0.88, 0.80, 0.55), (0.92, 0.90, 0.84)]
+    dx, dy = x1 - x0, y1 - y0; L = math.hypot(dx, dy); ang = math.atan2(dy, dx)
+    for k in range(4):
+        t = (k + 0.7) / 4.4
+        cx, cy = x0 + dx * t, y0 + dy * t
+        hh = rng.uniform(0.055, 0.085)
+        w.box(MT.solid('lau%d' % k, cols[(k + seed) % 5], 0.95), cx, cy, (L / 4 * 0.62, 0.003, hh), z + 0.012 - hh, rot=ang)
+
+def haystack(w, x, y, r=0.085):
+    hay = MT.thatch()
+    w.sphere(hay, (x, y, r * 0.62), r, seg=12, rings=8, scale=(1, 1, 1.15), smooth=True)
+    w.cyl(hay, (x, y, 0.0), (x, y, r * 0.6), r * 0.97, r, 12, cap0=False, cap1=False)
+    w.cyl(MT.solid('hayrope', (0.30, 0.22, 0.12), 0.9), (x, y, r * 0.4), (x, y, r * 0.43), r * 1.01, r * 1.01, 12, cap0=False, cap1=False)
+
+def fence(w, x0, y0, x1, y1, h=0.05, n=None, wood=None):
+    wood = wood or MT.timber((0.31, 0.24, 0.17), 'fencewood')
+    L = math.hypot(x1 - x0, y1 - y0); n = n or max(2, int(L / 0.07))
+    for i in range(n + 1):
+        t = i / n; x = x0 + (x1 - x0) * t; y = y0 + (y1 - y0) * t
+        w.box(wood, x, y, (0.012, 0.012, h), 0.0)
+    for z in (h * 0.45, h * 0.8):
+        w.beam(wood, (x0, y0, z), (x1, y1, z), 0.008, 0.008)

@@ -49,6 +49,7 @@ def grain(sigma, seed):
 def sstep(a, b, x):
     t = np.clip((x - a) / (b - a + 1e-9), 0, 1); return t * t * (3 - 2 * t)
 def mix(a, b, t):
+    t = np.asarray(t, np.float32)
     t = t[..., None] if t.ndim == 2 else t
     return a * (1 - t) + b * t
 def col(h):
@@ -78,6 +79,12 @@ def warp_blur(m, sigma_tiles):
     f = ndi.gaussian_filter(to_fine(m), sigma_tiles * R)
     return ndi.map_coordinates(f, [yy + wy, xx + wx], order=1, mode='nearest')
 Lb = warp_blur(landT, 0.62)
+carve = np.zeros((S, S), np.float32)
+for (cx0, cy0, cx1, cy1) in ((16.0, 11.0, 17.0, 12.0), (17.0, 11.0, 19.0, 13.0), (2.0, 15.0, 4.0, 17.0)):
+    m_ = 0.28 if (cx1 - cx0) > 1 else 0.12
+    carve[int((cy0 - m_ - X0) * R):int((cy1 + m_ - X0) * R), int((cx0 - m_ - X0) * R):int((cx1 + m_ - X0) * R)] = 1
+carve = ndi.gaussian_filter(carve, 0.22 * R)
+Lb = Lb - 1.4 * carve
 land = Lb > 0.47
 # signed distance in tiles (+ land)
 din = ndi.distance_transform_edt(land) / R
@@ -153,8 +160,8 @@ for o in objs:
         i = 0.14 if s != 'windmill' else 0.1
         rect(x + i, y + i, x + fw - i, y + fh - i, ao)
         # trampled apron in front of the building (door side = +y / south in game coords) and a little around
-        rect(x + 0.05, y + fh - 0.35, x + fw - 0.05, y + fh + 0.45, trample, 0.9)
-        rect(x - 0.1, y - 0.1, x + fw + 0.1, y + fh + 0.1, trample, 0.6)
+        rect(x + 0.15, y + fh - 0.2, x + fw - 0.15, y + fh + 0.3, trample, 0.75)
+        rect(x - 0.05, y - 0.05, x + fw + 0.05, y + fh + 0.05, trample, 0.3)
     elif s == 'wheat_field':
         rect(x + 0.07, y + 0.07, x + fw - 0.07, y + fh - 0.07, tilled)
     elif s == 'tree':
@@ -167,8 +174,8 @@ ao = ndi.gaussian_filter(ao, 0.12 * R); trample = ndi.gaussian_filter(trample, 0
 tilled = ndi.gaussian_filter(tilled, 0.05 * R); leaf = ndi.gaussian_filter(leaf, 0.18 * R)
 
 # ------------------------------------------------------------------ ground colour (land)
-GR_D, GR_M, GR_L, GR_Y = col('#2f4a17'), col('#46691f'), col('#6b8a2a'), col('#8d9a3a')
-SAND_D, SAND_L = col('#c4a678'), col('#ecd9a8')
+GR_D, GR_M, GR_L, GR_Y = col('#2a4116'), col('#3e5a1d'), col('#5f7c2a'), col('#85903c')
+SAND_D, SAND_L = col('#bf9f6e'), col('#e4cb97')
 DIRT_D, DIRT_L = col('#5b4128'), col('#8a6a45')
 WET = col('#6f5a41')
 
@@ -213,7 +220,7 @@ dirt = dirt * (1 + 0.10 * nhi[..., None] + 0.08 * nhi2[..., None])
 rutd = np.abs(np.sin((xx + yy * 0.0) / R * 2 * np.pi * 0.0))  # placeholder (ruts follow road orientation below)
 # trampled apron: dirt patches, ragged
 tr_m = sstep(0.18, 0.7, trample + (fbm(0.5, 3, 96) - 0.5) * 0.55)
-base_land = mix(base_land, mix(base_land, dirt, 0.85), tr_m * (d > 0.4))
+base_land = mix(base_land, mix(base_land, dirt, 0.6), tr_m * (d > 0.4))
 worn = road_worn * (0.55 + 0.25 * fbm(0.6, 3, 97))
 base_land = mix(base_land, mix(base_land, dirt * 1.05, 0.6), np.clip(worn - road_core, 0, 1) * sstep(0.3, 0.9, fbm(0.45, 3, 98)) * 0.9)
 road_col = dirt * (1 + 0.07 * grain(0.6, 99)[..., None])
@@ -229,7 +236,7 @@ base_land = mix(base_land, soil, sstep(0.3, 0.8, tilled))
 edge = sstep(0.2, 0.8, road_soft) * (1 - road_core)
 base_land = mix(base_land, grass * 0.95, edge * sstep(0.55, 0.75, fbm(0.25, 3, 102)) * 0.7)
 # ambient occlusion contact darkening around buildings
-base_land = base_land * (1 - 0.42 * np.clip(ao, 0, 1))[..., None]
+base_land = base_land * (1 - 0.30 * np.clip(ao, 0, 1))[..., None]
 
 # ------------------------------------------------------------------ seabed (seen through the water) incl. caustics
 dep = depth_sea
@@ -245,8 +252,9 @@ def ridge(scale, seed):
     n = fbm(scale, 3, seed); return 1 - np.abs(n - 0.5) * 2
 c1 = ridge(0.42, 121) ** 6; c2 = ridge(0.31, 122) ** 6
 caus = np.clip(c1 + c2, 0, 1.4) * sstep(0.03, 0.18, dep) * (1 - sstep(0.7, 1.7, dep))
-sea_sand = sea_sand * (1 + 0.85 * caus[..., None])
+sea_sand = sea_sand * (1 + 0.30 * caus[..., None])
 
+sea_sand = sea_sand * np.array([0.95, 0.99, 1.0], np.float32)
 color = np.where((d > 0)[..., None], base_land, sea_sand)
 # soft blend across the waterline (wet sand into seabed)
 blend = sstep(-0.03, 0.03, d)
@@ -256,12 +264,16 @@ color = mix(sea_sand, base_land, blend)
 sh = np.maximum(-d, 0)           # offshore distance (tiles)
 sw = fbm(0.55, 3, 131)
 # swash: bright thin line right at the waterline, a broken second wave line further out, streaky
-swash = np.exp(-((sh - 0.035 - 0.03 * sw) / 0.055) ** 2) * (d <= 0.02)
+swash = np.exp(-((sh - 0.035 - 0.03 * sw) / 0.04) ** 2) * (d <= 0.02)
 line2 = np.exp(-((sh - 0.33 - 0.12 * np.sin(fbm(1.5, 2, 132) * 12)) / 0.07) ** 2) * sstep(0.45, 0.75, fbm(0.28, 3, 133))
 line3 = np.exp(-((sh - 0.75 - 0.18 * np.sin(fbm(1.9, 2, 134) * 11)) / 0.06) ** 2) * sstep(0.55, 0.8, fbm(0.3, 3, 135)) * 0.6
 lace = sstep(0.35, 0.65, fbm(0.18, 3, 136))
 foam = np.clip(swash * (0.55 + 0.6 * lace) + line2 * 0.75 * lace + line3 * lace, 0, 1)
 foam *= sstep(-0.01, 0.02, -d + 0.04)
+
+# crisp up the albedo (the raster is ~2 px/texel in the 2x render)
+bl = np.stack([ndi.gaussian_filter(color[..., c], 1.6) for c in range(3)], -1)
+color = np.clip(color + 0.55 * (color - bl), 0, 1)
 
 def save16(a, name, scale=1.0):
     Image.fromarray((np.clip(a / scale, 0, 1) * 65535).astype(np.uint16)).save(os.path.join(FD, name))

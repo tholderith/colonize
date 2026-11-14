@@ -1,0 +1,255 @@
+{
+ "cart": {
+  "size": [
+   203,
+   111
+  ],
+  "anchor": [
+   94,
+   82
+  ],
+  "flat": false
+ },
+ "chapel": {
+  "size": [
+   524,
+   482
+  ],
+  "anchor": [
+   262,
+   425
+  ],
+  "flat": false
+ },
+ "colonist_0": {
+  "size": [
+   132,
+   68
+  ],
+  "anchor": [
+   66,
+   66
+  ],
+  "flat": false
+ },
+ "colonist_1": {
+  "size": [
+   132,
+   68
+  ],
+  "anchor": [
+   66,
+   66
+  ],
+  "flat": false
+ },
+ "colonist_2": {
+  "size": [
+   132,
+   68
+  ],
+  "anchor": [
+   66,
+   66
+  ],
+  "flat": false
+ },
+ "colonist_3": {
+  "size": [
+   132,
+   68
+  ],
+  "anchor": [
+   66,
+   66
+  ],
+  "flat": false
+ },
+ "farmhouse": {
+  "size": [
+   284,
+   322
+  ],
+  "anchor": [
+   142,
+   265
+  ],
+  "flat": false
+ },
+ "house_0": {
+  "size": [
+   284,
+   322
+  ],
+  "anchor": [
+   142,
+   265
+  ],
+  "flat": false
+ },
+ "house_1": {
+  "size": [
+   284,
+   322
+  ],
+  "anchor": [
+   142,
+   265
+  ],
+  "flat": false
+ },
+ "house_2": {
+  "size": [
+   284,
+   322
+  ],
+  "anchor": [
+   142,
+   265
+  ],
+  "flat": false
+ },
+ "house_3": {
+  "size": [
+   284,
+   322
+  ],
+  "anchor": [
+   142,
+   265
+  ],
+  "flat": false
+ },
+ "lumberjack": {
+  "size": [
+   284,
+   287
+  ],
+  "anchor": [
+   142,
+   230
+  ],
+  "flat": false
+ },
+ "pier": {
+  "size": [
+   267,
+   157
+  ],
+  "anchor": [
+   127,
+   104
+  ],
+  "flat": true
+ },
+ "rock_0": {
+  "size": [
+   273,
+   152
+  ],
+  "anchor": [
+   132,
+   107
+  ],
+  "flat": false
+ },
+ "rock_1": {
+  "size": [
+   273,
+   152
+  ],
+  "anchor": [
+   132,
+   107
+  ],
+  "flat": false
+ },
+ "ship": {
+  "size": [
+   454,
+   247
+  ],
+  "anchor": [
+   243,
+   210
+  ],
+  "flat": false
+ },
+ "tree_0": {
+  "size": [
+   404,
+   403
+  ],
+  "anchor": [
+   202,
+   346
+  ],
+  "flat": false
+ },
+ "tree_1": {
+  "size": [
+   404,
+   403
+  ],
+  "anchor": [
+   202,
+   346
+  ],
+  "flat": false
+ },
+ "tree_2": {
+  "size": [
+   404,
+   403
+  ],
+  "anchor": [
+   202,
+   346
+  ],
+  "flat": false
+ },
+ "tree_3": {
+  "size": [
+   404,
+   403
+  ],
+  "anchor": [
+   202,
+   346
+  ],
+  "flat": false
+ },
+ "warehouse": {
+  "size": [
+   524,
+   482
+  ],
+  "anchor": [
+   262,
+   425
+  ],
+  "flat": false
+ },
+ "wheat_field": {
+  "size": [
+   325,
+   162
+  ],
+  "anchor": [
+   159,
+   144
+  ],
+  "flat": true
+ },
+ "windmill": {
+  "size": [
+   354,
+   386
+  ],
+  "anchor": [
+   177,
+   329
+  ],
+  "flat": false
+ }
+}

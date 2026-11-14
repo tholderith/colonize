@@ -158,6 +158,19 @@ def wheat(ctr):
                 bx, by = x + rng.uniform(-0.01, 0.01), y + rng.uniform(-0.012, 0.012)
                 w.cyl(stalk, (bx, by, 0.0), (bx + tx, by + ty, hgt), 0.004, 0.0025, 4, cap0=False, cap1=False, smooth=False)
                 w.cyl(ear.m, (bx + tx, by + ty, hgt - 0.012), (bx + tx * 1.25, by + ty * 1.25, hgt + 0.032), 0.0075, 0.0015, 5, cap0=False, cap1=False, smooth=False)
+    # hedgerow around the field (with a gate gap), two staggered rows of leafy clumps + fence posts
+    hfol = MT.foliage('hedge', (0.07, 0.16, 0.06), (0.30, 0.44, 0.13), 0.30)
+    hp = 0.955
+    for side in range(4):
+        n = 30
+        for k in range(n):
+            if side == 0 and 12 <= k <= 15: continue
+            t = -0.97 + 1.94 * (k + 0.5) / n
+            bx, by = {0: (t, -hp), 1: (t, hp), 2: (-hp, t), 3: (hp, t)}[side]
+            for row in range(2):
+                r = rng.uniform(0.040, 0.062)
+                ox, oy = rng.uniform(-0.012, 0.012), rng.uniform(-0.012, 0.012)
+                w.sphere(hfol, (bx + ox, by + oy, 0.04 + row * 0.04 + rng.uniform(0, 0.015)), r, seg=7, rings=5, scale=(1, 1, 0.9), rot=rng.uniform(0, 3), jitter=0.14, rng=rng)
     return w.commit() + [o]
 
 def pier(ctr):
@@ -377,6 +390,19 @@ def ship(ctr):
     bm.to_mesh(me2); bm.free()
     me2.materials.append(MT.alpha_mat('shipcontact', (0.02, 0.10, 0.12), 8, strength=0.55, mask_noise=0.1))
     o2 = bpy.data.objects.new('contact', me2); bpy.context.collection.objects.link(o2); o2.visible_shadow = False
+    # wake: two diverging bow waves + turbulent wedge behind the stern (ship points +x)
+    wm = bpy.data.meshes.new('wake'); bm = bmesh.new()
+    def Q(pts):
+        try: bm.faces.new([bm.verts.new((w.cx + p[0], w.cy + p[1], 0.003)) for p in pts])
+        except Exception: pass
+    for sy in (-1, 1):
+        pts = [(0.80, sy * 0.02), (0.55, sy * 0.20), (0.20, sy * 0.33), (-0.30, sy * 0.40), (-0.62, sy * 0.52)]
+        for a, b2 in zip(pts[:-1], pts[1:]):
+            Q([(a[0], a[1]), (b2[0], b2[1]), (b2[0], b2[1] + sy * 0.10), (a[0], a[1] + sy * 0.05)] if sy > 0 else [(a[0], a[1] + sy * 0.05), (b2[0], b2[1] + sy * 0.10), (b2[0], b2[1]), (a[0], a[1])])
+    Q([(-0.84, -0.12), (-1.2, -0.30), (-1.2, 0.30), (-0.84, 0.12)])
+    bm.to_mesh(wm); bm.free()
+    wm.materials.append(MT.alpha_mat('shipwake', (0.86, 0.92, 0.9), 14, strength=0.55, mask_noise=0.25))
+    wo = bpy.data.objects.new('wake', wm); bpy.context.collection.objects.link(wo); wo.visible_shadow = False
     return out
 
 def _hull_mat():
@@ -462,7 +488,7 @@ def colonist(ctr, v):
 JOBS = {}
 for v in range(4): JOBS[f'tree_{v}'] = (tree, (v,), 1, 1, dict(W=800, H=800, K=1.3))
 for v in range(2): JOBS[f'rock_{v}'] = (rock, (v,), 1, 1, dict(K=1.35))
-JOBS['wheat_field'] = (wheat, (), 2, 2, dict(flat=True, catcher=False, spp=96))
+JOBS['wheat_field'] = (wheat, (), 2, 2, dict(flat=True, catcher=True, spp=96))
 JOBS['pier'] = (pier, (), 1, 1, dict(flat=True))
 JOBS['ship'] = (ship, (), 2, 2, dict(spp=128, K=1.18))
 JOBS['cart'] = (cart, (), 1, 1, {})

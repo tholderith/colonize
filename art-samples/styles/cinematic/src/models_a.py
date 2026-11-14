@@ -146,6 +146,12 @@ def house(ctr, v, seed=0):
         # small porch roof
         w.box(tim, -0.0, -hy - 0.05, (0.20, 0.004, 0.0) if False else (0.20, 0.10, 0.012), 0.27)
         for sx in (-1, 1): w.box(tim, sx * 0.09, -hy - 0.09, (0.016, 0.016, 0.27), 0.0)
+    # --- life props (flower boxes, laundry, fences, haystack)
+    if v in (0, 3): flower_box(w, 'y-', -hy, hx * 0.46 if v == 0 else hx * 0.45, zw, seed=v)
+    if v == 0: laundry(w, hx + 0.05, -0.17, hx + 0.05, 0.2, 0.20, seed=1); fence(w, -hx, -hy - 0.14, hx * 0.2, -hy - 0.14, 0.05)
+    if v == 1: laundry(w, -hx - 0.07, -0.2, -hx - 0.07, 0.17, 0.19, seed=2); haystack(w, hx * 0.75, hy + 0.12, 0.075)
+    if v == 2: fence(w, -hx - 0.03, -hy - 0.10, -hx - 0.03, hy + 0.1, 0.05); flower_box(w, 'y-', -hy, hx * 0.12 + 0.0, zw, seed=5) if False else None
+    if v == 3: fence(w, hx + 0.04, -hy - 0.12, hx + 0.04, hy + 0.1, 0.045)
     return w.commit()
 
 def woodpile(w, x, y, length, rows):

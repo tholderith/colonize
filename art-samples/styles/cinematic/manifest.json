@@ -1,0 +1,229 @@
+{
+ "name": "Cinematic",
+ "background": "#0a2a33",
+ "filter": "linear",
+ "sprites": {
+  "tree": {
+   "files": [
+    "tree_0.png",
+    "tree_1.png",
+    "tree_2.png",
+    "tree_3.png"
+   ],
+   "anchor": [
+    202,
+    346
+   ]
+  },
+  "rock": {
+   "files": [
+    "rock_0.png",
+    "rock_1.png"
+   ],
+   "anchor": [
+    132,
+    107
+   ]
+  },
+  "house": {
+   "files": [
+    "house_0.png",
+    "house_1.png",
+    "house_2.png",
+    "house_3.png"
+   ],
+   "anchor": [
+    142,
+    265
+   ]
+  },
+  "colonist": {
+   "files": [
+    "colonist_0.png",
+    "colonist_1.png",
+    "colonist_2.png",
+    "colonist_3.png"
+   ],
+   "anchor": [
+    66,
+    66
+   ]
+  },
+  "deep_water": {
+   "files": [
+    "tile_deep_water.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "shallow_water": {
+   "files": [
+    "tile_shallow_water.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "sand": {
+   "files": [
+    "tile_sand.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "grass": {
+   "files": [
+    "tile_grass.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "road": {
+   "files": [
+    "tile_road.png"
+   ],
+   "anchor": [
+    64,
+    64
+   ]
+  },
+  "farmhouse": {
+   "files": [
+    "farmhouse.png"
+   ],
+   "anchor": [
+    142,
+    265
+   ]
+  },
+  "windmill": {
+   "files": [
+    "windmill.png"
+   ],
+   "anchor": [
+    177,
+    329
+   ]
+  },
+  "lumberjack": {
+   "files": [
+    "lumberjack.png"
+   ],
+   "anchor": [
+    142,
+    230
+   ]
+  },
+  "chapel": {
+   "files": [
+    "chapel.png"
+   ],
+   "anchor": [
+    262,
+    425
+   ]
+  },
+  "warehouse": {
+   "files": [
+    "warehouse.png"
+   ],
+   "anchor": [
+    262,
+    425
+   ]
+  },
+  "ship": {
+   "files": [
+    "ship.png"
+   ],
+   "anchor": [
+    243,
+    210
+   ]
+  },
+  "cart": {
+   "files": [
+    "cart.png"
+   ],
+   "anchor": [
+    94,
+    82
+   ]
+  },
+  "wheat_field": {
+   "files": [
+    "wheat_field.png"
+   ],
+   "anchor": [
+    159,
+    144
+   ],
+   "flat": true
+  },
+  "pier": {
+   "files": [
+    "pier.png"
+   ],
+   "anchor": [
+    127,
+    104
+   ],
+   "flat": true
+  }
+ },
+ "underlays": [
+  {
+   "file": "terrain_full.png",
+   "pos": [
+    0,
+    0
+   ],
+   "anchor": [
+    0,
+    0
+   ]
+  }
+ ],
+ "overlays": [
+  {
+   "file": "ui_grade.png",
+   "pos": [
+    0,
+    0
+   ],
+   "anchor": [
+    0,
+    0
+   ]
+  },
+  {
+   "file": "ui_topbar.png",
+   "pos": [
+    0,
+    0
+   ],
+   "anchor": [
+    0,
+    0
+   ]
+  },
+  {
+   "file": "ui_panel.png",
+   "pos": [
+    24,
+    1056
+   ],
+   "anchor": [
+    0,
+    300
+   ]
+  }
+ ]
+}

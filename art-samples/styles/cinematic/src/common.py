@@ -6,7 +6,7 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.dirname(HERE)
-WORK = os.environ.get("RWORK", "/tmp/realistic_work")
+WORK = os.environ.get("CWORK", "/tmp/cin_work")
 os.makedirs(WORK, exist_ok=True)
 
 SS = 2                                   # supersample factor
@@ -73,21 +73,21 @@ def make_world():
     nt.links.new(sep.outputs['Z'], m.inputs['Value']); nt.links.new(m.outputs[0], ramp.inputs['Fac'])
     cr = ramp.color_ramp
     cr.elements[0].position = 0.0; cr.elements[0].color = srgb((0.30, 0.28, 0.24))
-    cr.elements[1].position = 1.0; cr.elements[1].color = srgb((0.30, 0.50, 0.82))
+    cr.elements[1].position = 1.0; cr.elements[1].color = srgb((0.26, 0.48, 0.80))
     e = cr.elements.new(0.47); e.color = srgb((0.46, 0.45, 0.42))
-    e = cr.elements.new(0.56); e.color = srgb((0.72, 0.80, 0.90))
+    e = cr.elements.new(0.56); e.color = srgb((0.88, 0.80, 0.70))
     e = cr.elements.new(0.80); e.color = srgb((0.42, 0.62, 0.90))
     nt.links.new(ramp.outputs[0], bg.inputs['Color'])
-    bg.inputs['Strength'].default_value = float(os.environ.get("RSKY", "1.5"))
+    bg.inputs['Strength'].default_value = float(os.environ.get("RSKY", "2.1"))
     nt.links.new(bg.outputs[0], out.inputs[0])
 
-SUN_DIR = Vector((-0.50, -0.80, 0.0))   # horizontal part of direction TOWARD the sun (upper-left on screen)
-def make_sun(strength=None, elev=47):
+SUN_DIR = Vector((-0.55, -0.80, 0.0))   # horizontal part of direction TOWARD the sun (upper-left on screen)
+def make_sun(strength=None, elev=float(os.environ.get('CSUNEL','44'))):
     d = SUN_DIR.normalized() * math.cos(math.radians(elev)); d.z = math.sin(math.radians(elev))
     ld = bpy.data.lights.new("sun", 'SUN')
-    ld.energy = strength if strength else float(os.environ.get("RSUN", "3.8"))
+    ld.energy = strength if strength else float(os.environ.get("RSUN", "3.7"))
     ld.angle = math.radians(4.0)
-    ld.color = (1.0, 0.93, 0.82)
+    ld.color = (1.0, 0.80, 0.56)
     o = bpy.data.objects.new("sun", ld); bpy.context.collection.objects.link(o)
     o.rotation_euler = d.to_track_quat('Z', 'Y').to_euler()
     return o
@@ -357,7 +357,7 @@ def sprite(name, build, fw=1, fh=1, W=None, H=None, samples=128, flat=False, cat
     reset()
     setup_render(samples, W, H)
     make_camera(S, W, H, off)
-    if catcher: add_catcher(ctr[0] + 0.8, ctr[1] - 0.3, cat_size or (9 if fw > 1 else 7), catcher_mat)
+    if catcher: add_catcher(ctr[0] + 0.8, ctr[1] - 0.3, cat_size or (14 if fw > 1 else 12), catcher_mat)
     build(ctr)
     if K != 1.0:
         for o in list(bpy.data.objects):
