@@ -51,7 +51,7 @@ def noise(name, seed, beta=2.0):
 
 def finish(rgb, X, Y, name):
     W, H = rgb.shape[:2]
-    msk = (np.abs(X - 0.5) + np.abs(Y - 0.5) <= 0.5 + 0.045)   # slight overscan
+    msk = (np.maximum(np.abs(X - 0.5), np.abs(Y - 0.5)) <= 0.5 + 0.04)   # slight overscan
     al = msk.astype('float32')
     arr = np.concatenate([np.clip(rgb, 0, 1), al[..., None]], -1).astype('float32')
     # premultiplied downsample
