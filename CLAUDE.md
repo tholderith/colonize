@@ -39,6 +39,10 @@ lives at `art-samples/styles/neon/src/` on that branch (`git show art-samples:<p
   screenshot review) run at milestone gates, not on every change; between gates, typecheck +
   the tests for what you touched is enough.
 
+## Pace
+- Milestone day estimates are not schedules. When a milestone gate passes, start the next
+  milestone immediately; don't wait for a check-in or for the user.
+
 ## Reporting to the user
 - Each scheduled check-in or milestone gate: one short update with a screenshot of the
   current build and basic metrics, in a table: milestone, % of milestone tasks done, days
