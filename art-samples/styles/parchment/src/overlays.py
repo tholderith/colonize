@@ -22,7 +22,7 @@ def chart_ink(layout, out):
     f2 = gaussian_filter(land.astype(float), 3)
     # signed distance (px, at half-res) with wobble
     dist = distance_transform_edt(~land) - distance_transform_edt(land)
-    dist = gaussian_filter(dist, 3) + nz * 1.6
+    dist = gaussian_filter(dist, 1.6) + nz * 1.2
     # protect pier/ship areas
     prot = np.zeros(land.shape, bool)
     for o in lay["objects"]:

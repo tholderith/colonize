@@ -11,7 +11,7 @@ def tile(kind, seed):
     r = a.rng
     base = {"deep": SEA_D, "shallow": SEA_S, "sand": SAND, "grass": GRASS, "road": GRASS}[kind]
     base = shade(base, r.uniform(.985, 1.015))
-    a.wash(diamond(1.2), base, pool=0, grain=10)
+    a.wash(diamond(2.6), base, pool=0, grain=10)
     inner = lambda f: [(64, 32 - 30 * f), (64 + 62 * f, 32), (64, 32 + 30 * f), (64 - 62 * f, 32)]
     def pt():
         while True:
