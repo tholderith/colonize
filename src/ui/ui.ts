@@ -29,8 +29,15 @@ export class Ui {
   private tool: BuildingDef | null = null;
   private buttons = new Map<string, HTMLButtonElement>();
   readonly trade: TradeUi;
+  /** Goods whose icon PNG (public/assets/ui/icons/<good>.png) loaded; the rest show a text tag. */
+  private icons = new Set<string>();
 
   constructor(private events: UiEvents) {
+    for (const g of GOODS) {
+      const img = new Image();
+      img.onload = () => this.icons.add(g.id);
+      img.src = `${import.meta.env.BASE_URL}assets/ui/icons/${g.id}.png`;
+    }
     this.trade = new TradeUi({
       onSetRoute: events.onSetRoute,
       onScrap: events.onScrapHauler,
@@ -99,33 +106,42 @@ export class Ui {
 
   /** `island` is the island whose stock the HUD shows (selection, else camera centre). */
   setState(s: GameState, island: number): void {
-    const secs = s.tick / 10;
-    $('clock').textContent = `${String(Math.floor(secs / 60)).padStart(2, '0')}:${(secs % 60).toFixed(1).padStart(4, '0')}`;
     $('tick').textContent = String(s.tick);
     document.querySelectorAll<HTMLButtonElement>('#topbar [data-speed]').forEach((btn) => {
       const v = Number(btn.dataset.speed);
       btn.classList.toggle('active', v === 0 ? s.paused : !s.paused && v === s.speed);
     });
     const isl = s.islands[island] ?? (s.islands[0] as NonNullable<GameState['islands'][number]>);
-    const rate = (r: number) => `<span class="${r > 0.05 ? 'pos' : r < -0.05 ? 'neg' : 'dim'}">${r >= 0 ? '+' : ''}${r.toFixed(0)}/m</span>`;
+    const rate = (r: number) => `<em class="${r > 0.05 ? 'pos' : r < -0.05 ? 'neg' : 'dim'}">${r >= 0 ? '+' : ''}${r.toFixed(0)}/m</em>`;
     const cap = ECON.storageCap * s.buildings.filter((b) => b.type === 'depot' && b.island === isl.id).length;
+    const card = (attr: string, label: string, ic: string, value: string, extra: string, cls = '') =>
+      `<span class="g card ${cls}" ${attr}><i class="ic">${ic}</i><span class="lab">${label}${extra}</span><b>${value}</b></span>`;
     const goods = GOODS.map((g) => {
       const credits = g.id === 'credits';
-      return `<span class="g" data-good="${g.id}">${g.name} <b>${Math.floor(credits ? s.credits : (isl.stock[g.id] ?? 0))}</b> ${rate(credits ? s.creditRate : (isl.rates[g.id] ?? 0))}</span>`;
+      const ic = this.icons.has(g.id) ? `<img src="${import.meta.env.BASE_URL}assets/ui/icons/${g.id}.png" alt="">` : `<span class="tag">${g.short}</span>`;
+      return card(`data-good="${g.id}"`, g.name, ic, String(Math.floor(credits ? s.credits : (isl.stock[g.id] ?? 0))), rate(credits ? s.creditRate : (isl.rates[g.id] ?? 0)));
     }).join('');
     const p = s.pop;
     const pw = isl.power;
     $('hud').innerHTML =
-      `<span class="g" data-hud="island">Island <b>${isl.name}</b></span>` +
+      card('data-hud="island"', 'Island', '', isl.name, '', 'island') +
       goods +
-      `<span class="g" data-hud="pop">Laborers <b>${p.laborers}</b> Technicians <b>${p.technicians}</b></span>` +
-      `<span class="g ${pw.demand > pw.supply ? 'neg' : ''}" data-hud="power">Power <b>${pw.demand}/${pw.supply}</b></span>` +
-      `<span class="g dim">storage cap ${cap}</span>`;
+      card('data-hud="pop"', 'Colonists', '', `${p.laborers + p.technicians}`, `<em class="dim">L${p.laborers} T${p.technicians}</em>`, 'pop') +
+      card('data-hud="power"', 'Power', '', `${pw.demand}/${pw.supply}`, '', pw.demand > pw.supply ? 'bad' : 'power') +
+      `<span class="g dim cap">cap ${cap}</span>`;
     this.trade.update(s);
     for (const [id, btn] of this.buttons) {
       const def = buildingDef(id);
       btn.classList.toggle('poor', !!def && affordError({ ...isl.stock, credits: s.credits }, def) !== null);
     }
+  }
+
+  /** Time-of-day clock in the top bar. */
+  setTime(hour: number, day: number): void {
+    const h = Math.floor(hour), m = Math.floor((hour - h) * 60);
+    $('clock').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    $('day').textContent = String(day).padStart(3, '0');
+    $('tod').className = hour >= 6.5 && hour < 18 ? 'day' : 'night';
   }
 
   /** Static part of the info panel (rebuilt only on selection change, so the button stays clickable). */

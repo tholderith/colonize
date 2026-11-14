@@ -1,0 +1,8 @@
+{
+  "_doc": "Smoke/steam emitters. Offsets are px from the building sprite anchor (south corner). rate = puffs/sec per emitter.",
+  "emitters": {
+    "smelter":  { "offsets": [[3, -228], [32, -190]], "rate": 1.6, "life": 4.5, "rise": 26, "drift": [10, -4], "size": 0.5, "grow": 1.6, "alpha": 0.4, "color": "0x9aa3b5" },
+    "refinery": { "offsets": [[0, -209], [34, -174]], "rate": 1.2, "life": 3.8, "rise": 30, "drift": [8, -3],  "size": 0.4, "grow": 1.8, "alpha": 0.35, "color": "0xc8d6e5" }
+  },
+  "maxParticles": 300
+}

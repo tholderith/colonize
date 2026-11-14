@@ -134,3 +134,19 @@ describe('concordat', () => {
     expect(x.concordat.log.length).toBeGreaterThan(0);
   });
 });
+
+describe('route editing', () => {
+  it('keeps the current stop when an unrelated order is edited', () => {
+    const { sim, a, b } = twoPortWorld();
+    sim.enqueue({ type: 'buildHauler', port: a });
+    sim.flush();
+    const h = sim.state.haulers[0]!;
+    const stops = [a, b].map((id) => ({ kind: 'port' as const, building: id, orders: [] as never[] }));
+    sim.enqueue({ type: 'setRoute', hauler: h.id, route: stops });
+    sim.flush();
+    h.stop = 1;
+    sim.enqueue({ type: 'setRoute', hauler: h.id, route: [{ ...stops[0]!, orders: [{ good: 'scrap', mode: 'load', amount: 5 }] }, stops[1]!] });
+    sim.flush();
+    expect(h.stop).toBe(1);
+  });
+});

@@ -2,6 +2,7 @@ import { Renderer } from './render/renderer';
 import type { FromWorker, ToWorker } from './sim/protocol';
 import { generateMap, islandAt, islands } from './sim/mapgen';
 import { buildingAt, buildingDef, placementError, stockAtTile } from './sim/placement';
+import { dayOf, hourOfDay } from './sim/time';
 import type { Command, GameState, Stop } from './sim/types';
 import { Ui } from './ui/ui';
 
@@ -10,6 +11,9 @@ const map = generateMap(seed);
 let state: GameState | null = null;
 let selected: number | null = null;
 let selectedHauler: number | null = null;
+/** Dev/test override of the time of day (hours); null follows the sim. */
+let hourOverride: number | null = null;
+const hourNow = () => hourOverride ?? hourOfDay(state?.tick ?? 0);
 
 const worker = new Worker(new URL('./sim/worker.ts', import.meta.url), { type: 'module' });
 const send = (m: ToWorker) => worker.postMessage(m);
@@ -103,12 +107,25 @@ worker.onmessage = (e: MessageEvent<FromWorker>) => {
   state = e.data.state;
   ui.setState(state, hudIsland());
   renderer.setState(state);
+  renderer.setHour(hourNow());
   const sel = state.buildings.find((b) => b.id === selected);
   if (selected !== null && !sel) select(null);
   else if (sel) ui.updateInfo(sel, state);
 };
 
-setInterval(() => state && ui.setState(state, hudIsland()), 300); // camera moves between snapshots (and while paused)
+setInterval(() => {
+  if (!state) return;
+  ui.setState(state, hudIsland());
+  ui.setTime(hourNow(), dayOf(state.tick));
+}, 300);
+for (const [id, set, get] of [
+  ['btn-bloom', (v: boolean) => renderer.setBloom(v), () => renderer.bloomOn],
+  ['btn-rain', (v: boolean) => renderer.setRain(v), () => renderer.rainEnabled],
+] as const) {
+  const btn = document.getElementById(id) as HTMLButtonElement;
+  btn.classList.toggle('active', get());
+  btn.addEventListener('click', () => (set(!get()), btn.classList.toggle('active', get())));
+} // camera moves between snapshots (and while paused)
 
 await renderer.init(document.getElementById('map') as HTMLElement);
 send({ type: 'init', seed });
@@ -141,5 +158,10 @@ send({ type: 'init', seed });
     return { x: t.reduce((a, k) => a + (k % map.w), 0) / t.length, y: t.reduce((a, k) => a + Math.floor(k / map.w), 0) / t.length };
   },
   shipToScreen: (id: number) => renderer.shipToScreen(id),
+  /** Force the time of day (hours 0-24); null returns to the sim clock. */
+  setHour: (h: number | null) => {
+    hourOverride = h;
+    renderer.setHour(hourNow());
+  },
   place: (building: string, x: number, y: number) => command({ type: 'placeBuilding', building, x, y }),
 };

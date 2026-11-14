@@ -102,7 +102,9 @@ test('build a tiny working colony, inspect it, screenshot', async ({ page }) => 
   await expect(page.locator('#info-body')).toContainText('Hydroponics');
   await expect(page.locator('#info-body')).toContainText('Status');
   await page.mouse.move(box.x + 5, box.y + box.height - 5);
-  await page.screenshot({ path: 'test-results/m1.png' });
+  await page.evaluate(() => (window as unknown as { __foundry: { setHour(h: number): void } }).__foundry.setHour(22)); // night shot
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: 'test-results/m3.png' });
 
   const st = await page.evaluate(() => (window as unknown as { __foundry: Foundry }).__foundry.state());
   expect(st.islands[0]!.stock.biomass).toBeGreaterThan(0);

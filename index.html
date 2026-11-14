@@ -9,14 +9,16 @@
   <body>
     <div id="map"></div>
     <header id="topbar" class="panel">
-      <span class="brand">FOUNDRY</span>
+      <span class="brand">FOUNDRY<small>SECTOR 3 // COLONY</small></span>
       <button data-speed="0" id="btn-pause">PAUSE</button>
       <button data-speed="1">1x</button>
       <button data-speed="2">2x</button>
       <button data-speed="3">3x</button>
       <button id="btn-concordat" class="active">CONCORDAT</button>
       <button id="btn-exchange">EXCHANGE</button>
-      <span class="clock">T+<span id="clock">00:00.0</span> <span class="dim">tick <span id="tick">0</span></span></span>
+      <button id="btn-bloom" title="Bloom on/off">BLOOM</button>
+      <button id="btn-rain" title="Rain on/off">RAIN</button>
+      <span class="clock" id="tod"><small>DAY <span id="day">001</span> <span class="dim">t<span id="tick">0</span></span></small><br><span id="clock">19:00</span></span>
     </header>
     <section id="hud" class="panel"></section>
     <div id="place-info" class="panel" hidden></div>

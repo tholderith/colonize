@@ -102,14 +102,19 @@ export class Sim {
         case 'setRoute': {
           const h = s.haulers.find((o) => o.id === cmd.hauler);
           if (!h) break;
+          const before = h.route[h.stop];
           h.route = cmd.route.slice(0, 8).map((st) => ({
             kind: st.kind === 'exchange' ? 'exchange' : 'port',
             building: st.kind === 'port' ? st.building : undefined,
             orders: st.orders.slice(0, 8).map((o) => ({ good: o.good, mode: o.mode === 'load' ? 'load' : 'unload', amount: Math.max(1, Math.floor(o.amount) || 1) })),
           }));
-          h.stop = 0;
-          h.phase = 'sail';
-          h.leg = '';
+          // Keep the current stop (and any docking/sailing progress) when the edit leaves it in place.
+          const cur = h.route[h.stop];
+          if (!cur || !before || cur.kind !== before.kind || cur.building !== before.building) {
+            if (h.stop >= h.route.length) h.stop = 0;
+            h.phase = 'sail';
+            h.leg = '';
+          }
           break;
         }
         case 'tradeWithTrader':
