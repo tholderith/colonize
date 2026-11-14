@@ -327,32 +327,32 @@
    "file": "buildings/ration_plant.png",
    "glow": "buildings/ration_plant_glow.png",
    "anchor": [
-    250,
-    312
+    204,
+    183
    ]
   },
   "algae_skimmer": {
    "file": "buildings/algae_skimmer.png",
    "glow": "buildings/algae_skimmer_glow.png",
    "anchor": [
-    259,
-    303
+    190,
+    172
    ]
   },
   "refinery": {
    "file": "buildings/refinery.png",
    "glow": "buildings/refinery_glow.png",
    "anchor": [
-    250,
-    315
+    226,
+    244
    ]
   },
   "fabricator": {
    "file": "buildings/fabricator.png",
    "glow": "buildings/fabricator_glow.png",
    "anchor": [
-    250,
-    316
+    221,
+    233
    ]
   },
   "pod_house_t2": {
@@ -360,7 +360,7 @@
    "glow": "buildings/pod_house_t2_glow.png",
    "anchor": [
     150,
-    189
+    165
    ]
   }
  }

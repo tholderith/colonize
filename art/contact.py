@@ -57,7 +57,7 @@ def sheet():
     p = patch(); W = max(1500, p.width + 20)
     keys = list(man['tiles']); bk = list(man['buildings'])
     rows_h = 80 + 20 + 2 * 90 + 20
-    sh = Image.new('RGBA', (W, 40 + 6 * 96 + 3000 + p.height), BG); d = ImageDraw.Draw(sh)
+    sh = Image.new('RGBA', (W, 40 + 6 * 96 + 1800 + p.height), BG); d = ImageDraw.Draw(sh)
     d.text((10, 6), 'TILES (anchor = south corner)', fill=(200, 220, 255, 255))
     for i, k in enumerate(keys):
         x = 10 + (i % 10) * 142; y = 24 + (i // 10) * 96
