@@ -174,5 +174,213 @@
    2,
    2
   ]
+ },
+ "port": {
+  "file": "buildings/port.png",
+  "glow": "buildings/port_glow.png",
+  "anchor": [
+   250,
+   252
+  ],
+  "size": [
+   500,
+   317
+  ],
+  "footprint": [
+   2,
+   2
+  ]
+ },
+ "hauler_se": {
+  "file": "units/hauler_se.png",
+  "glow": "units/hauler_se_glow.png",
+  "anchor": [
+   147,
+   95
+  ],
+  "size": [
+   220,
+   132
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "trader_se": {
+  "file": "units/trader_se.png",
+  "glow": "units/trader_se_glow.png",
+  "anchor": [
+   121,
+   60
+  ],
+  "size": [
+   187,
+   93
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "patrol_se": {
+  "file": "units/patrol_se.png",
+  "glow": "units/patrol_se_glow.png",
+  "anchor": [
+   129,
+   65
+  ],
+  "size": [
+   207,
+   109
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "hauler_ne": {
+  "file": "units/hauler_ne.png",
+  "glow": "units/hauler_ne_glow.png",
+  "anchor": [
+   146,
+   53
+  ],
+  "size": [
+   219,
+   127
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "hauler_nw": {
+  "file": "units/hauler_nw.png",
+  "glow": "units/hauler_nw_glow.png",
+  "anchor": [
+   73,
+   51
+  ],
+  "size": [
+   221,
+   125
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "hauler_sw": {
+  "file": "units/hauler_sw.png",
+  "glow": "units/hauler_sw_glow.png",
+  "anchor": [
+   73,
+   95
+  ],
+  "size": [
+   221,
+   132
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "patrol_ne": {
+  "file": "units/patrol_ne.png",
+  "glow": "units/patrol_ne_glow.png",
+  "anchor": [
+   130,
+   45
+  ],
+  "size": [
+   208,
+   110
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "patrol_nw": {
+  "file": "units/patrol_nw.png",
+  "glow": "units/patrol_nw_glow.png",
+  "anchor": [
+   78,
+   45
+  ],
+  "size": [
+   207,
+   110
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "patrol_sw": {
+  "file": "units/patrol_sw.png",
+  "glow": "units/patrol_sw_glow.png",
+  "anchor": [
+   78,
+   65
+  ],
+  "size": [
+   209,
+   109
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "trader_ne": {
+  "file": "units/trader_ne.png",
+  "glow": "units/trader_ne_glow.png",
+  "anchor": [
+   123,
+   40
+  ],
+  "size": [
+   189,
+   101
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "trader_nw": {
+  "file": "units/trader_nw.png",
+  "glow": "units/trader_nw_glow.png",
+  "anchor": [
+   66,
+   40
+  ],
+  "size": [
+   187,
+   100
+  ],
+  "footprint": [
+   1,
+   1
+  ]
+ },
+ "trader_sw": {
+  "file": "units/trader_sw.png",
+  "glow": "units/trader_sw_glow.png",
+  "anchor": [
+   66,
+   61
+  ],
+  "size": [
+   190,
+   94
+  ],
+  "footprint": [
+   1,
+   1
+  ]
  }
 }

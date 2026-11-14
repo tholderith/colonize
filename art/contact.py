@@ -57,7 +57,7 @@ def sheet():
     p = patch(); W = max(1500, p.width + 20)
     keys = list(man['tiles']); bk = list(man['buildings'])
     rows_h = 80 + 20 + 2 * 90 + 20
-    sh = Image.new('RGBA', (W, 40 + 6 * 96 + 1800 + p.height), BG); d = ImageDraw.Draw(sh)
+    sh = Image.new('RGBA', (W, 40 + 6 * 96 + 5200 + p.height), BG); d = ImageDraw.Draw(sh)
     d.text((10, 6), 'TILES (anchor = south corner)', fill=(200, 220, 255, 255))
     for i, k in enumerate(keys):
         x = 10 + (i % 10) * 142; y = 24 + (i // 10) * 96
@@ -71,7 +71,24 @@ def sheet():
         gtile = Image.new('RGBA', (w, h), (0, 0, 0, 255)); add_glow(gtile, gi, (0, 0)); sh.paste(gtile, (x + w + 6, y))
         comp = Image.new('RGBA', (w, h), BG); comp.alpha_composite(bi); add_glow(comp, gi, (0, 0)); sh.paste(comp, (x + 2 * (w + 6), y))
         d.text((x, y + h + 2), k, fill=(180, 190, 200, 255)); x += 3 * (w + 6) + 10; rowh = max(rowh, h)
-    py = y + rowh + 30; d.text((10, py - 14), 'TEST PATCH: island, road autotiles (straight/T/corners/dead ends), mixed land_0-2, new buildings with glow', fill=(200, 220, 255, 255))
+    y += rowh + 24; d.text((10, y), 'UNITS (anchor = tile centre at waterline). Per ship: ne | se | sw | nw composed on water tile (+ glow layer row). Bow points to the named screen diagonal.', fill=(200, 220, 255, 255)); y += 18
+    uk = list(man.get('units', {}))
+    for ship in ('hauler', 'trader', 'patrol'):
+        for mode in ('composed', 'glow'):
+            for i, dn in enumerate(('ne', 'se', 'sw', 'nw')):
+                k = ship + '_' + dn
+                if k not in man['units']: continue
+                u = man['units'][k]; cx0 = 10 + i * 370; cy0 = y + 80
+                cell = Image.new('RGBA', (360, 170), BG if mode == 'composed' else (0, 0, 0, 255))
+                if mode == 'composed':
+                    ta = man['tiles']['deep_water']; tim = img(ta['file']); cell.alpha_composite(tim, (180 - ta['anchor'][0], 144 - ta['anchor'][1]))
+                    cell.alpha_composite(img(u['file']), (180 - u['anchor'][0], 112 - u['anchor'][1]))
+                    add_glow(cell, img(u['glow']), (180 - u['anchor'][0], 112 - u['anchor'][1]))
+                else: add_glow(cell, img(u['glow']), (180 - u['anchor'][0], 112 - u['anchor'][1]))
+                sh.paste(cell, (cx0, y)); d.text((cx0 + 4, y + 4), k + ' (' + mode + ')', fill=(180, 190, 200, 255))
+                d.ellipse((cx0 + 180 - 2, y + 112 - 2, cx0 + 180 + 2, y + 112 + 2), outline=(255, 255, 0, 255))
+            y += 176
+    py = y + 20; d.text((10, py - 14), 'TEST PATCH: island, road autotiles (straight/T/corners/dead ends), mixed land_0-2, new buildings with glow', fill=(200, 220, 255, 255))
     sh.alpha_composite(p, (10, py)); sh = sh.crop((0, 0, W, py + p.height + 10))
     os.makedirs(os.path.join(HERE, 'out'), exist_ok=True); sh.convert('RGB').save(os.path.join(HERE, 'out', 'contact.png')); p.convert('RGB').save(os.path.join(HERE, 'out', 'patch.png'))
     print('contact', sh.size)

@@ -4,7 +4,7 @@ import lib
 
 C = dict(steel='#4a5058', steel_d='#2b3036', steel_l='#707880', rust='#7c3a1e', red='#8e2b22', teal='#1f6d72',
          mustard='#b08a22', blue='#2c4c80', grey='#6c7276', cream='#a9a79a', orange='#b4561c', concrete='#55575a', black='#14161a')
-NEON = dict(hot='#ff5a14', cyan='#22eaff', mag='#ff2ea6', amber='#ffa622', green='#45ff86', red='#ff2a2a', violet='#b45cff', white='#e8f4ff')
+NEON = dict(hot='#ff5a14', cyan='#22eaff', mag='#ff2ea6', amber='#ffa622', green='#45ff86', red='#ff2a2a', violet='#b45cff', white='#e8f4ff', blue='#2a6bff')
 
 def S(n, col=None, **k):
     col = C.get(col, col) if col else C[n]
@@ -599,6 +599,223 @@ def house_t2():
     point_light(X(0.5, 0.95, 0.4), (1.0, 0.25, 0.7), 4, 0.06, False)
     return b.commit()
 
+
+# =============================================================== M2: PORT + SHIPS
+
+def tube_tower(b, u, v, z0, z1, r0, r1, bands, mats, n=12):
+    h = (z1 - z0) / bands
+    for k in range(bands):
+        ra = r0 + (r1 - r0) * k / bands; rb = r0 + (r1 - r0) * (k + 1) / bands
+        b.cyl(mats[k % len(mats)], X(u, v, z0 + k * h), X(u, v, z0 + (k + 1) * h), ra, rb, n=n)
+
+def port():
+    rnd = random.Random(61); b = B('port')
+    conc = M('concrete', rust=0.15, soot=0.8, rough=0.85, metal=0.0)
+    ground_pad(b, 0.0, 0.0, 2.0, 2.0, z=0.07)
+    dk = M('steel_d', rust=0.3, soot=0.6)
+    b.box(dk, XY(2.0, 1.0), (0.05, 2.0, 0.05), 0.0)                                  # fender strip at the quay edge (u=2)
+    b.box(M('mustard', rust=0.2, soot=0.4), XY(1.9, 1.0), (0.025, 1.9, 0.004), 0.07)  # edge line
+    for k, v in enumerate((0.25, 0.6, 0.95, 1.3, 1.65, 1.95)):                        # bollards
+        b.cyl(M('steel_d', rust=0.4), X(1.93, v, 0.07), X(1.93, v, 0.12), 0.03, n=8)
+        b.cyl(M('orange', rust=0.2), X(1.93, v, 0.12), X(1.93, v, 0.135), 0.038, n=8)
+    # mooring light posts
+    for (u, v) in ((1.92, 0.1), (1.92, 1.9), (1.92, 1.0)):
+        b.cyl(dk, X(u, v, 0.07), X(u, v, 0.3), 0.012, n=6)
+        lamp(b, u, v, 0.31, 'amber', 6, 0.55, 1.0, pu=u - 0.05, pv=v)
+        b.box(dk, XY(u, v), (0.05, 0.05, 0.012), 0.3)
+    # container stack (back-left)
+    cols = ['red', 'teal', 'mustard', 'blue', 'cream', 'orange', 'rust', 'grey']
+    for (u, v, n_) in ((0.55, 0.62, 3), (0.55, 0.95, 2), (0.55, 1.28, 3), (0.9, 0.62, 2), (0.9, 0.95, 1)):
+        for h in range(n_): cont(b, u, v, 0.07 + h * 0.2, 'x', rnd.choice(cols), L=0.62, Wd=0.28, H=0.195, wins=False)
+    # small control hut
+    hut = M('cream', rust=0.2, soot=0.6)
+    b.box(hut, XY(0.45, 1.65), (0.5, 0.35, 0.26), 0.07); b.box(M('steel_d'), XY(0.45, 1.65), (0.56, 0.41, 0.03), 0.33)
+    winq(b, 'y-', 0.35, 1.65 + 0.175, 0.2, on=0.1); winq(b, 'y-', 0.55, 1.65 + 0.175, 0.2, on=0.1)
+    sign(b, 'PORT', 'cyan', 0.45, 1.65 + 0.2, 0.3, 0.06, 'y-', s=9)
+    # gantry crane on the quay: legs at u 1.3 / 1.7, boom out over the water
+    st = M('orange', rust=0.35, soot=0.5, rough=0.5, metal=0.4)
+    for (uu, vv) in ((1.3, 0.78), (1.3, 1.22), (1.65, 0.78), (1.65, 1.22)): b.box(st, XY(uu, vv), (0.045, 0.045, 0.62), 0.07)
+    for uu in (1.3, 1.65):
+        b.beam(st, X(uu, 0.78, 0.69), X(uu, 1.22, 0.69), 0.05, 0.06)
+    for vv in (0.78, 1.22):
+        b.beam(st, X(1.15, vv, 0.72), X(2.4, vv, 0.72), 0.05, 0.07)                   # boom rails reaching over the water
+        b.beam(M('steel_d'), X(1.3, vv, 0.69), X(1.65, vv, 0.2), 0.012)               # brace
+    b.box(M('steel_d'), XY(2.05, 1.0), (0.2, 0.3, 0.06), 0.66)                        # trolley
+    b.beam(M('steel_d'), X(2.05, 1.0, 0.66), X(2.05, 1.0, 0.38), 0.008)
+    cont(b, 2.05, 1.0, 0.18, 'y', 'teal', L=0.3, Wd=0.15, H=0.2, wins=False)
+    b.box(M('steel_l'), XY(1.2, 1.0), (0.14, 0.2, 0.12), 0.72)                       # cab
+    b.box(G('amber', 4), (1.28 + 0.004, -1.0), (0.012, 0.15, 0.06), 0.75)
+    for (lu, lv) in ((1.3, 0.78), (2.35, 0.78)):
+        b.sphere(G('red', 12), X(lu, lv, 0.76), 0.022, seg=8, rings=4); point_light(X(lu, lv, 0.76), (1, 0.1, 0.1), 1.5, 0.03, shadow=False)
+    # beacon tower (back corner)
+    red = M('red', rust=0.2, soot=0.5); wht = M('cream', rust=0.1, soot=0.4)
+    b.box(conc, XY(0.22, 0.22), (0.36, 0.36, 0.1), 0.07)
+    tube_tower(b, 0.22, 0.22, 0.17, 1.0, 0.1, 0.065, 5, [red, wht])
+    b.cyl(M('steel_d'), X(0.22, 0.22, 1.0), X(0.22, 0.22, 1.03), 0.11, n=12)          # gallery
+    b.cyl(G('cyan', 14), X(0.22, 0.22, 1.03), X(0.22, 0.22, 1.13), 0.058, n=12)       # lantern
+    b.cyl(M('steel_d'), X(0.22, 0.22, 1.13), X(0.22, 0.22, 1.19), 0.07, 0.01, n=12)
+    b.sphere(G('cyan', 20), X(0.22, 0.22, 1.08), 0.045, seg=8, rings=4)
+    b.cyl(M('steel_d'), X(0.22, 0.22, 1.19), X(0.22, 0.22, 1.3), 0.006, n=6)
+    point_light(X(0.22, 0.22, 1.08), (0.1, 0.9, 1.0), 40, 0.05)
+    point_light(X(0.3, 0.3, 0.5), (0.1, 0.9, 1.0), 4, 0.05)
+    return b.commit()
+
+# ---- ships. Built at origin, bow toward +X (Blender), then rotated/translated to the tile centre.
+def hb_at(st, x):
+    for a, c in zip(st[:-1], st[1:]):
+        if a[0] <= x <= c[0]:
+            t = (x - a[0]) / (c[0] - a[0]); return a[1] + (c[1] - a[1]) * t, a[2] + (c[2] - a[2]) * t
+    return (st[0][1], st[0][2]) if x < st[0][0] else (st[-1][1], st[-1][2])
+
+def hull(b, hm, dm, st, bottom=0.94):
+    rings = [[(x, -bot * hbm, 0.0), (x, -hbm, hh), (x, hbm, hh), (x, bot * hbm, 0.0)] for (x, hbm, hh) in st for bot in (bottom,) ]
+    b.loft(hm, rings)
+    for a, c in zip(st[:-1], st[1:]):
+        b.face(dm, [(a[0], -a[1] * .97, a[2] + .003), (c[0], -c[1] * .97, c[2] + .003), (c[0], c[1] * .97, c[2] + .003), (a[0], a[1] * .97, a[2] + .003)])
+
+def foam_mat(xa, xb, peak):
+    key = 'foam%.2f_%.2f_%.2f' % (xa, xb, peak)
+    if key in MATS: return MATS[key]
+    m, nt = lib._nodes(); m.name = key
+    out = nt.nodes.new('ShaderNodeOutputMaterial'); bs = nt.nodes.new('ShaderNodeBsdfPrincipled'); nt.links.new(bs.outputs[0], out.inputs[0])
+    bs.inputs['Base Color'].default_value = srgb('#cfe6f2'); bs.inputs['Roughness'].default_value = 1.0
+    tc = nt.nodes.new('ShaderNodeTexCoord'); sp = nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(tc.outputs['Object'], sp.inputs[0])
+    mr = nt.nodes.new('ShaderNodeMapRange'); mr.clamp = True; mr.inputs['From Min'].default_value = xa; mr.inputs['From Max'].default_value = xb
+    nt.links.new(sp.outputs['X'], mr.inputs['Value'])
+    nz = nt.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 16.0; nz.inputs['Detail'].default_value = 3
+    nt.links.new(tc.outputs['Object'], nz.inputs['Vector'])
+    rr = nt.nodes.new('ShaderNodeValToRGB'); rr.color_ramp.elements[0].position = 0.38; rr.color_ramp.elements[1].position = 0.62
+    nt.links.new(nz.outputs['Fac'], rr.inputs['Fac'])
+    m1 = nt.nodes.new('ShaderNodeMath'); m1.operation = 'MULTIPLY'; nt.links.new(mr.outputs[0], m1.inputs[0]); nt.links.new(rr.outputs[0], m1.inputs[1])
+    m2 = nt.nodes.new('ShaderNodeMath'); m2.operation = 'MULTIPLY'; m2.inputs[1].default_value = peak; nt.links.new(m1.outputs[0], m2.inputs[0])
+    nt.links.new(m2.outputs[0], bs.inputs['Alpha']); MATS[key] = m; return m
+
+def wake(b, st, trail=0.65, spread=0.3, peak=0.6):
+    """foam collar at the waterline + stern V wash + bow wave, flat just above z=0 (transparent water)."""
+    z = 0.004; ring = foam_mat(-9, -8, peak); x0 = st[0][0]; xe = st[-1][0]
+    for s in (-1, 1):
+        for a, c in zip(st[:-1], st[1:]):
+            b.face(ring, [(a[0], s * (a[1] - 0.015), z), (a[0], s * (a[1] + 0.07), z), (c[0], s * (c[1] + 0.07), z), (c[0], s * (c[1] - 0.015), z)])
+    b.face(ring, [(x0, -st[0][1], z), (x0 - 0.06, -st[0][1] - 0.04, z), (x0 - 0.06, st[0][1] + 0.04, z), (x0, st[0][1], z)])
+    bw = foam_mat(xe - 0.5, xe + 0.12, peak)                                           # bow wave fading back from the stem
+    for s in (-1, 1):
+        b.face(bw, [(xe - 0.5, s * (st[-2][1] + 0.07), z), (xe + 0.12, s * 0.02, z), (xe + 0.12, s * 0.0, z), (xe - 0.5, s * (st[-2][1] + 0.2), z)])
+    tw = foam_mat(x0 - trail, x0, peak)
+    h0 = st[0][1]
+    for s in (-1, 1):
+        b.face(tw, [(x0, s * (h0 - 0.02), z), (x0, s * (h0 + 0.07), z), (x0 - trail, s * (h0 + spread + 0.14), z), (x0 - trail, s * (h0 + spread), z)])
+    tf = foam_mat(x0 - trail * 0.7, x0, peak * 0.7)
+    b.face(tf, [(x0, -h0, z), (x0 - trail * 0.7, -h0 * 0.7, z), (x0 - trail * 0.7, h0 * 0.7, z), (x0, h0, z)])
+
+def navlights(b, x, y, z, mast_x, mast_z):
+    b.sphere(G('red', 14), (x, y, z), 0.03, seg=8, rings=4); point_light((x, y + 0.05, z), (1, 0.1, 0.1), 1.5, 0.02)       # port (+y)
+    b.sphere(G('green', 14), (x, -y, z), 0.03, seg=8, rings=4); point_light((x, -y - 0.05, z), (0.1, 1, 0.2), 1.5, 0.02)    # starboard (-y)
+    b.sphere(G('white', 16), (mast_x, 0, mast_z), 0.03, seg=8, rings=4); point_light((mast_x, 0, mast_z), (1, 1, 1), 2.0, 0.02)
+
+def hauler_model():
+    rnd = random.Random(5); b = B('hauler')
+    st = [(-1.0, 0.25, 0.17), (-0.85, 0.27, 0.17), (0.3, 0.27, 0.17), (0.65, 0.21, 0.18), (0.88, 0.12, 0.2), (1.0, 0.03, 0.23)]
+    hull(b, M('#3b4a52', rust=0.9, soot=0.7, rough=0.6, metal=0.3), M('steel_d', rust=0.3, soot=0.7), st)
+    for x in (-0.6, -0.2, 0.15, 0.45):                                                  # rust streaks
+        for s in (-1, 1): b.box(M('rust', rust=0.0, soot=0.3), (x, s * 0.274), (0.05 + 0.02 * (x > 0), 0.005, 0.12), 0.02)
+    for s in (-1, 1): b.beam(M('red', rust=0.3), (-0.95, s * 0.272, 0.025), (0.55, s * 0.24, 0.025), 0.008, 0.035)   # boot topping
+    wn = M('steel_l', rust=0.5, soot=0.6)
+    b.box(wn, (-0.75, 0), (0.42, 0.44, 0.17), 0.17)                                     # accommodation block
+    b.box(M('cream', rust=0.5, soot=0.7), (-0.8, 0), (0.3, 0.5, 0.13), 0.34)           # bridge (wings overhang)
+    b.box(M('steel_d'), (-0.8, 0), (0.34, 0.54, 0.015), 0.47)
+    b.box(G('amber', 5), (-0.65 + 0.004, 0), (0.012, 0.44, 0.05), 0.39)                # bridge front windows (lit)
+    for s in (-1, 1):
+        for k in range(3): b.box(G('amber', 4), (-0.88 + k * 0.08, s * (0.25 + 0.004)), (0.05, 0.012, 0.045), 0.39)
+    for k in range(3): b.box(G('amber', 3), (-0.54 + 0.004, -0.14 + k * 0.14), (0.012, 0.07, 0.04), 0.24)   # block windows (forward face)
+    b.cyl(M('rust', rust=0.6, soot=0.8), (-0.93, 0.0, 0.3), (-0.93, 0.0, 0.66), 0.06, 0.05, n=10)         # funnel
+    b.cyl(M('red', rust=0.3), (-0.93, 0.0, 0.58), (-0.93, 0.0, 0.64), 0.062, n=10)
+    b.cyl(M('steel_d'), (-0.74, 0, 0.485), (-0.74, 0, 0.82), 0.008, n=6)                # mast
+    navlights(b, -0.78, 0.275, 0.42, -0.74, 0.83)
+    cols = ['red', 'teal', 'mustard', 'blue', 'cream', 'orange', 'rust', 'grey']
+    for x in (-0.28, 0.17):
+        for yy in (-0.125, 0.125):
+            for lv in range(2 if (x < 0) == (yy < 0) else 1):
+                cont(b, x, -yy, 0.17 + lv * 0.125, 'x', rnd.choice(cols), L=0.42, Wd=0.22, H=0.12, wins=False)
+    b.box(M('steel_d'), (0.62, 0), (0.14, 0.16, 0.05), 0.18); b.cyl(M('orange', rust=0.3), (0.62, 0, 0.23), (0.62, 0, 0.3), 0.025, n=8)  # bow winch / bitts
+    wake(b, st); return b.commit()
+
+def trader_model():
+    rnd = random.Random(9); b = B('trader')
+    st = [(-0.65, 0.14, 0.1), (-0.5, 0.155, 0.1), (0.1, 0.155, 0.11), (0.4, 0.11, 0.125), (0.58, 0.05, 0.14), (0.66, 0.012, 0.16)]
+    hull(b, M('#6a5a4c', rust=0.8, soot=0.8, rough=0.7, metal=0.2), M('#2c2a2a', rust=0.4, soot=0.8), st)
+    for x, c in ((-0.3, '#4c6a5c'), (0.05, '#7a3a3a')):                                 # mismatched patch plates
+        for s in (-1, 1): b.box(M(c, rust=0.4, soot=0.6), (x, s * 0.157), (0.14, 0.005, 0.07), 0.02)
+    for s in (-1, 1):                                                                     # magenta neon sheer trim
+        pts = [(x, s * (hbm + 0.004), hh + 0.006) for (x, hbm, hh) in st[:-1]]
+        for p, q in zip(pts[:-1], pts[1:]): b.beam(G('mag', 9), p, q, 0.014, 0.014)
+    cab = M('#5a5e62', rust=0.6, soot=0.7)
+    b.box(cab, (-0.22, 0.01), (0.3, 0.2, 0.13), 0.1); b.box(M('steel_d'), (-0.22, 0.01), (0.34, 0.24, 0.012), 0.23)
+    b.box(G('mag', 6), (-0.07 + 0.004, 0.01), (0.012, 0.15, 0.045), 0.16)
+    for s in (-1, 1):
+        for k in range(2): b.box(G('amber', 3.5), (-0.28 + k * 0.1, s * (0.11 + 0.004) + 0.01), (0.05, 0.012, 0.04), 0.16)
+        b.beam(G('mag', 8), (-0.37, s * 0.12 + 0.01, 0.236), (-0.07, s * 0.12 + 0.01, 0.236), 0.012, 0.012)
+    b.beam(G('mag', 8), (-0.07, -0.12 + 0.01, 0.236), (-0.07, 0.14, 0.236), 0.012, 0.012)
+    b.cyl(M('steel_d'), (-0.3, 0.05, 0.236), (-0.3, 0.05, 0.5), 0.007, n=6); b.cyl(M('steel_d'), (-0.15, -0.05, 0.236), (-0.15, -0.05, 0.42), 0.006, n=6)
+    b.sphere(G('mag', 16), (-0.3, 0.05, 0.51), 0.025, seg=8, rings=4); point_light((-0.3, 0.05, 0.51), (1, 0.2, 0.7), 2, 0.02)
+    b.box(M('#6b7a3c', rust=0.1, soot=0.8, rough=0.9, metal=0.0), (0.2, 0.0), (0.3, 0.22, 0.09), 0.11)     # tarp bundle
+    b.box(M('#6b7a3c', rust=0.1, soot=0.8, rough=0.9, metal=0.0), (0.2, 0.0), (0.2, 0.15, 0.04), 0.2)
+    for (x, y, c) in ((0.38, 0.07, 'rust'), (0.38, -0.07, 'blue'), (-0.45, -0.07, 'rust')):                   # drums
+        b.cyl(M(c, rust=0.5, soot=0.7), (x, y, 0.11), (x, y, 0.2), 0.04, n=8)
+    b.box(M('#8a7a5a', rust=0.3, soot=0.7), (0.0, -0.1), (0.14, 0.1, 0.07), 0.11)
+    for y in (-0.06, 0.06): b.box(M('black', rust=0, soot=0.3), (-0.69, y), (0.08, 0.07, 0.13), 0.02)          # outboards
+    navlights(b, -0.2, 0.125, 0.25, -0.3, 0.55)
+    wake(b, st, trail=0.75, spread=0.26, peak=0.65); return b.commit()
+
+def patrol_model():
+    b = B('patrol')
+    st = [(-0.8, 0.165, 0.10), (-0.2, 0.19, 0.105), (0.35, 0.15, 0.125), (0.8, 0.015, 0.15)]
+    white = M('#cfd3d6', rust=0.0, soot=0.2, rough=0.4, metal=0.3); grey = M('#6a7178', rust=0.0, soot=0.3, rough=0.45, metal=0.4)
+    hull(b, white, M('#5b6268', rust=0.0, soot=0.3), st, bottom=0.9)
+    redm = M('#b3201c', rust=0.0, soot=0.1, rough=0.4, metal=0.1); drk = M('#262b30', rust=0, soot=0.2)
+    for s in (-1, 1):
+        for (xa, xb) in ((-0.78, -0.2), (-0.2, 0.35), (0.35, 0.62)):                    # red Concordat stripe
+            za = 0.05; ha = hb_at(st, xa)[0]; hbb = hb_at(st, xb)[0]
+            b.beam(redm, (xa, s * (ha + 0.004), za), (xb, s * (hbb + 0.004), za), 0.004, 0.03)
+        # emblem: invented sigil = white diamond, red ring, dark chevron (amidships)
+        y = s * (hb_at(st, 0.0)[0] + 0.006); cx_, cz = 0.05, 0.062
+        for (r, mat) in ((0.05, redm), (0.036, white), (0.022, drk)):
+            b.face(mat, [(cx_ - r, y, cz), (cx_, y, cz - r), (cx_ + r, y, cz), (cx_, y, cz + r)])
+        b.face(white, [(cx_ - 0.015, y + s * 0.001, cz - 0.01), (cx_, y + s * 0.001, cz + 0.014), (cx_ + 0.015, y + s * 0.001, cz - 0.01), (cx_, y + s * 0.001, cz - 0.002)])
+    for s in (-1, 1): b.beam(redm, (-0.79, s * 0.165, 0.103), (0.33, s * 0.152, 0.128), 0.01, 0.012)
+    sup = [[(x, -w, z0), (x, w, z0), (x, w2, z1), (x, -w2, z1)] for (x, w, z0, w2, z1) in ((-0.55, 0.15, 0.105, 0.12, 0.25), (-0.15, 0.15, 0.108, 0.1, 0.25), (0.06, 0.12, 0.112, 0.055, 0.2))]
+    b.loft(grey, sup)
+    b.face(G('cyan', 5), [(0.06 + 0.003, -0.075, 0.15), (0.06 + 0.003, 0.075, 0.15), (0.06 + 0.003, 0.05, 0.185), (0.06 + 0.003, -0.05, 0.185)])    # bridge glazing (lit)
+    for s in (-1, 1):
+        for k in range(2): b.face(G('cyan', 4), [(-0.33 + k * 0.17, s * 0.1, 0.19), (-0.23 + k * 0.17, s * 0.1, 0.19), (-0.23 + k * 0.17, s * 0.1, 0.22), (-0.33 + k * 0.17, s * 0.1, 0.22)])
+    b.cyl(grey, (-0.3, 0, 0.25), (-0.3, 0, 0.36), 0.008, n=6); b.box(grey, (-0.3, 0), (0.1, 0.09, 0.01), 0.3)    # radar mast + antenna
+    for s in (-1, 1): b.sphere(G('blue', 18), (-0.5, s * 0.08, 0.265), 0.028, seg=8, rings=4); point_light((-0.5, s * 0.1, 0.265), (0.2, 0.4, 1.0), 4, 0.02)
+    b.box(drk, (-0.5, 0), (0.12, 0.2, 0.015), 0.25)                                       # strobe bar
+    # searchlight: pedestal + housing + lens + faint beam toward the bow
+    b.cyl(drk, (0.4, 0, 0.125), (0.4, 0, 0.17), 0.022, n=8); b.cyl(grey, (0.4, 0, 0.17), (0.47, 0, 0.17), 0.035, n=10)
+    b.cyl(G('white', 24), (0.47, 0, 0.17), (0.475, 0, 0.17), 0.03, n=10)
+    point_light((0.55, 0, 0.17), (0.9, 0.95, 1.0), 6, 0.03, shadow=False)
+    beam = beam_mat()
+    b.cyl(beam, (0.48, 0, 0.17), (1.1, 0, 0.0), 0.02, 0.1, n=14, caps=False, smooth=True)
+    navlights(b, -0.35, 0.15, 0.255, -0.3, 0.37)
+    wake(b, st, trail=0.7, spread=0.26, peak=0.65); return b.commit()
+
+def beam_mat():
+    if 'beam' in MATS: return MATS['beam']
+    m, nt = lib._nodes(); m.name = 'beam'
+    out = nt.nodes.new('ShaderNodeOutputMaterial'); mix = nt.nodes.new('ShaderNodeMixShader')
+    tr = nt.nodes.new('ShaderNodeBsdfTransparent'); em = nt.nodes.new('ShaderNodeEmission')
+    em.inputs['Color'].default_value = srgb('#cfe8ff'); em.inputs['Strength'].default_value = 3.0
+    mix.inputs['Fac'].default_value = 0.1
+    nt.links.new(tr.outputs[0], mix.inputs[1]); nt.links.new(em.outputs[0], mix.inputs[2]); nt.links.new(mix.outputs[0], out.inputs[0])
+    MATS['beam'] = m; return m
+
+DIR_ANG = dict(se=0.0, sw=-90.0, ne=90.0, nw=180.0)   # bow world direction: +x(game)=se, +y(game)=sw (Blender -Y), ne=-y(game)=Blender +Y, nw=-x
+
+def ship(model, d):
+    before = set(bpy.data.objects); model(); new = [o for o in bpy.data.objects if o not in before]
+    Mx = Matrix.Translation((0.5, -0.5, 0)) @ Matrix.Rotation(math.radians(DIR_ANG[d]), 4, 'Z')
+    for o in new: o.matrix_basis = Mx @ o.matrix_basis
+
 JOBS = {}
 JOBS['pod_house'] = (house, (0,), 1, 1, {})
 JOBS['hydroponics'] = (hydroponics, (), 2, 2, dict(H=1000))
@@ -612,3 +829,8 @@ JOBS['algae_skimmer'] = (algae_skimmer, (), 2, 2, dict(H=1100, W=1100))
 JOBS['refinery'] = (refinery, (), 2, 2, dict(H=1200))
 JOBS['fabricator'] = (fabricator, (), 2, 2, dict(H=1100))
 JOBS['pod_house_t2'] = (house_t2, (), 1, 1, dict(H=700))
+
+SHIPS = dict(hauler=hauler_model, trader=trader_model, patrol=patrol_model)
+JOBS['port'] = (port, (), 2, 2, dict(H=1100))
+for _k, _fn in SHIPS.items():
+    for _d in DIR_ANG: JOBS['%s_%s' % (_k, _d)] = (ship, (_fn, _d), 1, 1, dict(W=800, H=800, catcher=False, K=1.0))

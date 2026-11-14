@@ -10,7 +10,8 @@ from scipy.ndimage import gaussian_filter
 HERE = os.path.dirname(os.path.abspath(__file__)); OUT = os.path.join(os.path.dirname(HERE), "public", "assets")
 WORK = os.environ.get("NWORK", "/tmp/colonize_art_work"); SS = 2
 GAIN = float(os.environ.get("NGLOW", "1.0"))
-SUB = os.path.join(OUT, "buildings")
+SUB = os.path.join(OUT, "buildings"); USUB = os.path.join(OUT, "units")
+UNITS = ("hauler_", "trader_", "patrol_")   # unit sprites: anchor = tile centre at the waterline, written to units/
 
 def blur(a, s): return np.stack([gaussian_filter(a[..., c], s, mode='constant') for c in range(a.shape[2])], -1)
 
@@ -34,6 +35,7 @@ def run(only):
     for f in sorted(glob.glob(os.path.join(WORK, 'raw', '*.json'))):
         m = json.load(open(f))
         if only and m['name'] not in only: continue
+        unit = m['name'].startswith(UNITS); sub = USUB if unit else SUB; os.makedirs(sub, exist_ok=True)
         base = load(os.path.join(WORK, 'raw', m['name'] + '.png')); gl = make_glow(load(os.path.join(WORK, 'raw', m['name'] + '__glow.png')))
         W, H = base.shape[1], base.shape[0]; cx, cy = W // 2, H // 2 + m['off']; fw, fh = m['fw'], m['fh']
         sel = (base[..., 3] > 0.02) | (gl.max(-1) > 0.03)
@@ -50,11 +52,12 @@ def run(only):
         bp = crop(np.concatenate([base[..., :3] * base[..., 3:4], base[..., 3:4]], -1))
         bp = premul_resize(bp, sz).clip(0, 1); al = bp[..., 3:4]
         col = np.where(al > 1e-4, bp[..., :3] / np.maximum(al, 1e-4), 0).clip(0, 1)
-        Image.fromarray((np.concatenate([col, al], -1) * 255 + 0.5).astype('uint8'), 'RGBA').save(os.path.join(SUB, m['name'] + '.png'))
+        Image.fromarray((np.concatenate([col, al], -1) * 255 + 0.5).astype('uint8'), 'RGBA').save(os.path.join(sub, m['name'] + '.png'))
         gp = premul_resize(crop(gl), sz).clip(0, 1); ga = gp.max(-1, keepdims=True)
         gc = np.where(ga > 1e-4, gp / np.maximum(ga, 1e-4), 0).clip(0, 1)
-        Image.fromarray((np.concatenate([gc, ga], -1) * 255 + 0.5).astype('uint8'), 'RGBA').save(os.path.join(SUB, m['name'] + '_glow.png'))
-        meta[m['name']] = dict(file='buildings/%s.png' % m['name'], glow='buildings/%s_glow.png' % m['name'], anchor=[-l // SS, -t // SS], size=list(sz), footprint=[fw, fh])
+        Image.fromarray((np.concatenate([gc, ga], -1) * 255 + 0.5).astype('uint8'), 'RGBA').save(os.path.join(sub, m['name'] + '_glow.png'))
+        d_ = 'units' if unit else 'buildings'
+        meta[m['name']] = dict(file='%s/%s.png' % (d_, m['name']), glow='%s/%s_glow.png' % (d_, m['name']), anchor=[-l // SS, -t // SS - (32 if unit else 0)], size=list(sz), footprint=[fw, fh])
     mp = os.path.join(HERE, 'out', 'buildings_meta.json'); os.makedirs(os.path.dirname(mp), exist_ok=True)
     old = json.load(open(mp)) if os.path.exists(mp) else {}
     old.update(meta); json.dump(old, open(mp, 'w'), indent=1); print('post done', sorted(meta))
