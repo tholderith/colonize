@@ -28,6 +28,9 @@ art-samples/
   `sx = 960 + (x - y) * 64`, `sy = -72 + (x + y) * 32`
   (this puts the centre of tile (10,10) at screen (960, 600)).
 - The **south corner** (bottom vertex) of tile (x, y) is `(sx, sy + 64)`.
+- 3D-rendered styles: use an orthographic camera at **yaw 45°, pitch 30°** below
+  horizontal (sin 30° = 0.5 gives the exact 2:1 diamond). Note: atan(0.5) ≈ 26.57° is the
+  slope of the diamond's edges on screen, not the camera pitch.
 
 ## Sprites and anchors
 
