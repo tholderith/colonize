@@ -33,3 +33,14 @@ lives at `art-samples/styles/neon/src/` on that branch (`git show art-samples:<p
 - Don't commit or push; the lead reviews and merges. Report briefly: what changed, how verified,
   what's left.
 - Never invent results. If something can't be verified, say so.
+- Don't overbake. Build what the brief asks, the simplest way that works, then stop.
+- Testing is lean: unit tests only for sim logic that's easy to get wrong (determinism,
+  economy maths, placement rules). No tests for UI/layout. Full checks (`npm run check`, e2e,
+  screenshot review) run at milestone gates, not on every change; between gates, typecheck +
+  the tests for what you touched is enough.
+
+## Reporting to the user
+- Each scheduled check-in or milestone gate: one short update with a screenshot of the
+  current build and basic metrics, in a table: milestone, % of milestone tasks done, days
+  elapsed vs estimate, LOC (src), tests passing, building/asset count, open issues.
+- Keep it to a few lines; no essays.
