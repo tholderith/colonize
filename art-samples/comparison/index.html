@@ -1,0 +1,230 @@
+<title>Colonize Art Bake-off</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a chart-room page — one wide column, gallery first, engines second, verdict last. */
+:root {
+  --bg: #eef2f2;        /* sea-fog */
+  --panel: #ffffff;
+  --ink: #15242d;       /* chart ink */
+  --muted: #5a6b74;
+  --line: #d3dcdf;
+  --accent: #9a6514;   /* brass */
+  --sea: #2c6f7f;
+  --good: #2f7a4a;
+  --warn: #a8641a;
+  --bad: #a83a2e;
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e171c; --panel: #15222a; --ink: #e2eaec; --muted: #93a6ae; --line: #263741;
+  --accent: #d9a54a; --sea: #6fb5c4; --good: #6cc48b; --warn: #e0a457; --bad: #ec8a7c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e171c; --panel: #15222a; --ink: #e2eaec; --muted: #93a6ae; --line: #263741;
+  --accent: #d9a54a; --sea: #6fb5c4; --good: #6cc48b; --warn: #e0a457; --bad: #ec8a7c; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 4.5vw, 3.2rem); line-height: 1.05; }
+h2 { font-size: clamp(1.45rem, 2.6vw, 1.9rem); }
+h3 { font-size: 1.15rem; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 600 12px/1 var(--body); text-transform: uppercase; letter-spacing: .12em; color: var(--accent); }
+section { display: grid; gap: 20px; min-width: 0; }
+.lede { color: var(--muted); font-size: 1.05rem; }
+header { display: grid; gap: 14px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--muted); font-size: 13px; }
+.meta b { color: var(--ink); font-weight: 600; }
+
+/* Gallery */
+.stage { display: grid; gap: 14px; }
+.frame { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.frame img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.thumbs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.thumb { all: unset; cursor: pointer; display: grid; gap: 6px; border-radius: 6px; padding: 6px; border: 1px solid transparent; }
+.thumb img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 3px; display: block; }
+.thumb span { font: 600 13px/1.2 var(--body); }
+.thumb small { color: var(--muted); font-size: 12px; line-height: 1.3; }
+.thumb[aria-selected="true"] { border-color: var(--accent); background: var(--panel); }
+.thumb:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.styleinfo { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.detail { display: grid; gap: 6px; }
+.detail img { width: 100%; height: auto; image-rendering: auto; border-radius: 4px; border: 1px solid var(--line); display: block; }
+.detail.nearest img { image-rendering: pixelated; }
+.caption { color: var(--muted); font-size: 12px; }
+.notes { display: grid; gap: 14px; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.tag { font: 600 11px/1 var(--body); text-transform: uppercase; letter-spacing: .1em; }
+.tag.plus { color: var(--good); } .tag.minus { color: var(--bad); }
+
+/* Viewer */
+.viewer { position: relative; background: #111; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); aspect-ratio: 16/9; max-width: 100%; }
+.viewer iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; color: var(--muted); font-size: 13px; }
+a { color: var(--sea); text-underline-offset: 3px; }
+.btn { display: inline-block; padding: 8px 14px; border-radius: 4px; border: 1px solid var(--accent); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 13px; }
+.btn:hover { background: var(--accent); color: var(--bg); }
+
+/* Engines */
+.crops { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.crops figure { margin: 0; display: grid; gap: 6px; }
+.crops img { width: 100%; height: auto; border-radius: 4px; border: 1px solid var(--line); display: block; }
+.crops figcaption { font-size: 12px; color: var(--muted); }
+.crops figcaption b { color: var(--ink); }
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 13.5px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 12px/1.3 var(--body); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+tbody tr:last-child td { border-bottom: 0; }
+td.num, th.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+td:first-child { font-weight: 600; white-space: nowrap; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font: 600 11.5px/1.5 var(--body); border: 1px solid currentColor; white-space: nowrap; }
+.pill.good { color: var(--good); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); }
+.unity { color: var(--muted); font-size: 13.5px; }
+tr.pick td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+
+/* Verdict */
+.verdict { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: grid; gap: 10px; align-content: start; }
+.card .big { font-family: var(--display); font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+ol.next { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 75ch; }
+
+@media (max-width: 760px) {
+  .thumbs, .crops { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .styleinfo, .verdict { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) { .frame img { transition: opacity .2s ease; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Colonize · art &amp; engine bake-off</div>
+    <h1>One harbour town, four looks, four engines</h1>
+    <p class="lede">Every image below draws the same 20 × 20 island: wheat fields, a windmill, the main street, a chapel, the harbour warehouse, two merchant ships at the pier. Each style was generated entirely in code by its own art director, then drawn by each engine and checked pixel-for-pixel against a reference.</p>
+    <div class="meta"><span><b>4</b> art styles</span><span><b>4</b> engines</span><span><b>16</b> renders, all matching</span><span>Branch <b>art-samples</b> · tholderith/colonize</span></div>
+  </header>
+
+  <section aria-labelledby="g">
+    <div class="eyebrow">1 · Art direction</div>
+    <h2 id="g">Pick a look</h2>
+    <div class="stage">
+      <div class="frame"><img id="big" src="img/painted.jpg" alt="Painted Isometric render of the harbour town" width="1920" height="1080"></div>
+      <div class="thumbs" role="tablist" aria-label="Art styles" id="thumbs"></div>
+    </div>
+    <div class="styleinfo">
+      <div class="detail" id="detailbox">
+        <img id="detail" src="img/painted-detail.png" alt="Village detail at 1:1 scale" width="640" height="360">
+        <div class="caption">Village centre at 1:1, the size it appears in game.</div>
+      </div>
+      <div class="notes">
+        <h3 id="sname">Painted Isometric</h3>
+        <p id="sdesc"></p>
+        <div><div class="tag plus">Strongest</div><ul id="splus"></ul></div>
+        <div><div class="tag minus">Weakest</div><ul id="sminus"></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="v">
+    <div class="eyebrow">2 · Try it</div>
+    <h2 id="v">Live viewer, running in the browser engine</h2>
+    <p>Drag to pan, scroll to zoom, click a building to see what it is, and switch styles from the panel on the right. This is the PixiJS build, running as it would in the game.</p>
+    <div class="viewer"><iframe src="viewer/index.html" title="Interactive harbour town viewer" loading="lazy"></iframe></div>
+    <div class="row"><a class="btn" href="viewer/index.html" target="_blank" rel="noopener">Open the viewer full screen</a><span>If the frame above stays blank, use the button.</span></div>
+  </section>
+
+  <section aria-labelledby="e">
+    <div class="eyebrow">3 · Engines</div>
+    <h2 id="e">The engine doesn't change the picture</h2>
+    <p>Here is the harbour from the Parchment style, which was the hardest to match because of its full-screen paper texture. Each engine's render differs from the reference by a fraction of one colour level out of 255. Bevy comes out a touch darker, because it blends transparent layers in linear colour space. So the choice of engine comes down to how fast we can build, not how the game looks.</p>
+    <div class="crops">
+      <figure><img src="img/parchment-browser-crop.png" alt="Browser render crop" width="320" height="200"><figcaption><b>Browser</b> · avg diff 0.28</figcaption></figure>
+      <figure><img src="img/parchment-godot-crop.png" alt="Godot render crop" width="320" height="200"><figcaption><b>Godot</b> · avg diff 0.13</figcaption></figure>
+      <figure><img src="img/parchment-bevy-crop.png" alt="Bevy render crop" width="320" height="200"><figcaption><b>Bevy</b> · avg diff 3.35</figcaption></figure>
+      <figure><img src="img/parchment-sdl-crop.png" alt="C++/SDL render crop" width="320" height="200"><figcaption><b>C++ / SDL2</b> · avg diff 1.77</figcaption></figure>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Engine</th><th class="num">First build</th><th class="num">Rebuild</th><th class="num">Render</th><th class="num">Code</th><th class="num">Footprint</th><th>Menus &amp; panels</th><th>Builder's verdict</th></tr></thead>
+        <tbody>
+          <tr class="pick"><td>Browser<br><small>TypeScript + PixiJS 8</small></td><td class="num">6 s</td><td class="num">0.4 s</td><td class="num">1.5 s</td><td class="num">650 lines</td><td class="num">620 KB bundle</td><td><span class="pill good">Best</span></td><td>Lowest friction for an AI team. Ordinary web tools for every panel, Pixi for the map and battles, and a screenshot-checked edit loop of about 2 s. Desktop builds need a wrapper such as Electron or Tauri.</td></tr>
+          <tr><td>Godot 4.7<br><small>GDScript</small></td><td class="num">none</td><td class="num">none</td><td class="num">1.1 s</td><td class="num">200 lines</td><td class="num">146 MB editor</td><td><span class="pill good">Good</span></td><td>Everything is text plus a command line, so agents can work in it fully. It has strong UI nodes and a real editor if you want to use one yourself. Script errors only show up when the game runs, and GDScript is slow for heavy simulation.</td></tr>
+          <tr><td>Bevy 0.20<br><small>Rust</small></td><td class="num">9 m 29 s</td><td class="num">2.3 s</td><td class="num">0.6 s</td><td class="num">300 lines</td><td class="num">3.9 GB build dir</td><td><span class="pill bad">Weak</span></td><td>Great for simulation, and its tests need no graphics card. But its interface breaks every few months, cold builds are heavy, and its UI toolkit is immature, which is the wrong trade for a game that is mostly panels.</td></tr>
+          <tr><td>C++ / SDL2<br><small>our own engine</small></td><td class="num">5 s</td><td class="num">5 s</td><td class="num">0.1 s</td><td class="num">540 lines</td><td class="num">220 KB binary</td><td><span class="pill warn">Build it</span></td><td>Easiest to get working, and the fastest by far. Then we'd spend an estimated 4–8 weeks building UI, text, audio, animation, pathfinding and save/load before writing any game.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="unity"><b>Unity</b> wasn't tested. It needs a licensed account sign-in, and its download servers are blocked from this cloud environment. Its main advantage is the visual editor, which an agent team couldn't use from here anyway.</p>
+  </section>
+
+  <section aria-labelledby="r">
+    <div class="eyebrow">4 · Recommendation</div>
+    <h2 id="r">What I'd pick</h2>
+    <div class="verdict">
+      <div class="card">
+        <div class="tag">Engine</div>
+        <div class="big">Browser: TypeScript + PixiJS</div>
+        <p>All four engines draw the same picture, so pick on speed of building. The browser stack wins: menus built with ordinary web tools, a fast loop the agents can verify themselves, and a simulation core in plain TypeScript we can test in isolation. Godot is the runner-up, and the better pick if you want to work in a visual editor yourself.</p>
+      </div>
+      <div class="card">
+        <div class="tag">Art direction</div>
+        <div class="big">Your call. My lean: Painted</div>
+        <p>Painted has the most age-of-sail warmth and reads best at play zoom. Pixel Art is the most charming and the cheapest to extend. Low-Poly is the most scalable pipeline, since every building is a few lines of 3D shapes and gets lighting, shadows, upgrades and damage states for free, but it feels the most generic. Parchment has the strongest identity but is the hardest to keep readable.</p>
+      </div>
+    </div>
+    <h3>Before production, whichever style wins</h3>
+    <ol class="next">
+      <li><b>Coast transitions.</b> All four art directors flagged the stair-stepped coastline. The spec needs edge-aware terrain, meaning tiles chosen by what's around them.</li>
+      <li><b>Taller sprites in draw order.</b> Ship sails can cover the pier. Moving units will need a proper depth rule.</li>
+      <li><b>Animation.</b> Windmill sails, sailing ships and walking colonists, as frame sets or 3D turntables.</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+const STYLES = [
+  { key: "painted", name: "Painted Isometric", short: "Warm, hand-painted, closest to classic city builders",
+    desc: "Terracotta and thatch roofs, half-timbered walls, chimney smoke, painterly grass and sea, and a plank-and-parchment UI.",
+    plus: ["Warm, distinct building silhouettes: the chapel spire, windmill and crate-stacked warehouse", "Strongest age-of-sail mood", "UI matches the art and is clear to read"],
+    minus: ["Stair-stepped coastline, since tiles don't know their neighbours", "A faint repeat shows across large stretches of grass", "Ships only face one way, and the pier is small"] },
+  { key: "lowpoly", name: "Low-Poly", short: "Clean, modern, pre-rendered 3D",
+    desc: "three.js models rendered through an isometric camera, with soft pastels, raised land tiles, soft violet shadows and a flat modern UI.",
+    plus: ["Most readable at a glance", "A new building is about 10 lines of shapes, with lighting and shadows consistent automatically", "Upgrades, damage states and per-nation colours come almost free"],
+    minus: ["The most generic look, with the least period character", "Faint facet pattern repeats on deep water", "Colonists read as small dots"] },
+  { key: "pixel", name: "Pixel Art", short: "Cozy, crisp, limited 45-colour palette",
+    desc: "Drawn at 64 × 32 per tile and doubled, with a hand-made pixel font, plank top bar and parchment stock panel.",
+    plus: ["Charming and very readable", "Smallest assets: 220 KB for the whole set", "A new building is about 15 lines from shared helpers"],
+    minus: ["Stair-stepped diamond coastline", "Large buildings and ships need hand-tuning", "Fine curves are hard at this resolution"], nearest: true },
+  { key: "parchment", name: "Parchment Chart", short: "A living 17th-century sea chart",
+    desc: "Ink linework with hatching and stipple, watercolour washes, an inked coast with contour lines, a compass rose, and wax-seal UI.",
+    plus: ["The most distinctive identity of the four", "Reads as one drawn map", "Re-theming is just a palette change"],
+    minus: ["The inked coast is a full-screen overlay that would need computing at runtime", "The paper texture lowers contrast", "Ships read small"] },
+];
+const $ = (id) => document.getElementById(id);
+const thumbs = $("thumbs");
+function show(i) {
+  const s = STYLES[i];
+  $("big").src = `img/${s.key}.jpg`; $("big").alt = `${s.name} render of the harbour town`;
+  $("detail").src = `img/${s.key}-detail.png`;
+  $("detailbox").classList.toggle("nearest", !!s.nearest);
+  $("sname").textContent = s.name; $("sdesc").textContent = s.desc;
+  $("splus").innerHTML = s.plus.map((t) => `<li>${t}</li>`).join("");
+  $("sminus").innerHTML = s.minus.map((t) => `<li>${t}</li>`).join("");
+  [...thumbs.children].forEach((b, j) => b.setAttribute("aria-selected", String(j === i)));
+}
+STYLES.forEach((s, i) => {
+  const b = document.createElement("button");
+  b.className = "thumb"; b.setAttribute("role", "tab"); b.id = `tab-${s.key}`;
+  b.innerHTML = `<img src="img/${s.key}-thumb.jpg" alt="" width="960" height="540"><span>${s.name}</span><small>${s.short}</small>`;
+  b.addEventListener("click", () => show(i));
+  thumbs.appendChild(b);
+});
+show(0);
+</script>
