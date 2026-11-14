@@ -37,7 +37,11 @@ export async function loadArt(): Promise<Art> {
   }
   const load = async (file: string, anchor: [number, number]): Promise<Sprite2 | undefined> => {
     try {
-      const tex = await Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/${file}`);
+      // Straight-alpha PNGs: premultiply on upload so additive glow reads as light, not haze.
+      const tex = await Assets.load<Texture>({
+        src: `${import.meta.env.BASE_URL}assets/${file}`,
+        data: { alphaMode: 'premultiply-alpha-on-upload' },
+      });
       return { tex, anchor };
     } catch {
       return undefined;

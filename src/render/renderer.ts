@@ -47,7 +47,7 @@ export class Renderer {
   private world = new Container();
   private terrain = new Container();
   private objects = new Container();
-  private ghost = new Graphics();
+  private ghost = new Container();
   private camera!: Camera;
   private art: Art = { tiles: new Map(), buildings: new Map() };
   private built = new Map<number, Container>();
@@ -121,9 +121,11 @@ export class Renderer {
       for (let x = 0; x < w; x++) {
         const cls = TILE_CLASSES[tiles[y * w + x] as number] as TileClass;
         const p = gridToWorld(x, y);
-        const art = this.art.tiles.get(cls);
+        const art = this.art.tiles.get(this.tileKey(x, y, cls));
         if (art) {
-          this.terrain.addChild(this.makeSprite(art, p.x, p.y));
+          // Anchor sits on the tile's south corner.
+          const s = gridToWorld(x + 1, y + 1);
+          this.terrain.addChild(this.makeSprite(art, s.x, s.y));
           continue;
         }
         // Slight per-tile checker variation so the grid reads.
@@ -134,9 +136,25 @@ export class Renderer {
     this.terrain.addChildAt(g, 0);
   }
 
+  private isWater(x: number, y: number): boolean {
+    const { w, h, tiles } = this.map;
+    if (x < 0 || y < 0 || x >= w || y >= h) return false;
+    const c = tiles[y * w + x];
+    return c === 0 || c === 1;
+  }
+
+  /** Art key for a tile: water as-is, land/shore as a seawall autotile (N=1 E=2 S=4 W=8). */
+  private tileKey(x: number, y: number, cls: TileClass): string {
+    if (cls === 'deep') return 'deep_water';
+    if (cls === 'shallow') return 'shallow_water';
+    const mask =
+      (this.isWater(x, y - 1) ? 1 : 0) | (this.isWater(x + 1, y) ? 2 : 0) | (this.isWater(x, y + 1) ? 4 : 0) | (this.isWater(x - 1, y) ? 8 : 0);
+    return `shore_${mask}`;
+  }
+
   private makeSprite(s: Sprite2, x: number, y: number, additive = false): Sprite {
     const sp = new Sprite(s.tex);
-    sp.anchor.set(s.anchor[0], s.anchor[1]);
+    sp.pivot.set(s.anchor[0], s.anchor[1]); // anchors are pixels (not normalised)
     sp.position.set(x, y);
     if (additive) sp.blendMode = 'add';
     return sp;
@@ -186,7 +204,7 @@ export class Renderer {
     const node = new Container();
     const art = this.art.buildings.get(def.id);
     if (art) {
-      const c = gridToWorld(b.x + fw / 2, b.y + fh / 2);
+      const c = gridToWorld(b.x + fw, b.y + fh); // south corner of footprint
       node.addChild(this.makeSprite(art.base, c.x, c.y));
       if (art.glow) node.addChild(this.makeSprite(art.glow, c.x, c.y, true));
     } else {
@@ -216,17 +234,26 @@ export class Renderer {
 
   private redrawGhost(): void {
     const g = this.ghost;
-    g.clear();
+    for (const c of g.removeChildren()) c.destroy({ children: true });
     const def = this.ghostDef;
     if (!def || !this.state || this.hover.x < 0) return;
     const { x, y } = this.hover;
     const ok = placementError(this.map, this.state.buildings, def, x, y) === null;
     const color = ok ? 0x4ade80 : 0xf87171;
     const [w, h] = def.footprint;
-    // Flat footprint tint plus a translucent box.
+    const gfx = new Graphics();
     const T = gridToWorld(x, y), R = gridToWorld(x + w, y), B = gridToWorld(x + w, y + h), L = gridToWorld(x, y + h);
-    g.poly([T.x, T.y, R.x, R.y, B.x, B.y, L.x, L.y]).fill({ color, alpha: 0.35 });
-    drawBox(g, x, y, w, h, def.height, color, 0.45);
-    this.footprintOutline(g, x, y, w, h, color);
+    gfx.poly([T.x, T.y, R.x, R.y, B.x, B.y, L.x, L.y]).fill({ color, alpha: 0.35 });
+    const art = this.art.buildings.get(def.id);
+    if (art) {
+      const sp = this.makeSprite(art.base, B.x, B.y);
+      sp.tint = color;
+      sp.alpha = 0.5;
+      g.addChild(gfx, sp);
+    } else {
+      drawBox(gfx, x, y, w, h, def.height, color, 0.45);
+      g.addChild(gfx);
+    }
+    this.footprintOutline(gfx, x, y, w, h, color);
   }
 }

@@ -68,7 +68,7 @@ describe('placement', () => {
     expect(placementError(map, [], def, -1, 5)).toBe('out of bounds');
     expect(placementError(map, [], def, 64, 64)).toBe('out of bounds');
     const existing: Building[] = [{ id: 1, type: 'pod_house', x, y }];
-    expect(placementError(map, existing, def, x + 1, y)).toBe('tile occupied');
+    expect(placementError(map, existing, def, x, y)).toBe('tile occupied');
   });
 });
 
@@ -90,7 +90,7 @@ describe('headless sim', () => {
     expect(a.tick).toBe(20); // paused at tick 20
   });
   it('demolish removes the building', () => {
-    const s = runHeadless(99, [...cmds.slice(0, 1), { tick: 8, cmd: { type: 'demolish', x: x + 1, y: y + 1 } }], 10);
+    const s = runHeadless(99, [...cmds.slice(0, 1), { tick: 8, cmd: { type: 'demolish', x, y } }], 10);
     expect(s.buildings).toHaveLength(0);
   });
 });

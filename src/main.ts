@@ -60,4 +60,5 @@ send({ type: 'init', seed });
     return !!def && !!state && placementError(map, state.buildings, def, x, y) === null;
   },
   tileToScreen: (x: number, y: number) => renderer.tileToScreen(x, y),
+  place: (building: string, x: number, y: number) => command({ type: 'placeBuilding', building, x, y }),
 };

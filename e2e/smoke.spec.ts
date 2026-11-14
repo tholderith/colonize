@@ -4,6 +4,7 @@ interface Foundry {
   ready(): boolean;
   canPlace(id: string, x: number, y: number): boolean;
   tileToScreen(x: number, y: number): { x: number; y: number };
+  place(id: string, x: number, y: number): void;
 }
 
 test('load, place a building via the UI, screenshot', async ({ page }) => {
@@ -32,5 +33,22 @@ test('load, place a building via the UI, screenshot', async ({ page }) => {
   await expect(page.locator('#info-body')).toContainText('Pod House');
   await page.mouse.move(box.x + 5, box.y + box.height - 5);
   await page.screenshot({ path: 'test-results/m0.png' });
+
+  // One of each building on land, spread out, for a second look.
+  await page.evaluate(() => {
+    const f = (window as unknown as { __foundry: Foundry }).__foundry;
+    const ids = ['pod_house', 'hydroponics', 'scrap_yard', 'smelter', 'wind_turbine', 'depot'];
+    const placed: [number, number][] = [];
+    for (const id of ids)
+      scan: for (let y = 0; y < 64; y++)
+        for (let x = 0; x < 64; x++)
+          if (f.canPlace(id, x, y) && placed.every(([px, py]) => Math.abs(px - x) + Math.abs(py - y) > 7)) {
+            f.place(id, x, y);
+            placed.push([x, y]);
+            break scan;
+          }
+  });
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: 'test-results/m0-all.png' });
   expect(errors).toEqual([]);
 });
