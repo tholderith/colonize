@@ -91,7 +91,7 @@ def topbar(out):
     c = [(x, 10), (W_ - 28, 10), (W_ - 28, 62), (x, 62)]
     a.poly(c, (214, 190, 140), True, 1.2)
     a.line([(x + 5, 15), (W_ - 33, 15), (W_ - 33, 57), (x + 5, 57), (x + 5, 15)], .6, INK2, alpha=150)
-    a.text(((x + W_ - 28) / 2, 28), "Anno 1627", (19, True), INK, "mm")
+    a.text(((x + W_ - 28) / 2, 28), "Year 1627", (19, True), INK, "mm")
     a.text(((x + W_ - 28) / 2, 47), "Spring  -  Day 12", (12, False, True), INK2, "mm")
     seal(a, (x - 10, 36), 17, "II")
     a.save(out)

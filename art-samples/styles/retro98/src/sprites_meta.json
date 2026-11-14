@@ -1,0 +1,142 @@
+{
+ "cart": {
+  "files": [
+   "cart.png"
+  ],
+  "anchor": [
+   26,
+   60
+  ],
+  "flat": false
+ },
+ "chapel": {
+  "files": [
+   "chapel.png"
+  ],
+  "anchor": [
+   98,
+   156
+  ],
+  "flat": false
+ },
+ "colonist": {
+  "files": [
+   "colonist_0.png",
+   "colonist_1.png",
+   "colonist_2.png",
+   "colonist_3.png"
+  ],
+  "anchor": [
+   8,
+   70
+  ],
+  "flat": false
+ },
+ "farmhouse": {
+  "files": [
+   "farmhouse.png"
+  ],
+  "anchor": [
+   58,
+   104
+  ],
+  "flat": false
+ },
+ "house": {
+  "files": [
+   "house_0.png",
+   "house_1.png",
+   "house_2.png",
+   "house_3.png"
+  ],
+  "anchor": [
+   44,
+   104
+  ],
+  "flat": false
+ },
+ "lumberjack": {
+  "files": [
+   "lumberjack.png"
+  ],
+  "anchor": [
+   38,
+   98
+  ],
+  "flat": false
+ },
+ "pier": {
+  "files": [
+   "pier.png"
+  ],
+  "anchor": [
+   46,
+   68
+  ],
+  "flat": true
+ },
+ "rock": {
+  "files": [
+   "rock_0.png",
+   "rock_1.png"
+  ],
+  "anchor": [
+   24,
+   62
+  ],
+  "flat": false
+ },
+ "ship": {
+  "files": [
+   "ship.png"
+  ],
+  "anchor": [
+   74,
+   182
+  ],
+  "flat": false
+ },
+ "tree": {
+  "files": [
+   "tree_0.png",
+   "tree_1.png",
+   "tree_2.png",
+   "tree_3.png"
+  ],
+  "anchor": [
+   28,
+   134
+  ],
+  "flat": false
+ },
+ "warehouse": {
+  "files": [
+   "warehouse.png"
+  ],
+  "anchor": [
+   94,
+   184
+  ],
+  "flat": false
+ },
+ "wheat_field": {
+  "files": [
+   "wheat_field.png"
+  ],
+  "anchor": [
+   118,
+   124
+  ],
+  "flat": true
+ },
+ "windmill": {
+  "files": [
+   "windmill.png"
+  ],
+  "anchor": [
+   52,
+   150
+  ],
+  "flat": false
+ }
+}

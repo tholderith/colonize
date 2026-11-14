@@ -6,3 +6,4 @@ build/
 *.o
 art-samples/engines/browser/site/
 *.log
+__pycache__/
